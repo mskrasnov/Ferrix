@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.mskrasnov.Ferrix</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+
+  <name>Ferrix</name>
+  <summary>Swiss Knife for Linux hardware diagnostics</summary>
+  <description>
+    <p>Ferrix is a program for obtaining information about computer hardware and software. It is designed to work in modern Linux OS distributions, written in Rust using GTK4 and libadwaita.</p>
+  </description>
+
+  <developer id="tld.vendor">
+    <name>Michail Krasnov</name>
+  </developer>
+
+  <!-- Required: Should be a link to the upstream homepage for the component -->
+  <url type="homepage">https://mskrasnov.github.io/Ferrix/</url>
+  <!-- Recommended: It is highly recommended for open-source projects to display the source code repository -->
+  <url type="vcs-browser">https://github.com/mskrasnov/Ferrix</url>
+  <!-- Should point to the software's bug tracking system, for users to report new bugs -->
+  <url type="bugtracker">https://github.com/mskrasnov/Ferrix/issues</url>
+  <!-- Should link a FAQ page for this software, to answer some of the most-asked questions in detail -->
+  <!-- URLs of this type should point to a webpage where users can submit or modify translations of the upstream project -->
+  <url type="translate">https://mskrasnov.github.io/Ferrix/translate.html</url>
+  <url type="faq">https://mskrasnov.github.io/Ferrix/faq.html</url>
+  <!-- Should provide a web link to an online user's reference, a software manual or help page -->
+  <url type="help">https://mskransov.github.io/Ferrix/docs/</url>
+  <!-- URLs of this type should point to a webpage showing information on how to donate to the described software project -->
+  <url type="donation">https://mskrasnov.github.io/Ferrix/donate.html</url>
+  <!-- This could for example be an HTTPS URL to an online form or a page describing how to contact the developer -->
+  <url type="contact">https://mskrasnov.github.io/Ferrix/donate.html</url>
+  <!-- URLs of this type should point to a webpage showing information on how to contribute to the described software project -->
+  <url type="contribute">https://github.com/mskrasnov/Ferrix</url>
+
+  <translation type="gettext">ferrix</translation>
+  <!-- All graphical applications having a desktop file must have this tag in the MetaInfo.
+     If this is present, appstreamcli compose will pull icons, keywords and categories from the desktop file. -->
+  <launchable type="desktop-id">com.mskrasnov.Ferrix.desktop</launchable>
+  <!-- Use the OARS website (https://hughsie.github.io/oars/generate.html) to generate these and make sure to use oars-1.1 -->
+  <content_rating type="oars-1.1" />
+
+  <!-- Applications should set a brand color in both light and dark variants like so -->
+  <branding>
+    <color type="primary" scheme_preference="light">#ff00ff</color>
+    <color type="primary" scheme_preference="dark">#993d3d</color>
+  </branding>
+
+  <screenshots>
+    <screenshot type="default">
+      <image>https://mskrasnov.github.io/Ferrix/main_win.png</image>
+      <caption>Main window</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://mskrasnov.github.io/Ferrix/dmi.png</image>
+      <caption>DMI Reader Page</caption>
+    </screenshot>
+  </screenshots>
+
+  <releases>
+    <release version="0.1.0" date="2025-12-22">
+      <url type="details">https://github.com/mskrasnov/Ferrix/releases/tag/0.1.0</url>
+      <description translate="no">
+        <p>Initial release of Ferrix!</p>
+        <p>This is a first release included:</p>
+        <ul>
+          <li>Simple dashboard with main information about PC and OS;</li>
+          <li>Pages with information about: CPUs, RAM, Linux kernel and installed distro, DMI tables (BIOS, motherboard, processor, memory).</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
+
+</component>

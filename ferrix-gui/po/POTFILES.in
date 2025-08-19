@@ -1,0 +1,6 @@
+# List of source files containing translatable strings.
+# Please keep this file sorted alphabetically.
+data/com.mskrasnov.Ferrix.desktop.in
+data/com.mskrasnov.Ferrix.metainfo.xml.in
+data/com.mskrasnov.Ferrix.gschema.xml
+src/window.ui

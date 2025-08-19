@@ -1,0 +1,18 @@
+[workspace]
+members=["ferrix-gui", "ferrix-lib"]
+resolver="2"
+
+[workspace.package]
+version="0.1.0"
+edition="2024"
+authors=["Michail Krasnov <mskrasnov07@ya.ru>"]
+license="GPL-3.0"
+repository="https://github.com/mskrasnov/ferrix"
+
+[profile.release]
+lto=true
+strip=true
+debug=false
+panic="abort"
+opt-level="s"
+codegen-units=1

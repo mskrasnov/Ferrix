@@ -1,0 +1,13 @@
+[package]
+name = "ferrix-gui"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+anyhow = "1.0.98"
+async-channel = "2.5.0"
+ferrix-lib.path = "../ferrix-lib"
+gtk = { version = "0.10.0", package = "gtk4", features = ["v4_8"] }
