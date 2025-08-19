@@ -1,9 +1,11 @@
 use ferrix_lib::cpu::Processors;
 use ferrix_lib::ram::RAM;
+use ferrix_lib::sys::Sys;
 use gtk::gio::{Menu, MenuItem};
 use gtk::glib::clone;
 use gtk::{
-    glib, Application, ApplicationWindow, Button, HeaderBar, MenuButton, ScrolledWindow, Stack, StackSidebar
+    Application, ApplicationWindow, Button, HeaderBar, MenuButton, ScrolledWindow, Stack,
+    StackSidebar, glib,
 };
 use gtk::{Box, Label, prelude::*};
 
@@ -22,12 +24,12 @@ fn build_ui(app: &Application) {
     let sidebar = StackSidebar::new();
     sidebar.set_stack(&stack);
 
-    // stack.add_titled(&Label::new(Some("[TODO]")), Some("dash"), "Dashboard");
+    stack.add_titled(&todo_widget(), Some("dash"), "Dashboard");
     stack.add_titled(&proc_page(), Some("proc"), "Processors");
     stack.add_titled(&ram_page(), Some("Memory"), "Memory");
-    // stack.add_titled(&Label::new(Some("[TODO]")), Some("storage"), "Storage");
-    // stack.add_titled(&Label::new(Some("[TODO]")), Some("dmi"), "DMI Tables");
-    // stack.add_titled(&Label::new(Some("[TODO]")), Some("os"), "Operating system");
+    stack.add_titled(&todo_widget(), Some("storage"), "Storage");
+    stack.add_titled(&todo_widget(), Some("dmi"), "DMI Tables");
+    stack.add_titled(&sys_page(), Some("os"), "Operating system");
 
     hbox.append(&sidebar);
     hbox.append(&stack);
@@ -40,6 +42,8 @@ fn build_ui(app: &Application) {
         .application(app)
         .title("Ferrix")
         .titlebar(&create_hdr_bar())
+        .default_height(400)
+        .default_width(490)
         .child(&hbox)
         .build();
 
@@ -112,6 +116,26 @@ fn build_ui(app: &Application) {
     win.present();
 }
 
+fn todo_widget() -> Box {
+    let layout = Box::new(gtk::Orientation::Vertical, 10);
+    layout.set_vexpand(false);
+    let title = Label::builder()
+        .label("TODO")
+        .css_classes(["large-title"])
+        .build();
+    let subtitle = Label::builder()
+        .label("Этот функционал пока ещё в разработке")
+        .build();
+
+    layout.append(&title);
+    layout.append(&subtitle);
+
+    layout.set_halign(gtk::Align::Center);
+    layout.set_valign(gtk::Align::Center);
+
+    layout
+}
+
 fn create_hdr_bar() -> HeaderBar {
     let hdr = HeaderBar::new();
     let menu = MenuButton::builder()
@@ -170,17 +194,52 @@ fn proc_page() -> ScrolledWindow {
         async move {
             while let Ok(proc_data) = receiver.recv().await {
                 proc.set_label(&match proc_data {
-                    Ok(proc) => format!("{:#?}", &proc.entries[0]),
+                    Ok(proc) => format!("{:#?}", &proc.entries),
                     Err(why) => format!("Error: {why}"),
                 });
             }
         }
     ));
 
-    let scrolled = ScrolledWindow::builder()
-        .child(&page)
-        .build();
-    scrolled
+    ScrolledWindow::builder().child(&page).build()
+}
+
+fn sys_page() -> ScrolledWindow {
+    let page = Box::new(gtk::Orientation::Vertical, 0);
+    let (sender, receiver) = async_channel::bounded(1);
+    glib::spawn_future_local(clone!(
+        #[strong]
+        sender,
+        async move {
+            loop {
+                let data = Sys::new();
+                sender
+                    .send(data)
+                    .await
+                    .expect("The channel needs to be open");
+                glib::timeout_future_seconds(1).await;
+            }
+        }
+    ));
+    let proc = Label::new(None);
+    page.append(&proc);
+
+    glib::spawn_future_local(clone!(
+        #[weak]
+        proc,
+        #[strong]
+        receiver,
+        async move {
+            while let Ok(sys) = receiver.recv().await {
+                proc.set_label(&match sys {
+                    Ok(sys) => format!("{:#?}", &sys),
+                    Err(why) => format!("Error: {why}"),
+                });
+            }
+        }
+    ));
+
+    ScrolledWindow::builder().child(&page).build()
 }
 
 fn ram_page() -> Box {
