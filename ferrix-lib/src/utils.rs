@@ -49,7 +49,7 @@ impl Size {
     /// base: 2 or 10
     pub fn round(&self, base: u8) -> Option<Self> {
         if base != 2 && base != 10 {
-            return None;
+            panic!("Unknown base: {base} (supported values: 2 or 10)")
         }
 
         let mut size = *self;
@@ -62,7 +62,7 @@ impl Size {
         let div = match base {
             2 => 1024.,
             10 => 1000.,
-            _ => return None, // unreachable branch
+            _ => panic!("Unknown base: {base} (supported values: 2 or 10)"), // unreachable branch
         };
 
         while num >= div {
