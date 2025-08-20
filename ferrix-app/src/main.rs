@@ -1,5 +1,3 @@
-use anyhow::Result;
-use async_channel::{Receiver, Sender};
 use ferrix_lib::cpu::Processors;
 use ferrix_lib::drm::Video;
 use ferrix_lib::ram::RAM;
@@ -16,8 +14,9 @@ use std::fmt::Display;
 const APP_ID: &str = "com.mskrasnov.Ferrix";
 // const LOGO: &[u8] = include_bytes!("../data/icons/hicolor/scalable/apps/com.mskrasnov.Ferrix.svg");
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub enum Page {
+    #[default]
     Dashboard,
     Processors,
     Memory,
@@ -56,6 +55,7 @@ impl Display for Page {
 
 #[derive(Debug)]
 pub struct AppState {
+    pub page: Page,
     pub proc: Option<Processors>,
     pub ram: Option<RAM>,
     pub system: Option<Sys>,
@@ -64,34 +64,13 @@ pub struct AppState {
 impl AppState {
     pub fn new() -> Self {
         Self {
+            page: Page::default(),
             proc: None,
             ram: None,
             system: None,
         }
     }
-
-    fn _update() -> Result<Self> {
-        todo!()
-    }
-
-    pub fn update(&self, sender: Sender<Result<Self>>, _recv: Receiver<Result<Self>>) {
-        glib::spawn_future_local(clone!(
-            #[strong]
-            sender,
-            async move {
-                loop {
-                    let data = Self::_update();
-                    sender
-                        .send(data)
-                        .await
-                        .expect("The channel needs to be open");
-                    glib::timeout_future_seconds(1).await;
-                }
-            }
-        ));
-    }
 }
-
 fn main() -> glib::ExitCode {
     let app = Application::builder().application_id(APP_ID).build();
     app.connect_activate(build_ui);

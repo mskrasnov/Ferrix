@@ -1,5 +1,5 @@
 [package]
-name = "ferrix-gui"
+name = "ferrix-app"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true

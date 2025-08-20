@@ -1,5 +1,5 @@
 [workspace]
-members=["ferrix-gui", "ferrix-lib"]
+members=["ferrix-app", "ferrix-lib"]
 resolver="2"
 
 [workspace.package]
