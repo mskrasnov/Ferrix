@@ -242,52 +242,59 @@ pub struct OsRelease {
 
 impl OsRelease {
     pub fn new() -> Result<Self> {
-        let chunks = read_to_string("/etc/os-release")?;
-        let chunks = chunks
-            .lines()
-            .map(|item| {
-                let mut items = item.split('=').map(sanitize_str);
-                (items.next(), items.next())
-            })
-            .collect::<Vec<_>>();
+        let chunks = get_chunks_osrelease(read_to_string("/etc/os-release")?);
         let mut osr = Self::default();
         for chunk in chunks {
-            match chunk {
-                (Some(key), Some(val)) => {
-                    let key = &key as &str;
-                    match key {
-                        "NAME" => osr.name = val.to_string(),
-                        "ID" => osr.id = Some(val.to_string()),
-                        "ID_LIKE" => osr.id_like = Some(val.to_string()),
-                        "PRETTY_NAME" => osr.pretty_name = Some(val.to_string()),
-                        "CPE_NAME" => osr.cpe_name = Some(val.to_string()),
-                        "VARIANT" => osr.variant = Some(val.to_string()),
-                        "VARIANT_ID" => osr.variant_id = Some(val.to_string()),
-                        "VERSION" => osr.version = Some(val.to_string()),
-                        "VERSION_CODENAME" => osr.version_codename = Some(val.to_string()),
-                        "VERSION_ID" => osr.version_id = Some(val.to_string()),
-                        "BUILD_ID" => osr.build_id = Some(val.to_string()),
-                        "IMAGE_ID" => osr.image_id = Some(val.to_string()),
-                        "IMAGE_VERSION" => osr.image_version = Some(val.to_string()),
-                        "HOME_URL" => osr.home_url = Some(val.to_string()),
-                        "DOCUMENTATION_URL" => osr.documentation_url = Some(val.to_string()),
-                        "SUPPORT_URL" => osr.support_url = Some(val.to_string()),
-                        "BUG_REPORT_URL" => osr.bug_report_url = Some(val.to_string()),
-                        "PRIVACY_POLICY_URL" => osr.privacy_policy_url = Some(val.to_string()),
-                        "LOGO" => osr.logo = Some(val.to_string()),
-                        "DEFAULT_HOSTNAME" => osr.default_hostname = Some(val.to_string()),
-                        "SYSEXT_LEVEL" => osr.sysext_level = Some(val.to_string()),
-                        _ => continue,
-                    }
-                }
-                _ => {}
-            }
+            parse_osrelease(&mut osr, chunk);
         }
         Ok(osr)
     }
 }
 
 impl ToJson for OsRelease {}
+
+fn get_chunks_osrelease(contents: String) -> Vec<(Option<String>, Option<String>)> {
+    contents
+        .lines()
+        .map(|item| {
+            let mut items = item.split('=').map(sanitize_str);
+            (items.next(), items.next())
+        })
+        .collect::<Vec<_>>()
+}
+
+fn parse_osrelease(osr: &mut OsRelease, chunk: (Option<String>, Option<String>)) {
+    match chunk {
+        (Some(key), Some(val)) => {
+            let key = &key as &str;
+            match key {
+                "NAME" => osr.name = val.to_string(),
+                "ID" => osr.id = Some(val.to_string()),
+                "ID_LIKE" => osr.id_like = Some(val.to_string()),
+                "PRETTY_NAME" => osr.pretty_name = Some(val.to_string()),
+                "CPE_NAME" => osr.cpe_name = Some(val.to_string()),
+                "VARIANT" => osr.variant = Some(val.to_string()),
+                "VARIANT_ID" => osr.variant_id = Some(val.to_string()),
+                "VERSION" => osr.version = Some(val.to_string()),
+                "VERSION_CODENAME" => osr.version_codename = Some(val.to_string()),
+                "VERSION_ID" => osr.version_id = Some(val.to_string()),
+                "BUILD_ID" => osr.build_id = Some(val.to_string()),
+                "IMAGE_ID" => osr.image_id = Some(val.to_string()),
+                "IMAGE_VERSION" => osr.image_version = Some(val.to_string()),
+                "HOME_URL" => osr.home_url = Some(val.to_string()),
+                "DOCUMENTATION_URL" => osr.documentation_url = Some(val.to_string()),
+                "SUPPORT_URL" => osr.support_url = Some(val.to_string()),
+                "BUG_REPORT_URL" => osr.bug_report_url = Some(val.to_string()),
+                "PRIVACY_POLICY_URL" => osr.privacy_policy_url = Some(val.to_string()),
+                "LOGO" => osr.logo = Some(val.to_string()),
+                "DEFAULT_HOSTNAME" => osr.default_hostname = Some(val.to_string()),
+                "SYSEXT_LEVEL" => osr.sysext_level = Some(val.to_string()),
+                _ => {}
+            }
+        }
+        _ => {}
+    }
+}
 
 /// System uptime
 #[derive(Debug, Serialize)]
