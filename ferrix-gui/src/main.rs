@@ -1,4 +1,7 @@
+use anyhow::Result;
+use async_channel::{Receiver, Sender};
 use ferrix_lib::cpu::Processors;
+use ferrix_lib::drm::Video;
 use ferrix_lib::ram::RAM;
 use ferrix_lib::sys::Sys;
 use gtk::gio::{Menu, MenuItem};
@@ -8,9 +11,86 @@ use gtk::{
     StackSidebar, glib,
 };
 use gtk::{Box, Label, prelude::*};
+use std::fmt::Display;
 
 const APP_ID: &str = "com.mskrasnov.Ferrix";
 // const LOGO: &[u8] = include_bytes!("../data/icons/hicolor/scalable/apps/com.mskrasnov.Ferrix.svg");
+
+#[derive(Debug, Clone, Copy)]
+pub enum Page {
+    Dashboard,
+    Processors,
+    Memory,
+    Storage,
+    DMI,
+    System,
+}
+
+impl Page {
+    pub const ALL: [Self; 6] = [
+        Self::Dashboard,
+        Self::Processors,
+        Self::Memory,
+        Self::Storage,
+        Self::DMI,
+        Self::System,
+    ];
+}
+
+impl Display for Page {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Dashboard => "Dashboard",
+                Self::Processors => "Processors",
+                Self::Memory => "Memory",
+                Self::Storage => "Storage",
+                Self::DMI => "DMI Tables",
+                Self::System => "Operating System",
+            }
+        )
+    }
+}
+
+#[derive(Debug)]
+pub struct AppState {
+    pub proc: Option<Processors>,
+    pub ram: Option<RAM>,
+    pub system: Option<Sys>,
+}
+
+impl AppState {
+    pub fn new() -> Self {
+        Self {
+            proc: None,
+            ram: None,
+            system: None,
+        }
+    }
+
+    fn _update() -> Result<Self> {
+        todo!()
+    }
+
+    pub fn update(&self, sender: Sender<Result<Self>>, _recv: Receiver<Result<Self>>) {
+        glib::spawn_future_local(clone!(
+            #[strong]
+            sender,
+            async move {
+                loop {
+                    let data = Self::_update();
+                    sender
+                        .send(data)
+                        .await
+                        .expect("The channel needs to be open");
+                    glib::timeout_future_seconds(1).await;
+                }
+            }
+        ));
+    }
+}
 
 fn main() -> glib::ExitCode {
     let app = Application::builder().application_id(APP_ID).build();
@@ -29,6 +109,7 @@ fn build_ui(app: &Application) {
     stack.add_titled(&ram_page(), Some("Memory"), "Memory");
     stack.add_titled(&todo_widget(), Some("storage"), "Storage");
     stack.add_titled(&todo_widget(), Some("dmi"), "DMI Tables");
+    stack.add_titled(&drm_page(), Some("drm"), "Video");
     stack.add_titled(&sys_page(), Some("os"), "Operating system");
 
     hbox.append(&sidebar);
@@ -42,8 +123,8 @@ fn build_ui(app: &Application) {
         .application(app)
         .title("Ferrix")
         .titlebar(&create_hdr_bar())
-        .default_height(400)
-        .default_width(490)
+        .default_height(380)
+        .default_width(510)
         .child(&hbox)
         .build();
 
@@ -125,6 +206,7 @@ fn todo_widget() -> Box {
         .build();
     let subtitle = Label::builder()
         .label("Этот функционал пока ещё в разработке")
+        .css_classes(["subtitle"])
         .build();
 
     layout.append(&title);
@@ -217,7 +299,7 @@ fn sys_page() -> ScrolledWindow {
                     .send(data)
                     .await
                     .expect("The channel needs to be open");
-                glib::timeout_future_seconds(1).await;
+                glib::timeout_future_seconds(10).await;
             }
         }
     ));
@@ -322,4 +404,42 @@ fn ram_page() -> Box {
     ));
 
     page
+}
+
+fn drm_page() -> ScrolledWindow {
+    let page = Box::new(gtk::Orientation::Vertical, 0);
+    let (sender, receiver) = async_channel::bounded(1);
+    glib::spawn_future_local(clone!(
+        #[strong]
+        sender,
+        async move {
+            loop {
+                let data = Video::new();
+                sender
+                    .send(data)
+                    .await
+                    .expect("The channel needs to be open");
+                glib::timeout_future_seconds(1).await;
+            }
+        }
+    ));
+    let vid = Label::new(None);
+    page.append(&vid);
+
+    glib::spawn_future_local(clone!(
+        #[weak]
+        vid,
+        #[strong]
+        receiver,
+        async move {
+            while let Ok(vid_data) = receiver.recv().await {
+                vid.set_label(&match vid_data {
+                    Ok(vid_data) => format!("{:#?}", &vid_data.devices),
+                    Err(why) => format!("Error: {why}"),
+                });
+            }
+        }
+    ));
+
+    ScrolledWindow::builder().child(&page).build()
 }
