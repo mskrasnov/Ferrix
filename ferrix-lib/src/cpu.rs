@@ -230,11 +230,11 @@ fn get_parts(s: &str) -> impl Iterator<Item = &str> {
     s.splitn(2, ':').map(|item| item.trim())
 }
 
+#[cfg(target_arch = "x86_64")]
 fn parse_cpuinfo(cpu: &mut CPU, parts: &str) {
     let mut parts = get_parts(parts);
     match (parts.next(), parts.next()) {
         (Some(key), Some(val)) => match key {
-            // x86, x86_64 and shared with other architectures params
             "processor" => cpu.processor = val.parse().ok(),
             "vendor_id" => cpu.vendor_id = Some(val.to_string()),
             "cpu family" => cpu.cpu_family = val.parse().ok(),
@@ -263,10 +263,21 @@ fn parse_cpuinfo(cpu: &mut CPU, parts: &str) {
             "cache_alignment" => cpu.cache_alignment = val.parse().ok(),
             "address sizes" => cpu.address_sizes = Some(val.to_string()),
             "power management" => cpu.power_management = Some(val.to_string()),
+            _ => {} // ignore unknown entry
+        },
+        _ => {}
+    }
+}
 
+#[cfg(target_arch = "aarch64")]
+fn parse_cpuinfo(cpu: &mut CPU, parts: &str) {
+    let mut parts = get_parts(parts);
+    match (parts.next(), parts.next()) {
+        (Some(key), Some(val)) => match key {
             // ARM
             "CPU implementer" => cpu.cpu_implementer = Some(val.to_string()),
             "CPU architecture" => cpu.cpu_architecture = val.parse().ok(),
+            "CPU variant" => cpu.cpu_variant = Some(val.to_string()),
             "CPU part" => cpu.cpu_part = Some(val.to_string()),
             "CPU revision" => cpu.cpu_revision = val.parse().ok(),
             _ => {} // ignore unknown entry
