@@ -78,52 +78,60 @@ fn read_info() -> Result<Vec<CPU>> {
         }
         let mut cpu = CPU::default();
         for line in block.lines() {
-            let mut parts = line.splitn(2, ':').map(|item| item.trim());
-            match (parts.next(), parts.next()) {
-                (Some(key), Some(val)) => match key {
-                    // x86, x86_64 and shared with other architectures params
-                    "processor" => cpu.processor = val.parse().ok(),
-                    "vendor_id" => cpu.vendor_id = Some(val.to_string()),
-                    "cpu family" => cpu.cpu_family = val.parse().ok(),
-                    "model" => cpu.model = val.parse().ok(),
-                    "model name" => cpu.model_name = Some(val.to_string()),
-                    "stepping" => cpu.stepping = val.parse().ok(),
-                    "microcode" => cpu.microcode = Some(val.to_string()),
-                    "cpu MHz" => cpu.cpu_mhz = val.parse().ok(),
-                    "cache size" => cpu.cache_size = Size::try_from(val).ok(),
-                    "physical id" => cpu.physical_id = val.parse().ok(),
-                    "siblings" => cpu.siblings = val.parse().ok(),
-                    "core id" => cpu.core_id = val.parse().ok(),
-                    "cpu cores" => cpu.cpu_cores = val.parse().ok(),
-                    "apicid" => cpu.apicid = val.parse().ok(),
-                    "initial apicid" => cpu.initial_apicid = val.parse().ok(),
-                    "fpu" => cpu.fpu = Some(get_bool(val)),
-                    "fpu_exception" => cpu.fpu_exception = Some(get_bool(val)),
-                    "cpuid level" => cpu.cpuid_level = val.parse().ok(),
-                    "wp" => cpu.wp = Some(get_bool(val)),
-                    "flags" | "Features" => {
-                        cpu.flags = Some(val.split_whitespace().map(String::from).collect())
-                    }
-                    "bugs" => cpu.bugs = Some(val.split_whitespace().map(String::from).collect()),
-                    "bogomips" | "BogoMIPS" => cpu.bogomips = val.parse().ok(),
-                    "clflush size" => cpu.clflush_size = val.parse().ok(),
-                    "cache_alignment" => cpu.cache_alignment = val.parse().ok(),
-                    "address sizes" => cpu.address_sizes = Some(val.to_string()),
-                    "power management" => cpu.power_management = Some(val.to_string()),
-
-                    // ARM
-                    "CPU implementer" => cpu.cpu_implementer = Some(val.to_string()),
-                    "CPU architecture" => cpu.cpu_architecture = val.parse().ok(),
-                    "CPU part" => cpu.cpu_part = Some(val.to_string()),
-                    "CPU revision" => cpu.cpu_revision = val.parse().ok(),
-                    _ => {} // ignore unknown entry
-                },
-                _ => continue,
-            }
+            parse_cpuinfo(&mut cpu, line);
         }
         processors.push(cpu);
     }
     Ok(processors)
+}
+
+fn get_parts(s: &str) -> impl Iterator<Item = &str> {
+    s.splitn(2, ':').map(|item| item.trim())
+}
+
+fn parse_cpuinfo(cpu: &mut CPU, parts: &str) {
+    let mut parts = get_parts(parts);
+    match (parts.next(), parts.next()) {
+        (Some(key), Some(val)) => match key {
+            // x86, x86_64 and shared with other architectures params
+            "processor" => cpu.processor = val.parse().ok(),
+            "vendor_id" => cpu.vendor_id = Some(val.to_string()),
+            "cpu family" => cpu.cpu_family = val.parse().ok(),
+            "model" => cpu.model = val.parse().ok(),
+            "model name" => cpu.model_name = Some(val.to_string()),
+            "stepping" => cpu.stepping = val.parse().ok(),
+            "microcode" => cpu.microcode = Some(val.to_string()),
+            "cpu MHz" => cpu.cpu_mhz = val.parse().ok(),
+            "cache size" => cpu.cache_size = Size::try_from(val).ok(),
+            "physical id" => cpu.physical_id = val.parse().ok(),
+            "siblings" => cpu.siblings = val.parse().ok(),
+            "core id" => cpu.core_id = val.parse().ok(),
+            "cpu cores" => cpu.cpu_cores = val.parse().ok(),
+            "apicid" => cpu.apicid = val.parse().ok(),
+            "initial apicid" => cpu.initial_apicid = val.parse().ok(),
+            "fpu" => cpu.fpu = Some(get_bool(val)),
+            "fpu_exception" => cpu.fpu_exception = Some(get_bool(val)),
+            "cpuid level" => cpu.cpuid_level = val.parse().ok(),
+            "wp" => cpu.wp = Some(get_bool(val)),
+            "flags" | "Features" => {
+                cpu.flags = Some(val.split_whitespace().map(String::from).collect())
+            }
+            "bugs" => cpu.bugs = Some(val.split_whitespace().map(String::from).collect()),
+            "bogomips" | "BogoMIPS" => cpu.bogomips = val.parse().ok(),
+            "clflush size" => cpu.clflush_size = val.parse().ok(),
+            "cache_alignment" => cpu.cache_alignment = val.parse().ok(),
+            "address sizes" => cpu.address_sizes = Some(val.to_string()),
+            "power management" => cpu.power_management = Some(val.to_string()),
+
+            // ARM
+            "CPU implementer" => cpu.cpu_implementer = Some(val.to_string()),
+            "CPU architecture" => cpu.cpu_architecture = val.parse().ok(),
+            "CPU part" => cpu.cpu_part = Some(val.to_string()),
+            "CPU revision" => cpu.cpu_revision = val.parse().ok(),
+            _ => {} // ignore unknown entry
+        },
+        _ => {}
+    }
 }
 
 fn get_bool(s: &str) -> bool {
