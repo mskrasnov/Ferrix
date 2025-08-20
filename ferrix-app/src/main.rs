@@ -209,7 +209,7 @@ fn create_hdr_bar() -> HeaderBar {
 
     let export_btn = Button::new();
     export_btn.add_css_class("header-button");
-    export_btn.set_icon_name("document-save");
+    export_btn.set_icon_name("document-save-symbolic");
     export_btn.set_tooltip_text(Some("Экспорт"));
     hdr.pack_start(&export_btn);
 
