@@ -2,3 +2,6 @@
 /Cargo.lock
 /example.*
 /TODO.md
+
+# Directory with local crates
+/vendor/
