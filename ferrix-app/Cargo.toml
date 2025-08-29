@@ -37,5 +37,5 @@ assets = [
 [dependencies]
 anyhow = "1.0.98"
 async-channel = "2.5.0"
-ferrix-lib.path = "../ferrix-lib"
+ferrix-lib = "0.1.0"
 gtk = { version = "0.10.0", package = "gtk4", features = ["v4_8"] }
