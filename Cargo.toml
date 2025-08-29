@@ -8,6 +8,8 @@ edition="2024"
 authors=["Michail Krasnov <mskrasnov07@ya.ru>"]
 license="GPL-3.0"
 repository="https://github.com/mskrasnov/ferrix"
+readme = "README.md"
+exclude = ["README_RU.md", "example.*", "TODO.md"]
 
 [profile.release]
 lto=true
