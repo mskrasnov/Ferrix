@@ -184,7 +184,7 @@ fn todo_widget() -> Box {
         .css_classes(["large-title"])
         .build();
     let subtitle = Label::builder()
-        .label("Этот функционал пока ещё в разработке")
+        .label("This functionality is still in development.")
         .css_classes(["subtitle"])
         .build();
 
@@ -202,7 +202,7 @@ fn create_hdr_bar() -> HeaderBar {
     let menu = MenuButton::builder()
         .icon_name("open-menu-symbolic")
         .menu_model(&create_menu_btn())
-        .tooltip_text("Меню")
+        .tooltip_text("Menu")
         .css_classes(["header-button", "text-button"])
         .build();
     hdr.pack_end(&menu);
@@ -210,7 +210,7 @@ fn create_hdr_bar() -> HeaderBar {
     let export_btn = Button::new();
     export_btn.add_css_class("header-button");
     export_btn.set_icon_name("document-save-symbolic");
-    export_btn.set_tooltip_text(Some("Экспорт"));
+    export_btn.set_tooltip_text(Some("Export"));
     hdr.pack_start(&export_btn);
 
     hdr
@@ -219,9 +219,9 @@ fn create_hdr_bar() -> HeaderBar {
 fn create_menu_btn() -> Menu {
     let menu = Menu::new();
     let section = Menu::new();
-    section.append_item(&MenuItem::new(Some("Обновить"), None));
-    section.append_item(&MenuItem::new(Some("Экспортировать"), None));
-    section.append_item(&MenuItem::new(Some("О программе"), None));
+    section.append_item(&MenuItem::new(Some("Update"), None));
+    section.append_item(&MenuItem::new(Some("Export"), None));
+    section.append_item(&MenuItem::new(Some("About Ferrix"), None));
 
     menu.append_section(None, &section);
     menu
