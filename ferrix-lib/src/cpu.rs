@@ -40,7 +40,7 @@ use crate::traits::{ToJson, ToPlainText, print_opt_val};
 use crate::utils::Size;
 
 /// A structure containing data from the `/proc/cpuinfo` file
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct Processors {
     /// Information about all core/thread
     pub entries: Vec<CPU>,
@@ -66,7 +66,7 @@ impl ToPlainText for Processors {
 }
 
 /// A structure with data about each processor core/thread
-#[derive(Debug, Serialize, Default)]
+#[derive(Debug, Serialize, Default, Clone)]
 pub struct CPU {
     /// Entry number (index)
     pub processor: Option<usize>,
@@ -156,8 +156,7 @@ impl ToJson for CPU {}
 #[cfg(target_arch = "x86_64")]
 impl ToPlainText for CPU {
     fn to_plain(&self) -> String {
-        let mut s = match self.processor {
-            Some(proc) => format!("\nProcessor #{proc}\n"),
+        let mut s = match self.processor { Some(proc) => format!("\nProcessor #{proc}\n"),
             None => format!("\nProcessor #unknown\n"),
         };
         s += "\tArchitecture: x86_64\n";

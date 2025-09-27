@@ -1,424 +1,248 @@
-use ferrix_lib::cpu::Processors;
-use ferrix_lib::drm::Video;
-use ferrix_lib::ram::RAM;
-use ferrix_lib::sys::Sys;
-use gtk::gio::{Menu, MenuItem};
-use gtk::glib::clone;
-use gtk::{
-    Application, ApplicationWindow, Button, HeaderBar, MenuButton, ScrolledWindow, Stack,
-    StackSidebar, glib,
-};
-use gtk::{Box, Label, prelude::*};
-use std::fmt::Display;
+/*
+ * main.rs
+ * styles/
+ * widgets/
+ * modals/
+ */
 
-const APP_ID: &str = "com.mskrasnov.Ferrix";
-// const LOGO: &[u8] = include_bytes!("../data/icons/hicolor/scalable/apps/com.mskrasnov.Ferrix.svg");
+use std::time::Duration;
+
+use ferrix_lib::cpu::Processors;
+use iced::{
+    Color, Element, Length, Subscription, Task, time,
+    widget::{button, center, column, container, row, scrollable, text},
+};
+
+pub mod modals;
+pub mod pages;
+pub mod styles;
+pub mod widgets;
+
+use pages::*;
+
+pub fn main() -> iced::Result {
+    iced::application(Ferrix::default, Ferrix::update, Ferrix::view)
+        .window_size((690., 480.))
+        .antialiasing(true)
+        .subscription(Ferrix::subscription)
+        .theme(iced::Theme::Dark)
+        .title("Ferrix")
+        .settings(iced::Settings {
+            default_text_size: iced::Pixels(14.),
+            ..Default::default()
+        })
+        .run()
+}
+
+#[derive(Debug, Clone)]
+pub enum Message {
+    GetCPUData,
+    CPUDataReceived((Option<Processors>, Option<String>)),
+    Dummy,
+    SelectPage(Page),
+}
 
 #[derive(Debug, Clone, Copy, Default)]
 pub enum Page {
-    #[default]
     Dashboard,
+    #[default]
     Processors,
     Memory,
     Storage,
-    DMI,
-    System,
 }
 
-impl Page {
-    pub const ALL: [Self; 6] = [
-        Self::Dashboard,
-        Self::Processors,
-        Self::Memory,
-        Self::Storage,
-        Self::DMI,
-        Self::System,
-    ];
-}
+impl<'a> Page {
+    pub fn page(&'a self, state: &'a Ferrix) -> Element<'a, Message> {
+        match self {
+            Self::Processors => self.proc_page(&state.proc_data).into(),
+            _ => self.todo_page(),
+        }
+    }
 
-impl Display for Page {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Self::Dashboard => "Dashboard",
-                Self::Processors => "Processors",
-                Self::Memory => "Memory",
-                Self::Storage => "Storage",
-                Self::DMI => "DMI Tables",
-                Self::System => "Operating System",
+    fn todo_page(&self) -> Element<'a, Message> {
+        container(center(
+            text("Этот функционал ещё не реализован")
+                .size(16)
+                .style(text::secondary),
+        ))
+        .into()
+    }
+
+    fn proc_page(
+        &'a self,
+        processors: &'a Option<Processors>,
+    ) -> container::Container<'a, Message> {
+        match processors {
+            None => container(center(text("Загрузка данных..."))),
+            Some(proc) => {
+                let mut proc_list = column![header_text("Процессор")].spacing(5);
+                for proc in &proc.entries {
+                    let rows = vec![
+                        InfoRow::new("Производитель", proc.vendor_id.clone()),
+                        InfoRow::new("Модель", proc.model_name.clone()),
+                        InfoRow::new("Stepping", fmt_val(proc.stepping)),
+                        InfoRow::new("Частота", fmt_val(proc.cpu_mhz)),
+                        InfoRow::new("Размер L3 кеша", fmt_val(proc.cache_size)),
+                        InfoRow::new("Физический ID", fmt_val(proc.physical_id)),
+                        InfoRow::new("ID ядра", fmt_val(proc.core_id)),
+                        InfoRow::new("Число ядер", fmt_val(proc.cpu_cores)),
+                        InfoRow::new("APIC ID", fmt_val(proc.apicid)),
+                        InfoRow::new("Флаги", fmt_vec(&proc.flags)),
+                        InfoRow::new("Баги", fmt_vec(&proc.bugs)),
+                    ];
+
+                    let proc_view = column![
+                        text(format!("Процессор #{}", proc.processor.unwrap_or(0))).style(|_| {
+                            text::Style {
+                                color: Some(Color::from_rgba8(255, 255, 250, 15.)),
+                            }
+                        }),
+                        container(kv_info_table(rows)).style(container::rounded_box),
+                    ]
+                    .spacing(5);
+                    proc_list = proc_list.push(proc_view);
+                }
+                container(scrollable(proc_list))
             }
-        )
+        }
     }
 }
 
 #[derive(Debug)]
-pub struct AppState {
-    pub page: Page,
-    pub proc: Option<Processors>,
-    pub ram: Option<RAM>,
-    pub system: Option<Sys>,
+pub struct Ferrix {
+    pub current_page: Page,
+    pub proc_data: Option<Processors>,
 }
 
-impl AppState {
-    pub fn new() -> Self {
+impl Default for Ferrix {
+    fn default() -> Self {
         Self {
-            page: Page::default(),
-            proc: None,
-            ram: None,
-            system: None,
+            current_page: Page::default(),
+            proc_data: None,
         }
     }
 }
-fn main() -> glib::ExitCode {
-    let app = Application::builder().application_id(APP_ID).build();
-    app.connect_activate(build_ui);
-    app.run()
-}
 
-fn build_ui(app: &Application) {
-    let hbox = Box::new(gtk::Orientation::Horizontal, 0);
-    let stack = Stack::new();
-    let sidebar = StackSidebar::new();
-    sidebar.set_stack(&stack);
-
-    stack.add_titled(&todo_widget(), Some("dash"), "Dashboard");
-    stack.add_titled(&proc_page(), Some("proc"), "Processors");
-    stack.add_titled(&ram_page(), Some("Memory"), "Memory");
-    stack.add_titled(&todo_widget(), Some("storage"), "Storage");
-    stack.add_titled(&todo_widget(), Some("dmi"), "DMI Tables");
-    stack.add_titled(&drm_page(), Some("drm"), "Video");
-    stack.add_titled(&sys_page(), Some("os"), "Operating system");
-
-    hbox.append(&sidebar);
-    hbox.append(&stack);
-
-    sidebar.set_hexpand(false);
-    sidebar.set_halign(gtk::Align::Start);
-    stack.set_hexpand(true);
-
-    let win = ApplicationWindow::builder()
-        .application(app)
-        .title("Ferrix")
-        .titlebar(&create_hdr_bar())
-        .default_height(380)
-        .default_width(510)
-        .child(&hbox)
-        .build();
-
-    // let bytes = glib::Bytes::from_static(LOGO);
-    // let logo = gtk::gdk::Texture::from_bytes(&bytes).unwrap();
-    // let (sender, receiver) = async_channel::bounded(1);
-
-    // about_btn.connect_clicked(clone!(
-    //     #[weak]
-    //     win,
-    //     move |_| {
-    //         let dialog = gtk::AboutDialog::builder()
-    //             .transient_for(&win)
-    //             .modal(true)
-    //             .program_name("Ferrix")
-    //             .version(env!("CARGO_PKG_VERSION"))
-    //             .website("https://mskrasnov.github.io/Ferrix/")
-    //             .authors(["Michail Krasnov <mskrasnov07@ya.ru>"])
-    //             .license_type(gtk::License::Gpl30)
-    //             .logo(&logo)
-    //             .build();
-    //         dialog.present();
-    //     }
-    // ));
-    // update_btn.connect_clicked(clone!(
-    //     #[strong]
-    //     sender,
-    //     move |_| {
-    //         glib::spawn_future_local(clone!(
-    //             #[strong]
-    //             sender,
-    //             async move {
-    //                 let data = RAM::new();
-    //                 sender
-    //                     .send(data)
-    //                     .await
-    //                     .expect("The channel needs to be open");
-    //             }
-    //         ));
-    //     }
-    // ));
-
-    // glib::spawn_future_local(clone!(
-    //     #[strong]
-    //     sender,
-    //     async move {
-    //         loop {
-    //             let data = RAM::new();
-    //             sender
-    //                 .send(data)
-    //                 .await
-    //                 .expect("The channel needs to be open");
-    //             glib::timeout_future_seconds(1).await;
-    //         }
-    //     },
-    // ));
-
-    // glib::spawn_future_local(clone!(
-    //     #[weak]
-    //     label,
-    //     async move {
-    //         while let Ok(ram) = receiver.recv().await {
-    //             label.set_label(&match ram {
-    //                 Ok(ram) => format!("Free RAM: {}", ram.free.round(2).unwrap()),
-    //                 Err(why) => format!("Error getting information:\n{why}"),
-    //             });
-    //         }
-    //     }
-    // ));
-    win.present();
-}
-
-fn todo_widget() -> Box {
-    let layout = Box::new(gtk::Orientation::Vertical, 10);
-    layout.set_vexpand(false);
-    let title = Label::builder()
-        .label("TODO")
-        .css_classes(["large-title"])
-        .build();
-    let subtitle = Label::builder()
-        .label("This functionality is still in development.")
-        .css_classes(["subtitle"])
-        .build();
-
-    layout.append(&title);
-    layout.append(&subtitle);
-
-    layout.set_halign(gtk::Align::Center);
-    layout.set_valign(gtk::Align::Center);
-
-    layout
-}
-
-fn create_hdr_bar() -> HeaderBar {
-    let hdr = HeaderBar::new();
-    let menu = MenuButton::builder()
-        .icon_name("open-menu-symbolic")
-        .menu_model(&create_menu_btn())
-        .tooltip_text("Menu")
-        .css_classes(["header-button", "text-button"])
-        .build();
-    hdr.pack_end(&menu);
-
-    let export_btn = Button::new();
-    export_btn.add_css_class("header-button");
-    export_btn.set_icon_name("document-save-symbolic");
-    export_btn.set_tooltip_text(Some("Export"));
-    hdr.pack_start(&export_btn);
-
-    hdr
-}
-
-fn create_menu_btn() -> Menu {
-    let menu = Menu::new();
-    let section = Menu::new();
-    section.append_item(&MenuItem::new(Some("Update"), None));
-    section.append_item(&MenuItem::new(Some("Export"), None));
-    section.append_item(&MenuItem::new(Some("About Ferrix"), None));
-
-    menu.append_section(None, &section);
-    menu
-}
-
-fn proc_page() -> ScrolledWindow {
-    let page = Box::new(gtk::Orientation::Vertical, 0);
-    let (sender, receiver) = async_channel::bounded(1);
-    glib::spawn_future_local(clone!(
-        #[strong]
-        sender,
-        async move {
-            loop {
-                let data = Processors::new();
-                sender
-                    .send(data)
-                    .await
-                    .expect("The channel needs to be open");
-                glib::timeout_future_seconds(1).await;
-            }
-        }
-    ));
-    let proc = Label::new(None);
-    page.append(&proc);
-
-    glib::spawn_future_local(clone!(
-        #[weak]
-        proc,
-        #[strong]
-        receiver,
-        async move {
-            while let Ok(proc_data) = receiver.recv().await {
-                proc.set_label(&match proc_data {
-                    Ok(proc) => format!("{:#?}", &proc.entries),
-                    Err(why) => format!("Error: {why}"),
-                });
-            }
-        }
-    ));
-
-    ScrolledWindow::builder().child(&page).build()
-}
-
-fn sys_page() -> ScrolledWindow {
-    let page = Box::new(gtk::Orientation::Vertical, 0);
-    let (sender, receiver) = async_channel::bounded(1);
-    glib::spawn_future_local(clone!(
-        #[strong]
-        sender,
-        async move {
-            loop {
-                let data = Sys::new();
-                sender
-                    .send(data)
-                    .await
-                    .expect("The channel needs to be open");
-                glib::timeout_future_seconds(10).await;
-            }
-        }
-    ));
-    let proc = Label::new(None);
-    page.append(&proc);
-
-    glib::spawn_future_local(clone!(
-        #[weak]
-        proc,
-        #[strong]
-        receiver,
-        async move {
-            while let Ok(sys) = receiver.recv().await {
-                proc.set_label(&match sys {
-                    Ok(sys) => format!("{:#?}", &sys),
-                    Err(why) => format!("Error: {why}"),
-                });
-            }
-        }
-    ));
-
-    ScrolledWindow::builder().child(&page).build()
-}
-
-fn ram_page() -> Box {
-    let page = Box::new(gtk::Orientation::Vertical, 0);
-    let (sender, receiver) = async_channel::bounded(1);
-    glib::spawn_future_local(clone!(
-        #[strong]
-        sender,
-        async move {
-            loop {
-                let data = RAM::new();
-                sender
-                    .send(data)
-                    .await
-                    .expect("The channel needs to be open");
-                glib::timeout_future_seconds(1).await;
-            }
-        }
-    ));
-
-    let total_ram = Label::new(Some("Total RAM: loading"));
-    let free_ram = Label::new(Some("Free RAM: loading"));
-    let available_ram = Label::new(Some("Available RAM: loading"));
-
-    page.append(&total_ram);
-    page.append(&free_ram);
-    page.append(&available_ram);
-
-    glib::spawn_future_local(clone!(
-        #[weak]
-        total_ram,
-        #[strong]
-        receiver,
-        async move {
-            while let Ok(ram) = receiver.recv().await {
-                total_ram.set_label(&format!(
-                    "Total RAM: {}",
-                    match ram {
-                        Ok(ram) => format!("{} ({})", ram.total.round(2).unwrap(), ram.total),
-                        Err(why) => format!("error: {why}"),
+impl Ferrix {
+    fn update(&mut self, message: Message) -> Task<Message> {
+        match message {
+            Message::CPUDataReceived((val, err)) => {
+                if let Some(val) = val {
+                    // dbg!(val);
+                    self.proc_data = Some(val);
+                } else {
+                    if let Some(err) = err {
+                        eprintln!("{err}");
                     }
-                ));
+                }
+                Task::none()
             }
-        }
-    ));
-    glib::spawn_future_local(clone!(
-        #[weak]
-        free_ram,
-        #[strong]
-        receiver,
-        async move {
-            while let Ok(ram) = receiver.recv().await {
-                free_ram.set_label(&format!(
-                    "Free RAM: {}",
-                    match ram {
-                        Ok(ram) => format!("{} ({})", ram.free.round(2).unwrap(), ram.free),
-                        Err(why) => format!("error: {why}"),
+            Message::GetCPUData => Task::perform(
+                async move {
+                    let proc = Processors::new();
+                    match proc {
+                        Ok(proc) => (Some(proc), None),
+                        Err(why) => (None, Some(why.to_string())),
                     }
-                ));
+                },
+                |val| Message::CPUDataReceived(val),
+            ),
+            Message::SelectPage(page) => {
+                self.current_page = page;
+                Task::none()
             }
+            _ => Task::none(),
         }
-    ));
-    glib::spawn_future_local(clone!(
-        #[weak]
-        available_ram,
-        #[strong]
-        receiver,
-        async move {
-            while let Ok(ram) = receiver.recv().await {
-                available_ram.set_label(&format!(
-                    "Available RAM: {}",
-                    match ram {
-                        Ok(ram) =>
-                            format!("{} ({})", ram.available.round(2).unwrap(), ram.available),
-                        Err(why) => format!("error: {why}"),
-                    }
-                ));
-            }
-        }
-    ));
+    }
 
-    page
+    fn subscription(&self) -> Subscription<Message> {
+        Subscription::batch([time::every(Duration::from_secs(1)).map(|_| Message::GetCPUData)])
+    }
+
+    fn view<'a>(&'a self) -> Element<'a, Message> {
+        row![sidebar(), self.current_page.page(&self)].spacing(5).padding(5).into()
+    }
 }
 
-fn drm_page() -> ScrolledWindow {
-    let page = Box::new(gtk::Orientation::Vertical, 0);
-    let (sender, receiver) = async_channel::bounded(1);
-    glib::spawn_future_local(clone!(
-        #[strong]
-        sender,
-        async move {
-            loop {
-                let data = Video::new();
-                sender
-                    .send(data)
-                    .await
-                    .expect("The channel needs to be open");
-                glib::timeout_future_seconds(1).await;
-            }
-        }
-    ));
-    let vid = Label::new(None);
-    page.append(&vid);
+fn sidebar<'a>() -> container::Container<'a, Message> {
+    container(scrollable(
+        column![
+            row![
+                button("Экспорт...")
+                    .style(button::text)
+                    .on_press(Message::Dummy),
+                button("Обновить")
+                    .style(button::text)
+                    .on_press(Message::Dummy)
+            ]
+            .spacing(2),
+            text("Оборудование").style(text::secondary),
+            sidebar_button("Обзор", Page::Dashboard),
+            sidebar_button("Процессор", Page::Processors),
+            sidebar_button("Память", Page::Memory),
+            sidebar_button("Накопители", Page::Storage),
+            // button("Процессор")
+            //     .style(button::text)
+            //     .on_press(Message::Dummy),
+            // button("Память")
+            //     .style(button::text)
+            //     .on_press(Message::Dummy),
+            // button("Хранилище")
+            //     .style(button::text)
+            //     .on_press(Message::Dummy),
+            // text("Администрирование").style(text::secondary),
+            // button("Дистрибутив")
+            //     .style(button::text)
+            //     .on_press(Message::Dummy),
+            // button("Пользователи и группы")
+            //     .style(button::text)
+            //     .on_press(Message::Dummy),
+            // button("Системный менеджер")
+            //     .style(button::text)
+            //     .on_press(Message::Dummy),
+            // button("Установленное ПО")
+            //     .style(button::text)
+            //     .on_press(Message::Dummy),
+        ]
+        .spacing(5),
+    ))
+    .padding(5)
+    .style(container::bordered_box)
+    .height(Length::Fill)
+}
 
-    glib::spawn_future_local(clone!(
-        #[weak]
-        vid,
-        #[strong]
-        receiver,
-        async move {
-            while let Ok(vid_data) = receiver.recv().await {
-                vid.set_label(&match vid_data {
-                    Ok(vid_data) => format!("{:#?}", &vid_data.devices),
-                    Err(why) => format!("Error: {why}"),
-                });
-            }
-        }
-    ));
+fn sidebar_button<'a>(txt: &'a str, page: Page) -> button::Button<'a, Message> {
+    button(txt)
+        .style(button::text)
+        .on_press(Message::SelectPage(page))
+}
 
-    ScrolledWindow::builder().child(&page).build()
+fn header_text<'a>(txt: &'a str) -> text::Text<'a> {
+    text(txt).size(22)
+}
+
+fn fmt_val<T>(val: Option<T>) -> Option<String>
+where
+    T: ToString + Copy,
+{
+    match val {
+        Some(val) => Some(val.to_string()),
+        None => None,
+    }
+}
+
+fn fmt_vec<T>(val: &Option<Vec<T>>) -> Option<String>
+where
+    T: ToString + Clone,
+{
+    match val {
+        Some(val) => {
+            let mut s = String::new();
+            for i in val {
+                s = format!("{s}{} ", i.to_string());
+            }
+            Some(s)
+        }
+        None => None,
+    }
 }
