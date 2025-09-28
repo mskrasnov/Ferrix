@@ -40,7 +40,7 @@ use crate::utils::Size;
 use crate::traits::ToJson;
 
 /// A structure containing data from the `/proc/meminfo` file
-#[derive(Debug, Serialize, Default)]
+#[derive(Debug, Serialize, Default, Clone)]
 pub struct RAM {
     /// Total usable physical RAM (excludes reserved/firmware memory)
     pub total: Size,

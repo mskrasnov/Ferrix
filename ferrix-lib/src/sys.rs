@@ -151,7 +151,7 @@ impl ToJson for Kernel {}
 /// Information about installed distro from `/etc/os-release`
 ///
 /// > Information from *[freedesktop](https://www.freedesktop.org/software/systemd/man/249/os-release.html)* portal.
-#[derive(Debug, Serialize, Default)]
+#[derive(Debug, Serialize, Default, Clone)]
 pub struct OsRelease {
     /// The operating system name without a version component
     ///
