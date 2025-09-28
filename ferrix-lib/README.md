@@ -1,5 +1,7 @@
 # ferrix-lib
 
+> **NOTE:** visit our [GitHub repository](https://github.com/mskrasnov/ferrix) to get more information about this crate.
+
 Crate to get information about PC's hardware and software. Only for Linux. Some features are requires `d-bus`, `systemd` and `flatpak`. Supported features: get information about:
 
 - CPU (`/proc/cpuinfo`);

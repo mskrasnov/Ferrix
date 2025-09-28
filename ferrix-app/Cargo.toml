@@ -6,7 +6,9 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
-publish = false
+# publish = false
+readme = "README.md"
+keywords = ["ferrix", "hardware"]
 
 [package.metadata.deb]
 maintainer = "Michail Krasnov <mskrasnov07@ya.ru>"

@@ -7,6 +7,7 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 keywords = ["ferrix", "hardware", "dmi", "smbios", "linux"]
+categories = ["os"]
 
 [dependencies]
 anyhow = "1.0.98"
