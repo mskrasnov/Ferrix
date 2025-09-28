@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/logo.svg" width="200">
+  <img src="ferrix-app/data/icons/hicolor/scalable/apps/com.mskrasnov.Ferrix.svg" width="200">
   <h1>Ferrix — Swiss Knife for Linux Hardware Diagnostics</h1>
   <!-- <p><b>A simple program for getting information about computer hardware and installed software.</b></p> -->
   <!-- <h4> -->
