@@ -1,0 +1,111 @@
+//! Dashboard page
+
+use crate::{Message, pages::Page};
+use ferrix_lib::{cpu::Processors, ram::RAM, sys::OsRelease};
+
+use iced::{
+    Font, Length, never,
+    widget::{button, column, container, rich_text, row, space, span, text::IntoFragment},
+};
+
+pub fn dashboard<'a>(
+    proc: &'a Option<Processors>,
+    ram: &'a Option<RAM>,
+    osr: &'a Option<OsRelease>,
+) -> container::Container<'a, Message> {
+    let (proc_name, proc_threads) = {
+        match proc {
+            // Some(proc) => &(&proc.entries[0].vendor_id).unwrap_or("N/A".to_string()),
+            Some(proc) => {
+                let model = &proc.entries[0].model_name;
+                let vendor = match model {
+                    Some(model) => model,
+                    None => "N/A",
+                };
+                let threads = proc.entries.len();
+
+                (vendor, threads)
+            }
+            None => ("N/A", 0),
+        }
+    };
+    let (total_ram, avail_ram) = {
+        match ram {
+            Some(ram) => (
+                ram.total.round(2).unwrap_or(ferrix_lib::utils::Size::None),
+                ram.available
+                    .round(2)
+                    .unwrap_or(ferrix_lib::utils::Size::None),
+            ),
+            None => (ferrix_lib::utils::Size::None, ferrix_lib::utils::Size::None),
+        }
+    };
+    let os_name = {
+        match osr {
+            Some(osr) => match &osr.pretty_name {
+                Some(pname) => pname,
+                None => &osr.name,
+            },
+            None => "Generic Linux",
+        }
+    };
+
+    container(
+        column![
+            Page::Dashboard.title(),
+            row![
+                card(
+                    "Процессор",
+                    format!("{}, {} потоков", proc_name, proc_threads),
+                    Message::SelectPage(crate::pages::Page::Processors),
+                ),
+                card(
+                    "Оперативная память",
+                    format!("{}/{}", total_ram, avail_ram),
+                    Message::SelectPage(crate::pages::Page::Memory)
+                ),
+                card(
+                    "Система",
+                    os_name,
+                    Message::SelectPage(crate::pages::Page::Distro)
+                ),
+            ]
+            .spacing(5)
+        ]
+        .spacing(5),
+    )
+}
+
+fn card<'a, H, C>(header: H, contents: C, on_press: Message) -> button::Button<'a, Message>
+where
+    H: IntoFragment<'a>,
+    C: IntoFragment<'a>,
+{
+    button(
+        container(
+            column![
+                rich_text![
+                    span(header)
+                        .font(Font {
+                            weight: iced::font::Weight::Bold,
+                            ..Default::default()
+                        })
+                        .size(16),
+                ]
+                .on_link_click(never),
+                space().width(Length::Fill).height(Length::Fill),
+                iced::widget::text(contents),
+            ]
+            .spacing(5),
+        )
+        .width(135)
+        .max_width(135)
+        .height(135)
+        .max_height(135)
+        .style(container::rounded_box)
+        .padding(5),
+    )
+    .style(button::text)
+    .padding(0)
+    .on_press(on_press)
+}

@@ -34,7 +34,6 @@ assets = [
 
 [dependencies]
 anyhow = "1.0.98"
-# async-channel = "2.5.0"
 ferrix-lib.path = "../ferrix-lib"
 iced = { git = "https://github.com/iced-rs/iced", features = ["tokio", "svg", "image"] }
 tokio = { version = "1.47.1", features = ["full"] }

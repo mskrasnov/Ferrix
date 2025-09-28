@@ -1,50 +1,52 @@
 //! Custom widgets for UI
 
 // use super::Message;
-use iced::widget::{column, container, svg, text};
+use iced::{
+    Color,
+    widget::{button, container, svg, text, tooltip::Position},
+};
 
-pub fn title<'a, T: ToString>(t: T) -> text::Text<'a> {
-    text(t.to_string()).size(14)
+use crate::{Message, pages::Page};
+
+pub fn icon_button<'a>(icon_name: &'a str, tooltip: &'a str) -> button::Button<'a, Message> {
+    let svg_path = format!(
+        "ferrix-app/data/icons/hicolor/symbolic/actions/ferrix-{}.svg",
+        icon_name
+    );
+    let icon = svg(svg_path).style(|theme: &iced::Theme, _| svg::Style {
+        color: Some(theme.palette().text),
+    });
+
+    button(iced::widget::tooltip(
+        icon.width(16).height(16),
+        container(text(tooltip).size(11).style(|s: &iced::Theme| text::Style {
+            color: Some(if s.extended_palette().is_dark {
+                s.palette().text
+            } else {
+                Color::WHITE
+            }),
+        }))
+        .padding(2)
+        .style(|_| container::Style {
+            background: Some(iced::Background::Color(Color::from_rgba8(0, 0, 0, 0.71))),
+            border: iced::Border {
+                radius: iced::border::Radius::from(2),
+                ..iced::Border::default()
+            },
+            ..Default::default()
+        }),
+        Position::Bottom,
+    ))
+    .style(button::subtle)
+    .padding(2)
 }
 
-#[derive(Debug, Clone)]
-pub struct CardContainer {
-    header: String,
-    contents: String,
-    icon_name: Option<String>,
-}
-
-impl CardContainer {
-    pub fn new<H, C>(hdr: H, contents: C) -> Self
-    where
-        H: ToString,
-        C: ToString,
-    {
-        Self {
-            header: hdr.to_string(),
-            contents: contents.to_string(),
-            icon_name: None,
-        }
-    }
-
-    pub fn set_icon<I: ToString>(&mut self, icon: I) {
-        self.icon_name = Some(icon.to_string());
-    }
-
-    pub fn to_container<'a, Message>(&'a self) -> container::Container<'a, Message>
-    where
-        Message: 'a,
-    {
-        let mut cnt = column![title(&self.header),].spacing(5);
-        if let Some(icon_name) = &self.icon_name {
-            cnt = cnt.push(svg(icon_name));
-        }
-        cnt = cnt.push(text(&self.contents));
-
-        container(cnt)
-            .width(512)
-            .height(512)
-            .padding(10)
-            .style(container::rounded_box)
-    }
+pub fn sidebar_button<'a>(page: Page, cur_page: Page) -> button::Button<'a, Message> {
+    button(page.title_str())
+        .style(if page != cur_page {
+            button::subtle
+        } else {
+            button::secondary
+        })
+        .on_press(Message::SelectPage(page))
 }
