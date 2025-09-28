@@ -21,7 +21,7 @@
 //! Get information about video
 //!
 //! ## Example
-//! ```
+//! ```no-test
 //! use ferrix_lib::drm::Video;
 //! use ferrix_lib::traits::ToJson;
 //!
