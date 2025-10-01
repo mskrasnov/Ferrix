@@ -16,21 +16,7 @@
 
 ## What is Ferrix?
 
-Ferrix is a Rust-crate and program for obtaining information about computer hardware and software. It is designed to work in modern Linux OS distributions, written in Rust using GTK4 and libadwaita.
-
-<!-- ## Motivation -->
-
-<!-- For Linux, there are a bunch of different console programs for getting information about various PC and OS components. In addition, there is an amazing graphics program called Hardinfo (and its sequel, Hardinfo2). However, I wanted to write their simple analog with the following differences: -->
-
-<!-- 1. More complete support for modern Linux distributions: displaying information about systemd services, OS boot time, information about installed Flatpak packages, and the ability to reset GNOME environment settings; -->
-<!-- 2. I needed experience in developing a similar class of programs for Linux. Don't think that Ferrix is any kind of serious professional program — it's just a student's "DIY", nothing more. Use it at your own risk. -->
-
-<!-- ## Features -->
-
-<!-- 1. Following the recommendations of GNOME HIG; -->
-<!-- 2. View information about the installed Flatpak software and systemd services; -->
-<!-- 3. The ability to backup and reset GNOME settings; -->
-<!-- 4. Export the collected data to JSON, XML or Plain Text. -->
+Ferrix is a Rust-crate and program for obtaining information about computer hardware and software. It is designed to work in modern Linux OS distributions.
 
 ## Functions (`ferrix-lib` crate)
 
