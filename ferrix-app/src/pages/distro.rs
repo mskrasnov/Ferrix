@@ -2,7 +2,7 @@
 
 use crate::{
     Message,
-    pages::{InfoRow, Page, kv_info_table},
+    pages::{InfoRow, kv_info_table},
 };
 use ferrix_lib::sys::OsRelease;
 
@@ -12,7 +12,7 @@ pub fn distro_page<'a>(osrel: &'a Option<OsRelease>) -> container::Container<'a,
     match osrel {
         None => container(center(text("Загрузка данных..."))),
         Some(osrel) => {
-            let mut os_data = column![Page::Distro.title()].spacing(5);
+            let mut os_data = column![].spacing(5);
             let rows = vec![
                 InfoRow::new("Название ОС", Some(osrel.name.clone())),
                 InfoRow::new("Идентификатор", osrel.id.clone()),

@@ -3,7 +3,7 @@
 use iced::{
     Alignment::{self, Center},
     Element, Length,
-    widget::{Column, center, column, container, pick_list, row, rule, svg, table, text},
+    widget::{Column, center, column, container, row, rule, svg, table, text},
 };
 
 use crate::{Ferrix, Message};
@@ -12,6 +12,7 @@ mod cpu;
 mod dashboard;
 mod distro;
 mod ram;
+mod settings;
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq)]
 pub enum Page {
@@ -82,16 +83,19 @@ impl<'a> Page {
     }
 
     pub fn page(&'a self, state: &'a Ferrix) -> Element<'a, Message> {
-        match self {
+        let page = match self {
             Self::Dashboard => {
                 dashboard::dashboard(&state.proc_data, &state.ram_data, &state.osrel_data).into()
             }
             Self::Processors => cpu::proc_page(&state.proc_data).into(),
             Self::Memory => ram::ram_page(&state.ram_data).into(),
             Self::Distro => distro::distro_page(&state.osrel_data).into(),
-            Self::About => self.about_page(state).into(),
+            Self::Settings => settings::settings_page(&state).into(),
+            Self::About => self.about_page().into(),
             _ => self.todo_page(),
-        }
+        };
+
+        column![self.title(), page,].spacing(5).into()
     }
 
     fn todo_page(&self) -> Element<'a, Message> {
@@ -103,7 +107,7 @@ impl<'a> Page {
         .into()
     }
 
-    fn about_page(&'a self, state: &'a Ferrix) -> container::Container<'a, Message> {
+    fn about_page(&'a self) -> container::Container<'a, Message> {
         let img = svg("ferrix-app/data/icons/hicolor/scalable/apps/com.mskrasnov.Ferrix.svg")
             .width(128)
             .height(128);
@@ -148,12 +152,6 @@ impl<'a> Page {
             column![header, rule::horizontal(1)].spacing(2),
             about_info,
             misc,
-            row![
-                text("Тема оформления:").style(text::secondary),
-                pick_list(iced::Theme::ALL, Some(&state.theme), Message::ChangeTheme),
-            ]
-            .align_y(Center)
-            .spacing(5),
         ]
         .spacing(5);
 
@@ -206,7 +204,7 @@ where
         .width(Length::Fill),
     ];
 
-    table(columns, rows).width(Length::Fill).into()
+    table(columns, rows).padding(2).width(Length::Fill).into()
 }
 
 fn hdr_name<'a>(s: &'a str) -> text::Text<'a> {

@@ -8,6 +8,42 @@ use iced::{
 
 use crate::{Message, pages::Page};
 
+pub fn icon_tooltip<'a>(icon_name: &'a str, tooltip: &'a str) -> container::Container<'a, Message> {
+    let svg_path = format!(
+        "ferrix-app/data/icons/hicolor/symbolic/actions/ferrix-{}.svg",
+        icon_name
+    );
+    let icon = svg(svg_path)
+        .style(|theme: &iced::Theme, _| svg::Style {
+            color: Some(theme.palette().text),
+        })
+        .width(16)
+        .height(16);
+
+    container(iced::widget::tooltip(
+        icon,
+        container(text(tooltip).style(|s: &iced::Theme| text::Style {
+            color: Some(if s.extended_palette().is_dark {
+                s.palette().text
+            } else {
+                Color::WHITE
+            }),
+        }))
+        // .padding(2)
+        .style(|_| container::Style {
+            background: Some(iced::Background::Color(Color::from_rgba8(0, 0, 0, 0.71))),
+            border: iced::Border {
+                radius: iced::border::Radius::from(2),
+                ..iced::Border::default()
+            },
+            ..Default::default()
+        }),
+        Position::Bottom,
+    ))
+    .width(16)
+    .height(16)
+}
+
 pub fn icon_button<'a>(icon_name: &'a str, tooltip: &'a str) -> button::Button<'a, Message> {
     let svg_path = format!(
         "ferrix-app/data/icons/hicolor/symbolic/actions/ferrix-{}.svg",

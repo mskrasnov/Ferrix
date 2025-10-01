@@ -61,32 +61,48 @@ pub enum Message {
     Dummy,
     ChangeTheme(Theme),
     SelectPage(Page),
+    ChangeUpdatePeriod(u8),
 }
 
 #[derive(Debug)]
 pub struct Ferrix {
-    pub theme: Theme,
     pub current_page: Page,
     pub proc_data: Option<Processors>,
     pub ram_data: Option<RAM>,
     pub osrel_data: Option<OsRelease>,
+    pub settings: FXSettings,
 }
 
 impl Default for Ferrix {
     fn default() -> Self {
         Self {
-            theme: Theme::GruvboxDark,
             current_page: Page::default(),
             proc_data: None,
             ram_data: None,
             osrel_data: None,
+            settings: FXSettings::default(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct FXSettings {
+    pub update_period: u8,
+    pub theme: Theme,
+}
+
+impl Default for FXSettings {
+    fn default() -> Self {
+        Self {
+            update_period: 1,
+            theme: Theme::GruvboxDark,
         }
     }
 }
 
 impl Ferrix {
     fn theme(&self) -> Theme {
-        self.theme.clone()
+        self.settings.theme.clone()
     }
 
     fn update(&mut self, message: Message) -> Task<Message> {
@@ -157,7 +173,11 @@ impl Ferrix {
                 Task::none()
             }
             Message::ChangeTheme(theme) => {
-                self.theme = theme;
+                self.settings.theme = theme;
+                Task::none()
+            }
+            Message::ChangeUpdatePeriod(period) => {
+                self.settings.update_period = period;
                 Task::none()
             }
             _ => Task::none(),
@@ -166,8 +186,10 @@ impl Ferrix {
 
     fn subscription(&self) -> Subscription<Message> {
         let mut scripts = vec![
-            time::every(Duration::from_secs(1)).map(|_| Message::GetCPUData),
-            time::every(Duration::from_secs(1)).map(|_| Message::GetRAMData),
+            time::every(Duration::from_secs(self.settings.update_period as u64))
+                .map(|_| Message::GetCPUData),
+            time::every(Duration::from_secs(self.settings.update_period as u64))
+                .map(|_| Message::GetRAMData),
         ];
 
         if self.osrel_data.is_none()

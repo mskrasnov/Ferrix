@@ -2,7 +2,7 @@
 
 use crate::{
     Message,
-    pages::{InfoRow, Page, fmt_bool, fmt_val, fmt_vec, kv_info_table},
+    pages::{InfoRow, fmt_bool, fmt_val, fmt_vec, kv_info_table},
 };
 use ferrix_lib::cpu::Processors;
 
@@ -12,7 +12,7 @@ pub fn proc_page<'a>(processors: &'a Option<Processors>) -> container::Container
     match processors {
         None => container(center(text("Загрузка данных..."))),
         Some(proc) => {
-            let mut proc_list = column![Page::Processors.title()].spacing(5);
+            let mut proc_list = column![].spacing(5);
             for proc in &proc.entries {
                 let rows = vec![
                     InfoRow::new("Производитель", proc.vendor_id.clone()),

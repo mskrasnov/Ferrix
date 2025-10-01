@@ -2,7 +2,7 @@
 
 use crate::{
     Message,
-    pages::{InfoRow, Page, fmt_val, kv_info_table},
+    pages::{InfoRow, fmt_val, kv_info_table},
 };
 use ferrix_lib::ram::RAM;
 
@@ -12,7 +12,7 @@ pub fn ram_page<'a>(ram: &'a Option<RAM>) -> container::Container<'a, Message> {
     match ram {
         None => container(center(text("Загрузка данных..."))),
         Some(ram) => {
-            let mut ram_data = column![Page::Memory.title()].spacing(5);
+            let mut ram_data = column![].spacing(5);
             let rows = vec![
                 InfoRow::new("Памяти всего", fmt_val(ram.total.round(2))),
                 InfoRow::new("Памяти свободно", fmt_val(ram.free.round(2))),

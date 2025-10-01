@@ -1,6 +1,6 @@
 //! Dashboard page
 
-use crate::{Message, pages::Page};
+use crate::Message;
 use ferrix_lib::{cpu::Processors, ram::RAM, sys::OsRelease};
 
 use iced::{
@@ -52,7 +52,6 @@ pub fn dashboard<'a>(
 
     container(
         column![
-            Page::Dashboard.title(),
             row![
                 card(
                     "Процессор",
