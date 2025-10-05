@@ -54,4 +54,4 @@ cargo build --release
 ### Build dependencies
 
 - **Rust** 2025;
-- Modern Linux system with `systemd` (tested on Debian 12.1);
+- Modern Linux system with `systemd` and `d-bus` (tested on Debian 12.2);

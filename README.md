@@ -1,11 +1,7 @@
 <div align="center">
   <img src="ferrix-app/data/icons/hicolor/scalable/apps/com.mskrasnov.Ferrix.svg" width="200">
   <h1>Ferrix — Swiss Knife for Linux Hardware Diagnostics</h1>
-  <!-- <p><b>A simple program for getting information about computer hardware and installed software.</b></p> -->
-  <!-- <h4> -->
-    <!-- <a href="" -->
-  <!-- </h4> -->
-  <!-- <img src="assets/main_win.png"> -->
+  <p><b>A simple program for getting information about computer hardware and installed software.</b></p>
 
   [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![Rust](https://img.shields.io/badge/Made%20with-Rust-orange?logo=rust)](https://www.rust-lang.org/) [![GitHub Release](https://img.shields.io/github/v/release/mskrasnov/ferrix?logo=github)](https://github.com/mskrasnov/ferrix/releases)
 </div>
@@ -17,20 +13,6 @@
 ## What is Ferrix?
 
 Ferrix is a Rust-crate and program for obtaining information about computer hardware and software. It is designed to work in modern Linux OS distributions, written in Rust using GTK4 and libadwaita.
-
-<!-- ## Motivation -->
-
-<!-- For Linux, there are a bunch of different console programs for getting information about various PC and OS components. In addition, there is an amazing graphics program called Hardinfo (and its sequel, Hardinfo2). However, I wanted to write their simple analog with the following differences: -->
-
-<!-- 1. More complete support for modern Linux distributions: displaying information about systemd services, OS boot time, information about installed Flatpak packages, and the ability to reset GNOME environment settings; -->
-<!-- 2. I needed experience in developing a similar class of programs for Linux. Don't think that Ferrix is any kind of serious professional program — it's just a student's "DIY", nothing more. Use it at your own risk. -->
-
-<!-- ## Features -->
-
-<!-- 1. Following the recommendations of GNOME HIG; -->
-<!-- 2. View information about the installed Flatpak software and systemd services; -->
-<!-- 3. The ability to backup and reset GNOME settings; -->
-<!-- 4. Export the collected data to JSON, XML or Plain Text. -->
 
 ## Functions (`ferrix-lib` crate)
 
@@ -104,10 +86,8 @@ Download `*.AppImage` package (runs anywhere):
 ## Technology stack
 
 - **OS:** Linux with `glibc` and `systemd`;
-<!-- - **Desktop:** runs best on GNOME Shell 42+ (with `libadwaita`), but may work on other desktop shells; -->
-<!-- - **Dependencies:** `glibc`, `flatpak` (optional), `systemd`, `dmidecode`, `gtk4`, `libadwaita`; -->
 - **Programming language:** Rust 1.88+ (2024 edition);
-<!-- - **GUI:** GTK4 + `libadwaita`; -->
+- **GUI:** [`iced`](https://iced.rs);
 - **Hardware:** modern PC or laptop;
 
 ## ❤️ Support Ferrix
