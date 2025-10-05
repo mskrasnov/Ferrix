@@ -23,7 +23,10 @@ pub fn ram_page<'a>(ram: &'a Option<RAM>) -> container::Container<'a, Message> {
                 InfoRow::new("Активная", fmt_val(ram.active.round(2))),
                 InfoRow::new("Неактивная", fmt_val(ram.inactive.round(2))),
                 InfoRow::new("Активная (анонимные)", fmt_val(ram.active_anon.round(2))),
-                InfoRow::new("Неактивная (анонимные)", fmt_val(ram.inactive_anon.round(2))),
+                InfoRow::new(
+                    "Неактивная (анонимные)",
+                    fmt_val(ram.inactive_anon.round(2)),
+                ),
                 InfoRow::new("Активная (файл)", fmt_val(ram.active_file.round(2))),
                 InfoRow::new("Неактивная (файл)", fmt_val(ram.inactive_file.round(2))),
                 InfoRow::new("Невыгружаемая", fmt_val(ram.unevictable.round(2))),
@@ -37,13 +40,19 @@ pub fn ram_page<'a>(ram: &'a Option<RAM>) -> container::Container<'a, Message> {
                 InfoRow::new("Анонимные страницы", fmt_val(ram.anon_pages.round(2))),
                 InfoRow::new("Отображённая", fmt_val(ram.mapped.round(2))),
                 InfoRow::new("Разделяемая", fmt_val(ram.shmem.round(2))),
-                InfoRow::new("Восстанавливаемая ядром", fmt_val(ram.kreclaimable.round(2))),
+                InfoRow::new(
+                    "Восстанавливаемая ядром",
+                    fmt_val(ram.kreclaimable.round(2)),
+                ),
                 InfoRow::new("slab", fmt_val(ram.slab.round(2))),
                 InfoRow::new("Восстанавливаемый slab", fmt_val(ram.sreclaimable.round(2))),
                 InfoRow::new("Невостанавливаемый slab", fmt_val(ram.sunreclaim.round(2))),
                 InfoRow::new("Стек ядра", fmt_val(ram.kernel_stack.round(2))),
                 InfoRow::new("Таблицы страниц", fmt_val(ram.page_tables.round(2))),
-                InfoRow::new("Доп. таблицы страниц", fmt_val(ram.sec_page_tables.round(2))),
+                InfoRow::new(
+                    "Доп. таблицы страниц",
+                    fmt_val(ram.sec_page_tables.round(2)),
+                ),
                 InfoRow::new("Нестабильный NFS", fmt_val(ram.nfs_unstable.round(2))),
                 InfoRow::new("Bounce буферы", fmt_val(ram.bounce.round(2))),
                 InfoRow::new(

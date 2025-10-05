@@ -14,9 +14,17 @@ pub fn settings_page<'a>(state: &'a Ferrix) -> container::Container<'a, Message>
         Message::ChangeUpdatePeriod,
     );
     let update_changer = column![
-        row![text("Период обновления").size(16), icon_tooltip("about", "Укажите период обновления данных (в секундах). Чем выше период обновления, тем ниже нагрузка на ПК."), rule::horizontal(1.)]
-            .spacing(5)
-            .align_y(Center),
+        row![
+            text("Период обновления").size(16),
+            icon_tooltip(
+                "about",
+                "Укажите период обновления данных (в секундах).\n\
+                 Чем выше период обновления, тем ниже нагрузка на ПК."
+            ),
+            rule::horizontal(1.)
+        ]
+        .spacing(5)
+        .align_y(Center),
         row![
             update_sec,
             container(center(text(state.settings.update_period).size(14)))
@@ -35,9 +43,17 @@ pub fn settings_page<'a>(state: &'a Ferrix) -> container::Container<'a, Message>
         Message::ChangeTheme,
     );
     let theme_changer = column![
-        row![text("Оформление программы").size(16), icon_tooltip("about", "Стиль оформления влияет на цвета интерфейса и шрифта. Выберите то, что нравится вам."), rule::horizontal(1.)]
-            .spacing(5)
-            .align_y(Center),
+        row![
+            text("Оформление программы").size(16),
+            icon_tooltip(
+                "about",
+                "Стиль оформления влияет на цвета интерфейса\n\
+                 и шрифта. Выберите то, что нравится вам."
+            ),
+            rule::horizontal(1.)
+        ]
+        .spacing(5)
+        .align_y(Center),
         row![text("Выберите нужный стиль оформления:"), theme_selector]
             .spacing(5)
             .align_y(Center),

@@ -55,14 +55,19 @@ pub fn main() -> iced::Result {
 pub enum Message {
     GetCPUData,
     CPUDataReceived((Option<Processors>, Option<String>)),
+
     GetRAMData,
     RAMDataReceived((Option<RAM>, Option<String>)),
+
     GetOsReleaseData,
     OsReleaseDataReceived((Option<OsRelease>, Option<String>)),
+
     GetKernelData,
     KernelDataReceived((Option<Kernel>, Option<String>)),
+
     GetUsersData,
     UsersDataReceived((Option<Users>, Option<String>)),
+
     Dummy,
     ChangeTheme(Theme),
     SelectPage(Page),
@@ -214,7 +219,7 @@ impl Ferrix {
                         Ok(mut users) => {
                             users.users.sort_by_key(|usr| usr.uid);
                             (Some(users), None)
-                        },
+                        }
                         Err(why) => (None, Some(why.to_string())),
                     }
                 },
