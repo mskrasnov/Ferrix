@@ -5,7 +5,11 @@
  * modals/
  */
 
-use ferrix_lib::{cpu::Processors, ram::RAM, sys::OsRelease};
+use ferrix_lib::{
+    cpu::Processors,
+    ram::RAM,
+    sys::{Kernel, OsRelease, Users},
+};
 use iced::{
     Alignment::Center,
     Element, Length, Size, Subscription, Task, Theme, time,
@@ -23,6 +27,8 @@ use pages::*;
 
 use crate::widgets::{icon_button, sidebar_button};
 
+const APP_LOGO: &[u8] = include_bytes!("../data/icons/hicolor/scalable/apps/win_logo.png");
+
 pub fn main() -> iced::Result {
     iced::application(Ferrix::default, Ferrix::update, Ferrix::view)
         .settings(iced::Settings {
@@ -30,12 +36,7 @@ pub fn main() -> iced::Result {
             ..Default::default()
         })
         .window(Settings {
-            icon: Some(
-                iced::window::icon::from_file(
-                    "ferrix-app/data/icons/hicolor/scalable/apps/com.mskrasnov.Ferrix.png",
-                )
-                .unwrap(),
-            ),
+            icon: Some(iced::window::icon::from_file_data(APP_LOGO, None).unwrap()),
             min_size: Some(Size {
                 width: 790.,
                 height: 480.,
@@ -58,6 +59,10 @@ pub enum Message {
     RAMDataReceived((Option<RAM>, Option<String>)),
     GetOsReleaseData,
     OsReleaseDataReceived((Option<OsRelease>, Option<String>)),
+    GetKernelData,
+    KernelDataReceived((Option<Kernel>, Option<String>)),
+    GetUsersData,
+    UsersDataReceived((Option<Users>, Option<String>)),
     Dummy,
     ChangeTheme(Theme),
     SelectPage(Page),
@@ -70,6 +75,8 @@ pub struct Ferrix {
     pub proc_data: Option<Processors>,
     pub ram_data: Option<RAM>,
     pub osrel_data: Option<OsRelease>,
+    pub info_kernel: Option<Kernel>,
+    pub users_list: Option<Users>,
     pub settings: FXSettings,
 }
 
@@ -80,6 +87,8 @@ impl Default for Ferrix {
             proc_data: None,
             ram_data: None,
             osrel_data: None,
+            info_kernel: None,
+            users_list: None,
             settings: FXSettings::default(),
         }
     }
@@ -168,6 +177,49 @@ impl Ferrix {
                 },
                 |val| Message::OsReleaseDataReceived(val),
             ),
+            Message::KernelDataReceived((val, err)) => {
+                if let Some(val) = val {
+                    self.info_kernel = Some(val);
+                } else {
+                    if let Some(err) = err {
+                        eprintln!("{err}");
+                    }
+                }
+                Task::none()
+            }
+            Message::GetKernelData => Task::perform(
+                async move {
+                    let kern = Kernel::new();
+                    match kern {
+                        Ok(kern) => (Some(kern), None),
+                        Err(why) => (None, Some(why.to_string())),
+                    }
+                },
+                |val| Message::KernelDataReceived(val),
+            ),
+            Message::UsersDataReceived((val, err)) => {
+                if let Some(val) = val {
+                    self.users_list = Some(val);
+                } else {
+                    if let Some(err) = err {
+                        eprintln!("{err}");
+                    }
+                }
+                Task::none()
+            }
+            Message::GetUsersData => Task::perform(
+                async move {
+                    let users = Users::new();
+                    match users {
+                        Ok(mut users) => {
+                            users.users.sort_by_key(|usr| usr.uid);
+                            (Some(users), None)
+                        },
+                        Err(why) => (None, Some(why.to_string())),
+                    }
+                },
+                |val| Message::UsersDataReceived(val),
+            ),
             Message::SelectPage(page) => {
                 self.current_page = page;
                 Task::none()
@@ -196,6 +248,14 @@ impl Ferrix {
             && (self.current_page == Page::Distro || self.current_page == Page::Dashboard)
         {
             scripts.push(time::every(Duration::from_millis(50)).map(|_| Message::GetOsReleaseData));
+        }
+
+        if self.info_kernel.is_none() && self.current_page == Page::Kernel {
+            scripts.push(time::every(Duration::from_millis(50)).map(|_| Message::GetKernelData));
+        }
+
+        if self.users_list.is_none() && self.current_page == Page::UsersGroups {
+            scripts.push(time::every(Duration::from_millis(50)).map(|_| Message::GetUsersData));
         }
 
         Subscription::batch(scripts)
