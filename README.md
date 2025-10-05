@@ -12,7 +12,7 @@
 
 ## What is Ferrix?
 
-Ferrix is a Rust-crate and program for obtaining information about computer hardware and software. It is designed to work in modern Linux OS distributions, written in Rust using GTK4 and libadwaita.
+Ferrix is a Rust-crate and program for obtaining information about computer hardware and software. It is designed to work in modern Linux OS distributions.
 
 ## Functions (`ferrix-lib` crate)
 
