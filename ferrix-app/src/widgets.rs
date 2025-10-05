@@ -29,7 +29,7 @@ pub fn icon_tooltip<'a>(icon_name: &'a str, tooltip: &'a str) -> container::Cont
                 Color::WHITE
             }),
         }))
-        // .padding(2)
+        .padding(2)
         .style(|_| container::Style {
             background: Some(iced::Background::Color(Color::from_rgba8(0, 0, 0, 0.71))),
             border: iced::Border {
