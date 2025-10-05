@@ -8,7 +8,7 @@
 use ferrix_lib::{
     cpu::Processors,
     ram::RAM,
-    sys::{Kernel, OsRelease, Users},
+    sys::{Groups, Kernel, OsRelease, Users},
 };
 use iced::{
     Alignment::Center,
@@ -68,6 +68,9 @@ pub enum Message {
     GetUsersData,
     UsersDataReceived((Option<Users>, Option<String>)),
 
+    GetGroupsData,
+    GroupsDataReceived((Option<Groups>, Option<String>)),
+
     Dummy,
     ChangeTheme(Theme),
     SelectPage(Page),
@@ -82,6 +85,7 @@ pub struct Ferrix {
     pub osrel_data: Option<OsRelease>,
     pub info_kernel: Option<Kernel>,
     pub users_list: Option<Users>,
+    pub groups_list: Option<Groups>,
     pub settings: FXSettings,
 }
 
@@ -94,6 +98,7 @@ impl Default for Ferrix {
             osrel_data: None,
             info_kernel: None,
             users_list: None,
+            groups_list: None,
             settings: FXSettings::default(),
         }
     }
@@ -225,6 +230,29 @@ impl Ferrix {
                 },
                 |val| Message::UsersDataReceived(val),
             ),
+            Message::GroupsDataReceived((val, err)) => {
+                if let Some(val) = val {
+                    self.groups_list = Some(val);
+                } else {
+                    if let Some(err) = err {
+                        eprintln!("{err}");
+                    }
+                }
+                Task::none()
+            }
+            Message::GetGroupsData => Task::perform(
+                async move {
+                    let groups = Groups::new();
+                    match groups {
+                        Ok(mut groups) => {
+                            groups.groups.sort_by_key(|grp| grp.gid);
+                            (Some(groups), None)
+                        }
+                        Err(why) => (None, Some(why.to_string())),
+                    }
+                },
+                |val| Message::GroupsDataReceived(val),
+            ),
             Message::SelectPage(page) => {
                 self.current_page = page;
                 Task::none()
@@ -259,8 +287,12 @@ impl Ferrix {
             scripts.push(time::every(Duration::from_millis(50)).map(|_| Message::GetKernelData));
         }
 
-        if self.users_list.is_none() && self.current_page == Page::UsersGroups {
+        if self.users_list.is_none() && self.current_page == Page::Users {
             scripts.push(time::every(Duration::from_millis(50)).map(|_| Message::GetUsersData));
+        }
+
+        if self.groups_list.is_none() && self.current_page == Page::Groups {
+            scripts.push(time::every(Duration::from_millis(50)).map(|_| Message::GetGroupsData));
         }
 
         Subscription::batch(scripts)
@@ -294,7 +326,8 @@ fn sidebar<'a>(cur_page: Page) -> container::Container<'a, Message> {
         sidebar_button(Page::Screen, cur_page),
         text("Администрирование").style(text::secondary),
         sidebar_button(Page::Distro, cur_page),
-        sidebar_button(Page::UsersGroups, cur_page),
+        sidebar_button(Page::Users, cur_page),
+        sidebar_button(Page::Groups, cur_page),
         sidebar_button(Page::SystemManager, cur_page),
         sidebar_button(Page::Software, cur_page),
         sidebar_button(Page::Environment, cur_page),

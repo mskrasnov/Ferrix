@@ -11,6 +11,7 @@ use crate::{Ferrix, Message};
 mod cpu;
 mod dashboard;
 mod distro;
+mod groups;
 mod kernel;
 mod ram;
 mod settings;
@@ -34,7 +35,8 @@ pub enum Page {
      *          Administration          *
      ************************************/
     Distro,
-    UsersGroups,
+    Users,
+    Groups,
     SystemManager,
     Software,
     Environment,
@@ -70,7 +72,8 @@ impl<'a> Page {
             Self::Battery => "Аккумулятор",
             Self::Screen => "Экран",
             Self::Distro => "Дистрибутив",
-            Self::UsersGroups => "Пользователи и группы",
+            Self::Users => "Пользователи",
+            Self::Groups => "Группы",
             Self::SystemManager => "Системный менеджер",
             Self::Software => "Установленное ПО",
             Self::Environment => "Окружение",
@@ -93,7 +96,8 @@ impl<'a> Page {
             Self::Memory => ram::ram_page(&state.ram_data).into(),
             Self::Distro => distro::distro_page(&state.osrel_data).into(),
             Self::Kernel => kernel::kernel_page(&state.info_kernel).into(),
-            Self::UsersGroups => users::users_page(&state.users_list).into(),
+            Self::Users => users::users_page(&state.users_list).into(),
+            Self::Groups => groups::groups_page(&state.groups_list).into(),
             Self::Settings => settings::settings_page(&state).into(),
             Self::About => self.about_page().into(),
             _ => self.todo_page(),
