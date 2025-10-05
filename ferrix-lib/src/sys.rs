@@ -94,7 +94,7 @@ impl Sys {
 impl ToJson for Sys {}
 
 /// Information about Linux kernel
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct Kernel {
     /// All data about kernel
     pub uname: Option<String>, // /proc/version
@@ -297,7 +297,7 @@ fn parse_osrelease(osr: &mut OsRelease, chunk: (Option<String>, Option<String>))
 }
 
 /// System uptime
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct Uptime(
     /// Uptime
     pub f32,
@@ -326,7 +326,7 @@ impl ToPlainText for Uptime {
 }
 
 /// System load (average)
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct LoadAVG(
     /// 1minute
     pub f32,
@@ -359,7 +359,7 @@ impl ToPlainText for LoadAVG {
 }
 
 /// Information about users
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct Users {
     pub users: Vec<User>,
 }
@@ -381,7 +381,7 @@ impl Users {
 }
 
 /// Information about followed user
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct User {
     /// User's login name (case-sensitive, 1-32 characters)
     pub name: String,
@@ -460,7 +460,7 @@ impl ToPlainText for User {
 }
 
 /// Information about groups
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct Groups {
     pub groups: Vec<Group>,
 }
@@ -481,7 +481,7 @@ impl Groups {
 }
 
 /// Information about followed group
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct Group {
     /// Group name
     pub name: String,
@@ -548,7 +548,7 @@ fn get_hostname() -> Option<HostName> {
 }
 
 /// Information about current locale
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct Locale {}
 
 fn sanitize_str(s: &str) -> String {
