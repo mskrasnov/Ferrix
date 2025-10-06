@@ -7,6 +7,7 @@
 
 use ferrix_lib::{
     cpu::Processors,
+    init::{Connection, SystemdServices},
     ram::RAM,
     sys::{Groups, Kernel, OsRelease, Users},
 };
@@ -71,6 +72,9 @@ pub enum Message {
     GetGroupsData,
     GroupsDataReceived((Option<Groups>, Option<String>)),
 
+    GetSystemdServices,
+    SystemdServicesReceived((Option<SystemdServices>, Option<String>)),
+
     Dummy,
     ChangeTheme(Theme),
     SelectPage(Page),
@@ -86,6 +90,7 @@ pub struct Ferrix {
     pub info_kernel: Option<Kernel>,
     pub users_list: Option<Users>,
     pub groups_list: Option<Groups>,
+    pub sysd_services_list: Option<SystemdServices>,
     pub settings: FXSettings,
 }
 
@@ -99,6 +104,7 @@ impl Default for Ferrix {
             info_kernel: None,
             users_list: None,
             groups_list: None,
+            sysd_services_list: None,
             settings: FXSettings::default(),
         }
     }
@@ -253,6 +259,32 @@ impl Ferrix {
                 },
                 |val| Message::GroupsDataReceived(val),
             ),
+            Message::SystemdServicesReceived((val, err)) => {
+                if let Some(val) = val {
+                    self.sysd_services_list = Some(val);
+                } else {
+                    if let Some(err) = err {
+                        eprintln!("{err}");
+                    }
+                }
+                Task::none()
+            }
+            Message::GetSystemdServices => Task::perform(
+                async move {
+                    let conn = Connection::session().await;
+                    if let Err(why) = conn {
+                        return (None, Some(why.to_string()));
+                    }
+                    let conn = conn.unwrap();
+
+                    let srv_list = SystemdServices::new_from_connection(&conn).await;
+                    match srv_list {
+                        Ok(srv_list) => (Some(srv_list), None),
+                        Err(why) => (None, Some(why.to_string())),
+                    }
+                },
+                |val| Message::SystemdServicesReceived(val),
+            ),
             Message::SelectPage(page) => {
                 self.current_page = page;
                 Task::none()
@@ -293,6 +325,18 @@ impl Ferrix {
 
         if self.groups_list.is_none() && self.current_page == Page::Groups {
             scripts.push(time::every(Duration::from_millis(50)).map(|_| Message::GetGroupsData));
+        }
+
+        if self.sysd_services_list.is_none() && self.current_page == Page::SystemManager {
+            scripts
+                .push(time::every(Duration::from_millis(50)).map(|_| Message::GetSystemdServices));
+        } else if self.sysd_services_list.is_some() && self.current_page == Page::SystemManager {
+            scripts.push(
+                time::every(Duration::from_secs(
+                    self.settings.update_period as u64 * 10u64,
+                ))
+                .map(|_| Message::GetSystemdServices),
+            );
         }
 
         Subscription::batch(scripts)

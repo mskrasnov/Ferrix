@@ -15,6 +15,7 @@ mod groups;
 mod kernel;
 mod ram;
 mod settings;
+mod systemd;
 mod users;
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq)]
@@ -98,6 +99,7 @@ impl<'a> Page {
             Self::Kernel => kernel::kernel_page(&state.info_kernel).into(),
             Self::Users => users::users_page(&state.users_list).into(),
             Self::Groups => groups::groups_page(&state.groups_list).into(),
+            Self::SystemManager => systemd::services_page(&state.sysd_services_list).into(),
             Self::Settings => settings::settings_page(&state).into(),
             Self::About => self.about_page().into(),
             _ => self.todo_page(),
@@ -205,7 +207,6 @@ where
         table::column(hdr_name("Параметр"), |row: InfoRow<V>| {
             text(row.param_header)
         }),
-        // .width(Length::FillPortion(1)),
         table::column(hdr_name("Значение"), |row: InfoRow<V>| {
             text_fmt_val(row.value)
         })

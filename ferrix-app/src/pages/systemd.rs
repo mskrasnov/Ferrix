@@ -1,0 +1,65 @@
+//! systemd services list
+
+use crate::{Message, pages::hdr_name};
+use ferrix_lib::init::{ServiceInfo, SystemdServices};
+
+use iced::{
+    Length,
+    widget::{center, column, container, row, scrollable, table, text},
+};
+
+fn srv_table<'a>(rows: &'a [ServiceInfo]) -> table::Table<'a, Message> {
+    let columns = [
+        table::column(hdr_name("Имя"), |row: &'a ServiceInfo| {
+            // If the window has a standard size, then some names and
+            // descriptions of services will not fit within the limits
+            // of one cell of the table, which will lead to an excessive
+            // increase in the "Description" column and the almost
+            // complete disappearance of the remaining columns. So we
+            // change the minimum size of the two largest columns and
+            // change the character wrapping logic./There are enough
+            // words in the `text` widget so that everything fits,
+            // regardless of the size of the window and the table cell.
+            text(&row.name).wrapping(text::Wrapping::WordOrGlyph)
+        })
+        .width(Length::FillPortion(2)),
+        table::column(hdr_name("Описание"), |row: &ServiceInfo| {
+            text(&row.description).wrapping(text::Wrapping::WordOrGlyph)
+        })
+        .width(Length::FillPortion(3)),
+        table::column(hdr_name("Загружен"), |row: &ServiceInfo| {
+            text(format!("{}", row.load_state))
+        }),
+        table::column(hdr_name("Активен"), |row: &ServiceInfo| {
+            text(format!("{}", row.active_state))
+        }),
+        table::column(hdr_name("Работает"), |row: &ServiceInfo| {
+            text(format!("{}", row.work_state))
+        }),
+    ];
+
+    table(columns, rows).padding(2).width(Length::Fill)
+}
+
+pub fn services_page<'a>(
+    services: &'a Option<SystemdServices>,
+) -> container::Container<'a, Message> {
+    match services {
+        None => container(center(text("Загрузка данных..."))),
+        Some(services) => {
+            let units = &services.units;
+            let table = container(srv_table(units)).style(container::rounded_box);
+            let warn_txt = {
+                let hdr = text("Внимание:").style(text::warning);
+                let body =
+                    text("Увеличьте размер окна для более корректного отображения ряда строк!");
+
+                row![hdr, body].spacing(5)
+            };
+            let services_count = text(format!("Всего сервисов: {}", units.len()));
+
+            let layout = column![warn_txt, services_count, table,].spacing(5);
+            container(scrollable(layout))
+        }
+    }
+}
