@@ -1,7 +1,7 @@
 //! systemd services list
 
 use crate::{Message, pages::hdr_name};
-use ferrix_lib::init::{ServiceInfo, SystemdServices};
+use ferrix_lib::init::{ActiveState, LoadState, ServiceInfo, SystemdServices, WorkState};
 
 use iced::{
     Length,
@@ -28,13 +28,32 @@ fn srv_table<'a>(rows: &'a [ServiceInfo]) -> table::Table<'a, Message> {
         })
         .width(Length::FillPortion(3)),
         table::column(hdr_name("Загружен"), |row: &ServiceInfo| {
-            text(format!("{}", row.load_state))
+            text(format!("{}", row.load_state)).style(match row.load_state {
+                LoadState::Loaded => text::success,
+                LoadState::Stub | LoadState::Masked => text::warning,
+                LoadState::NotFound => text::danger,
+                _ => text::secondary,
+            })
         }),
         table::column(hdr_name("Активен"), |row: &ServiceInfo| {
-            text(format!("{}", row.active_state))
+            text(format!("{}", row.active_state)).style(match row.active_state {
+                ActiveState::Failed => text::danger,
+                ActiveState::Deactivating => text::warning,
+                ActiveState::Activating => text::primary,
+                ActiveState::Active => text::success,
+                _ => text::secondary,
+            })
         }),
         table::column(hdr_name("Работает"), |row: &ServiceInfo| {
-            text(format!("{}", row.work_state))
+            text(format!("{}", row.work_state)).style(match row.work_state {
+                WorkState::Active
+                | WorkState::Running
+                | WorkState::Mounted
+                | WorkState::Plugged => text::success,
+                WorkState::Exited | WorkState::Dead | WorkState::Failed => text::danger,
+                WorkState::Mounting | WorkState::Listening | WorkState::Waiting => text::warning,
+                _ => text::secondary,
+            })
         }),
     ];
 
