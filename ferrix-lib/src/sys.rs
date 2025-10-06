@@ -20,8 +20,8 @@
 
 //! Get information about installed system
 
-use crate::traits::*;
 use crate::utils::read_to_string;
+use crate::{traits::*, utils::Size};
 use anyhow::{Result, anyhow};
 use serde::Serialize;
 use std::env::vars;
@@ -553,4 +553,85 @@ pub struct Locale {}
 
 fn sanitize_str(s: &str) -> String {
     s.trim().replace('"', "").replace('\'', "")
+}
+
+/// Linux kernel modules list
+#[derive(Debug, Serialize, Clone)]
+pub struct KModules {
+    pub modules: Vec<Module>,
+}
+
+impl KModules {
+    pub fn new() -> Result<Self> {
+        let contents = read_to_string("/proc/modules")?;
+        let contents = contents.lines();
+        let mut modules = Vec::new();
+
+        for s in contents {
+            modules.push(Module::try_from(s)?);
+        }
+
+        Ok(Self { modules })
+    }
+}
+
+#[derive(Debug, Serialize, Clone)]
+pub struct Module {
+    /// The name of the loaded kernel module
+    pub name: String,
+
+    /// Size of the module
+    pub size: Size,
+
+    /// Number of times the module is currently in use or loaded
+    pub instances: usize,
+
+    /// A comma-separated list of other modules that this module
+    /// depends on
+    pub dependencies: String,
+
+    /// The current state of the module
+    pub state: String,
+
+    /// The memory addresses where the module is loaded (may not
+    /// always be present or fully detailed depending on the kernel
+    /// version and configuration)
+    pub memory_addrs: String,
+}
+
+impl TryFrom<&str> for Module {
+    type Error = anyhow::Error;
+    fn try_from(value: &str) -> Result<Self> {
+        let mut ch = value.split_whitespace();
+        match (
+            ch.next(),
+            ch.next(),
+            ch.next(),
+            ch.next(),
+            ch.next(),
+            ch.next(),
+        ) {
+            (
+                Some(name),
+                Some(size),
+                Some(instances),
+                Some(dependencies),
+                Some(state),
+                Some(memory_addrs),
+            ) => {
+                let size = size.parse::<usize>().map_err(|err| anyhow!("{err}"))?;
+                let instances = instances.parse::<usize>().map_err(|err| anyhow!("{err}"))?;
+
+                Ok(Self {
+                    name: name.to_string(),
+                    size: Size::B(size),
+                    instances,
+                    dependencies: dependencies.to_string(),
+                    state: state.to_string(),
+                    memory_addrs: memory_addrs.to_string(),
+                })
+            }
+            _ => Err(anyhow!("Unknown field: \"{value}\"")),
+        }
+    }
 }
