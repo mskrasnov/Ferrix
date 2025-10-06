@@ -215,7 +215,10 @@ impl Ferrix {
                 async move {
                     let kern = KernelData::new();
                     match kern {
-                        Ok(kern) => (Some(kern), None),
+                        Ok(mut kern) => {
+                            kern.mods.modules.sort_by_key(|md| md.name.clone());
+                            (Some(kern), None)
+                        }
                         Err(why) => (None, Some(why.to_string())),
                     }
                 },
