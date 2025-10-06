@@ -9,7 +9,7 @@ use ferrix_lib::{
     cpu::Processors,
     init::{Connection, SystemdServices},
     ram::RAM,
-    sys::{Groups, Kernel, OsRelease, Users},
+    sys::{Groups, Kernel, OsRelease, Users, get_hostname},
 };
 use iced::{
     Alignment::Center,
@@ -75,6 +75,9 @@ pub enum Message {
     GetSystemdServices,
     SystemdServicesReceived((Option<SystemdServices>, Option<String>)),
 
+    GetHostname,
+    HostnameReceived((Option<String>, Option<String>)),
+
     Dummy,
     ChangeTheme(Theme),
     SelectPage(Page),
@@ -91,6 +94,7 @@ pub struct Ferrix {
     pub users_list: Option<Users>,
     pub groups_list: Option<Groups>,
     pub sysd_services_list: Option<SystemdServices>,
+    pub hostname: Option<String>,
     pub settings: FXSettings,
 }
 
@@ -105,6 +109,7 @@ impl Default for Ferrix {
             users_list: None,
             groups_list: None,
             sysd_services_list: None,
+            hostname: None,
             settings: FXSettings::default(),
         }
     }
@@ -285,6 +290,27 @@ impl Ferrix {
                 },
                 |val| Message::SystemdServicesReceived(val),
             ),
+            Message::HostnameReceived((val, err)) => {
+                if let Some(val) = val {
+                    self.hostname = Some(val);
+                } else {
+                    if let Some(err) = err {
+                        eprintln!("{err}");
+                    }
+                }
+                Task::none()
+            }
+            Message::GetHostname => Task::perform(
+                async move {
+                    let hostname = get_hostname();
+                    if hostname.is_some() {
+                        (hostname, None)
+                    } else {
+                        (None, Some("Empty hostname".to_string()))
+                    }
+                },
+                |val| Message::HostnameReceived(val),
+            ),
             Message::SelectPage(page) => {
                 self.current_page = page;
                 Task::none()
@@ -321,6 +347,10 @@ impl Ferrix {
 
         if self.users_list.is_none() && self.current_page == Page::Users {
             scripts.push(time::every(Duration::from_millis(50)).map(|_| Message::GetUsersData));
+        }
+
+        if self.hostname.is_none() {
+            scripts.push(time::every(Duration::from_millis(50)).map(|_| Message::GetHostname));
         }
 
         if self.groups_list.is_none() && self.current_page == Page::Groups {

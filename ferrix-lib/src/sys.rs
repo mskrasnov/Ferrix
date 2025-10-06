@@ -540,7 +540,7 @@ fn get_shells() -> Result<Shells> {
 /// Host name
 pub type HostName = String;
 
-fn get_hostname() -> Option<HostName> {
+pub fn get_hostname() -> Option<HostName> {
     match read_to_string("/etc/hostname") {
         Ok(s) => Some(sanitize_str(&s)),
         Err(_) => None,

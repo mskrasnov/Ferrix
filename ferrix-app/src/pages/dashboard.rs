@@ -12,6 +12,7 @@ pub fn dashboard<'a>(
     proc: &'a Option<Processors>,
     ram: &'a Option<RAM>,
     osr: &'a Option<OsRelease>,
+    hostname: &'a Option<String>,
 ) -> container::Container<'a, Message> {
     let (proc_name, proc_threads) = {
         match proc {
@@ -49,6 +50,10 @@ pub fn dashboard<'a>(
             None => "Generic Linux",
         }
     };
+    let hostname = match hostname {
+        Some(hostname) => hostname as &str,
+        None => "Unknown hostname",
+    };
 
     container(
         column![
@@ -61,13 +66,14 @@ pub fn dashboard<'a>(
                 card(
                     "Оперативная память",
                     format!("{}/{}", total_ram, avail_ram),
-                    Message::SelectPage(crate::pages::Page::Memory)
+                    Message::SelectPage(crate::pages::Page::Memory),
                 ),
                 card(
                     "Система",
                     os_name,
-                    Message::SelectPage(crate::pages::Page::Distro)
+                    Message::SelectPage(crate::pages::Page::Distro),
                 ),
+                card("Имя хоста", hostname, Message::Dummy,),
             ]
             .spacing(5)
         ]

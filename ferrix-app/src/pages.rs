@@ -90,9 +90,13 @@ impl<'a> Page {
 
     pub fn page(&'a self, state: &'a Ferrix) -> Element<'a, Message> {
         let page = match self {
-            Self::Dashboard => {
-                dashboard::dashboard(&state.proc_data, &state.ram_data, &state.osrel_data).into()
-            }
+            Self::Dashboard => dashboard::dashboard(
+                &state.proc_data,
+                &state.ram_data,
+                &state.osrel_data,
+                &state.hostname,
+            )
+            .into(),
             Self::Processors => cpu::proc_page(&state.proc_data).into(),
             Self::Memory => ram::ram_page(&state.ram_data).into(),
             Self::Distro => distro::distro_page(&state.osrel_data).into(),
