@@ -346,7 +346,7 @@ impl Ferrix {
         }
 
         if self.users_list.is_none() && self.current_page == Page::Users {
-            scripts.push(time::every(Duration::from_millis(50)).map(|_| Message::GetUsersData));
+            scripts.push(time::every(Duration::from_millis(10)).map(|_| Message::GetUsersData));
         }
 
         if self.hostname.is_none() {
@@ -354,12 +354,12 @@ impl Ferrix {
         }
 
         if self.groups_list.is_none() && self.current_page == Page::Groups {
-            scripts.push(time::every(Duration::from_millis(50)).map(|_| Message::GetGroupsData));
+            scripts.push(time::every(Duration::from_millis(10)).map(|_| Message::GetGroupsData));
         }
 
         if self.sysd_services_list.is_none() && self.current_page == Page::SystemManager {
             scripts
-                .push(time::every(Duration::from_millis(50)).map(|_| Message::GetSystemdServices));
+                .push(time::every(Duration::from_millis(10)).map(|_| Message::GetSystemdServices));
         } else if self.sysd_services_list.is_some() && self.current_page == Page::SystemManager {
             scripts.push(
                 time::every(Duration::from_secs(
