@@ -57,6 +57,8 @@ use crate::traits::ToPlainText;
 use anyhow::Result;
 use serde::Serialize;
 
+pub const FX_LIB_VERSION: &str = env!("CARGO_PKG_VERSION");
+
 #[derive(Debug, Serialize)]
 pub struct Ferrix {
     pub cpu: cpu::Processors,

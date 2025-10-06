@@ -130,8 +130,9 @@ impl<'a> Page {
             column![
                 text("Ferrix — ещё один системный профайлер для Linux").size(24),
                 text(format!(
-                    "Версия: {}. Сделано с любовью.",
-                    env!("CARGO_PKG_VERSION")
+                    "Версия Ferrix: {}. Версия ferrix-lib: {}",
+                    env!("CARGO_PKG_VERSION"),
+                    ferrix_lib::FX_LIB_VERSION,
                 ))
                 .size(14),
             ]
