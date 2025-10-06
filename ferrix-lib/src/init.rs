@@ -24,13 +24,13 @@ use std::fmt::Display;
 
 use anyhow::Result;
 use serde::Serialize;
-use zbus::{Connection, zvariant::OwnedObjectPath};
+pub use zbus::{Connection, zvariant::OwnedObjectPath};
 use zbus_systemd::systemd1::ManagerProxy;
 
 use crate::traits::*;
 
 /// A structure containing information about `systemd` services
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct SystemdServices {
     pub units: Vec<ServiceInfo>,
 }
@@ -81,7 +81,7 @@ type ServiceTuple = (
     OwnedObjectPath,
 );
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct ServiceInfo {
     /// Unit name (e.g. `hibernate.target`)
     pub name: String,
@@ -140,7 +140,7 @@ impl From<ServiceTuple> for ServiceInfo {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub enum LoadState {
     Loaded,
     Stub,
@@ -177,7 +177,7 @@ impl From<&String> for LoadState {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub enum ActiveState {
     Active,
     Inactive,
@@ -217,7 +217,7 @@ impl From<&String> for ActiveState {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub enum WorkState {
     Active,
     Running,
@@ -272,7 +272,7 @@ impl From<&String> for WorkState {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub enum UnitType {
     Target,
     Service,
