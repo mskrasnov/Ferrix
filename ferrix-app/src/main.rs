@@ -9,7 +9,7 @@ use ferrix_lib::{
     cpu::Processors,
     init::{Connection, SystemdServices},
     ram::RAM,
-    sys::{Groups, Kernel, OsRelease, Users, get_hostname},
+    sys::{Groups, KModules, Kernel, OsRelease, Users, get_hostname},
 };
 use iced::{
     Alignment::Center,
@@ -64,7 +64,7 @@ pub enum Message {
     OsReleaseDataReceived((Option<OsRelease>, Option<String>)),
 
     GetKernelData,
-    KernelDataReceived((Option<Kernel>, Option<String>)),
+    KernelDataReceived((Option<KernelData>, Option<String>)),
 
     GetUsersData,
     UsersDataReceived((Option<Users>, Option<String>)),
@@ -91,6 +91,7 @@ pub struct Ferrix {
     pub ram_data: Option<RAM>,
     pub osrel_data: Option<OsRelease>,
     pub info_kernel: Option<Kernel>,
+    pub kmodules_list: Option<KModules>,
     pub users_list: Option<Users>,
     pub groups_list: Option<Groups>,
     pub sysd_services_list: Option<SystemdServices>,
@@ -106,6 +107,7 @@ impl Default for Ferrix {
             ram_data: None,
             osrel_data: None,
             info_kernel: None,
+            kmodules_list: None,
             users_list: None,
             groups_list: None,
             sysd_services_list: None,
@@ -200,7 +202,8 @@ impl Ferrix {
             ),
             Message::KernelDataReceived((val, err)) => {
                 if let Some(val) = val {
-                    self.info_kernel = Some(val);
+                    self.info_kernel = Some(val.kernel);
+                    self.kmodules_list = Some(val.mods);
                 } else {
                     if let Some(err) = err {
                         eprintln!("{err}");
@@ -210,7 +213,7 @@ impl Ferrix {
             }
             Message::GetKernelData => Task::perform(
                 async move {
-                    let kern = Kernel::new();
+                    let kern = KernelData::new();
                     match kern {
                         Ok(kern) => (Some(kern), None),
                         Err(why) => (None, Some(why.to_string())),
