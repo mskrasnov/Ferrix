@@ -16,7 +16,6 @@ pub fn dashboard<'a>(
 ) -> container::Container<'a, Message> {
     let (proc_name, proc_threads) = {
         match proc {
-            // Some(proc) => &(&proc.entries[0].vendor_id).unwrap_or("N/A".to_string()),
             Some(proc) => {
                 let model = &proc.entries[0].model_name;
                 let vendor = match model {
@@ -68,7 +67,7 @@ pub fn dashboard<'a>(
                 ),
                 card(
                     "Оперативная память",
-                    format!("{}/{}", total_ram, avail_ram),
+                    format!("{}/{}", avail_ram, total_ram),
                     Message::SelectPage(crate::pages::Page::Memory),
                 ),
                 card(
