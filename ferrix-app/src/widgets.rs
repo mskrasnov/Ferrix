@@ -86,3 +86,10 @@ pub fn sidebar_button<'a>(page: Page, cur_page: Page) -> button::Button<'a, Mess
         })
         .on_press(Message::SelectPage(page))
 }
+
+pub fn link_button<'a>(placeholder: &'a str, link: &'a str) -> button::Button<'a, Message> {
+    button(placeholder)
+        .style(super::styles::link_button)
+        .padding(0)
+        .on_press(Message::LinkButtonPressed(link.to_string()))
+}
