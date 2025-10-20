@@ -52,6 +52,7 @@ pub fn proc_page<'a>(
             }
             container(scrollable(proc_list))
         }
-        _ => processors.page().unwrap(),
+        DataLoadingState::Error(why) => super::error_page(why),
+        DataLoadingState::Loading => super::loading_page(),
     }
 }

@@ -20,12 +20,14 @@ use iced::{
 };
 use std::time::Duration;
 
+pub mod load_state;
 pub mod modals;
 pub mod pages;
 pub mod styles;
 pub mod utils;
 pub mod widgets;
 
+use load_state::DataLoadingState;
 use pages::*;
 
 use crate::widgets::{icon_button, sidebar_button};
@@ -55,13 +57,6 @@ pub fn main() -> iced::Result {
 }
 
 #[derive(Debug, Clone)]
-pub enum DataLoadingState<P> {
-    Loading,
-    Error(String),
-    Loaded(P),
-}
-
-#[derive(Debug, Clone)]
 pub enum Message {
     GetCPUData,
     CPUDataReceived(DataLoadingState<Processors>),
@@ -82,10 +77,9 @@ pub enum Message {
     GroupsDataReceived((Option<Groups>, Option<String>)),
 
     GetSystemdServices,
-    SystemdServicesReceived((Option<SystemdServices>, Option<String>)),
+    // SystemdServicesReceived((Option<SystemdServices>, Option<String>)),
+    SystemdServicesReceived(DataLoadingState<SystemdServices>),
 
-    // GetHostname,
-    // HostnameReceived((Option<String>, Option<String>)),
     GetSystemData,
     SystemDataReceived((Option<System>, Option<String>)),
 
@@ -106,7 +100,7 @@ pub struct Ferrix {
     pub kmodules_list: Option<KModules>,
     pub users_list: Option<Users>,
     pub groups_list: Option<Groups>,
-    pub sysd_services_list: Option<SystemdServices>,
+    pub sysd_services_list: DataLoadingState<SystemdServices>,
     pub system: Option<System>,
     pub settings: FXSettings,
 }
@@ -122,7 +116,7 @@ impl Default for Ferrix {
             kmodules_list: None,
             users_list: None,
             groups_list: None,
-            sysd_services_list: None,
+            sysd_services_list: DataLoadingState::Loading,
             system: None,
             settings: FXSettings::default(),
         }
@@ -169,14 +163,6 @@ impl Ferrix {
     fn update(&mut self, message: Message) -> Task<Message> {
         match message {
             Message::CPUDataReceived(state) => {
-                // if let Some(val) = val {
-                //     // dbg!(val);
-                //     self.proc_data = Some(val);
-                // } else {
-                //     if let Some(err) = err {
-                //         eprintln!("{err}");
-                //     }
-                // }
                 self.proc_data = state;
                 Task::none()
             }
@@ -300,28 +286,22 @@ impl Ferrix {
                 },
                 |val| Message::GroupsDataReceived(val),
             ),
-            Message::SystemdServicesReceived((val, err)) => {
-                if let Some(val) = val {
-                    self.sysd_services_list = Some(val);
-                } else {
-                    if let Some(err) = err {
-                        eprintln!("{err}");
-                    }
-                }
+            Message::SystemdServicesReceived(state) => {
+                self.sysd_services_list = state;
                 Task::none()
             }
             Message::GetSystemdServices => Task::perform(
                 async move {
                     let conn = Connection::session().await;
                     if let Err(why) = conn {
-                        return (None, Some(why.to_string()));
+                        return DataLoadingState::Error(why.to_string());
                     }
                     let conn = conn.unwrap();
 
                     let srv_list = SystemdServices::new_from_connection(&conn).await;
                     match srv_list {
-                        Ok(srv_list) => (Some(srv_list), None),
-                        Err(why) => (None, Some(why.to_string())),
+                        Ok(srv_list) => DataLoadingState::Loaded(srv_list),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
                     }
                 },
                 |val| Message::SystemdServicesReceived(val),

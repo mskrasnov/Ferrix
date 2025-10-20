@@ -1,11 +1,11 @@
 //! systemd services list
 
-use crate::{Message, pages::hdr_name};
+use crate::{Message, load_state::DataLoadingState, pages::hdr_name};
 use ferrix_lib::init::{ActiveState, LoadState, ServiceInfo, SystemdServices, WorkState};
 
 use iced::{
     Length,
-    widget::{center, column, container, row, scrollable, table, text},
+    widget::{column, container, row, scrollable, table, text},
 };
 
 fn srv_table<'a>(rows: &'a [ServiceInfo]) -> table::Table<'a, Message> {
@@ -61,11 +61,10 @@ fn srv_table<'a>(rows: &'a [ServiceInfo]) -> table::Table<'a, Message> {
 }
 
 pub fn services_page<'a>(
-    services: &'a Option<SystemdServices>,
+    services: &'a DataLoadingState<SystemdServices>,
 ) -> container::Container<'a, Message> {
     match services {
-        None => container(center(text("Загрузка данных..."))),
-        Some(services) => {
+        DataLoadingState::Loaded(services) => {
             let units = &services.units;
             let table = container(srv_table(units)).style(container::rounded_box);
             let warn_txt = {
@@ -80,5 +79,7 @@ pub fn services_page<'a>(
             let layout = column![warn_txt, services_count, table,].spacing(5);
             container(scrollable(layout))
         }
+        DataLoadingState::Error(why) => super::error_page(why),
+        DataLoadingState::Loading => super::loading_page(),
     }
 }

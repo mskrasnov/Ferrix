@@ -21,31 +21,6 @@ mod users;
 
 pub use kernel::KernelData;
 
-use super::DataLoadingState;
-
-impl<P> DataLoadingState<P> {
-    pub fn page<'a>(&'a self) -> Option<container::Container<'a, Message>> {
-        match self {
-            Self::Loading => Some(container(center(text("Загрузка данных")))),
-            Self::Error(why) => Some(container(
-                column![
-                    text("Ошибка загрузки данных!").style(text::danger).size(28),
-                    text(why),
-                ]
-                .spacing(5),
-            )),
-            Self::Loaded(_) => None,
-        }
-    }
-
-    pub fn to_option<'a>(&'a self) -> Option<&'a P> {
-        match self {
-            Self::Loaded(data) => Some(data),
-            _ => None,
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq)]
 pub enum Page {
     /************************************
@@ -302,4 +277,21 @@ fn fmt_bool(val: Option<bool>) -> Option<String> {
         },
         None => None,
     }
+}
+
+fn loading_page<'a>() -> container::Container<'a, Message> {
+    container(center(
+        text("Загрузка данных...").style(text::secondary).size(14),
+    ))
+}
+
+fn error_page<'a>(etext: &'a str) -> container::Container<'a, Message> {
+    container(center(
+        column![
+            text("Ошибка загрузки данных!").style(text::danger).size(20),
+            text(etext).style(text::secondary).size(14),
+        ]
+        .align_x(Center)
+        .spacing(5),
+    ))
 }
