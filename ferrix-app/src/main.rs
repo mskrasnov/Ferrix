@@ -5,11 +5,12 @@
  * modals/
  */
 
+use anyhow::Result;
 use ferrix_lib::{
     cpu::Processors,
     init::{Connection, SystemdServices},
     ram::RAM,
-    sys::{Groups, KModules, Kernel, OsRelease, Users, get_hostname},
+    sys::{Groups, KModules, Kernel, LoadAVG, OsRelease, Uptime, Users, get_hostname},
 };
 use iced::{
     Alignment::Center,
@@ -22,6 +23,7 @@ use std::time::Duration;
 pub mod modals;
 pub mod pages;
 pub mod styles;
+pub mod utils;
 pub mod widgets;
 
 use pages::*;
@@ -53,9 +55,16 @@ pub fn main() -> iced::Result {
 }
 
 #[derive(Debug, Clone)]
+pub enum DataLoadingState<P> {
+    Loading,
+    Error(String),
+    Loaded(P),
+}
+
+#[derive(Debug, Clone)]
 pub enum Message {
     GetCPUData,
-    CPUDataReceived((Option<Processors>, Option<String>)),
+    CPUDataReceived(DataLoadingState<Processors>),
 
     GetRAMData,
     RAMDataReceived((Option<RAM>, Option<String>)),
@@ -75,19 +84,22 @@ pub enum Message {
     GetSystemdServices,
     SystemdServicesReceived((Option<SystemdServices>, Option<String>)),
 
-    GetHostname,
-    HostnameReceived((Option<String>, Option<String>)),
+    // GetHostname,
+    // HostnameReceived((Option<String>, Option<String>)),
+    GetSystemData,
+    SystemDataReceived((Option<System>, Option<String>)),
 
     Dummy,
     ChangeTheme(Theme),
     SelectPage(Page),
     ChangeUpdatePeriod(u8),
+    LinkButtonPressed(String),
 }
 
 #[derive(Debug)]
 pub struct Ferrix {
     pub current_page: Page,
-    pub proc_data: Option<Processors>,
+    pub proc_data: DataLoadingState<Processors>,
     pub ram_data: Option<RAM>,
     pub osrel_data: Option<OsRelease>,
     pub info_kernel: Option<Kernel>,
@@ -95,7 +107,7 @@ pub struct Ferrix {
     pub users_list: Option<Users>,
     pub groups_list: Option<Groups>,
     pub sysd_services_list: Option<SystemdServices>,
-    pub hostname: Option<String>,
+    pub system: Option<System>,
     pub settings: FXSettings,
 }
 
@@ -103,7 +115,7 @@ impl Default for Ferrix {
     fn default() -> Self {
         Self {
             current_page: Page::default(),
-            proc_data: None,
+            proc_data: DataLoadingState::Loading,
             ram_data: None,
             osrel_data: None,
             info_kernel: None,
@@ -111,9 +123,26 @@ impl Default for Ferrix {
             users_list: None,
             groups_list: None,
             sysd_services_list: None,
-            hostname: None,
+            system: None,
             settings: FXSettings::default(),
         }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct System {
+    pub hostname: Option<String>,
+    pub loadavg: Option<LoadAVG>,
+    pub uptime: Option<Uptime>,
+}
+
+impl System {
+    pub fn new() -> Result<Self> {
+        Ok(Self {
+            hostname: get_hostname(),
+            loadavg: Some(LoadAVG::new()?),
+            uptime: Some(Uptime::new()?),
+        })
     }
 }
 
@@ -139,23 +168,24 @@ impl Ferrix {
 
     fn update(&mut self, message: Message) -> Task<Message> {
         match message {
-            Message::CPUDataReceived((val, err)) => {
-                if let Some(val) = val {
-                    // dbg!(val);
-                    self.proc_data = Some(val);
-                } else {
-                    if let Some(err) = err {
-                        eprintln!("{err}");
-                    }
-                }
+            Message::CPUDataReceived(state) => {
+                // if let Some(val) = val {
+                //     // dbg!(val);
+                //     self.proc_data = Some(val);
+                // } else {
+                //     if let Some(err) = err {
+                //         eprintln!("{err}");
+                //     }
+                // }
+                self.proc_data = state;
                 Task::none()
             }
             Message::GetCPUData => Task::perform(
                 async move {
                     let proc = Processors::new();
                     match proc {
-                        Ok(proc) => (Some(proc), None),
-                        Err(why) => (None, Some(why.to_string())),
+                        Ok(proc) => DataLoadingState::Loaded(proc),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
                     }
                 },
                 |val| Message::CPUDataReceived(val),
@@ -296,9 +326,9 @@ impl Ferrix {
                 },
                 |val| Message::SystemdServicesReceived(val),
             ),
-            Message::HostnameReceived((val, err)) => {
+            Message::SystemDataReceived((val, err)) => {
                 if let Some(val) = val {
-                    self.hostname = Some(val);
+                    self.system = Some(val);
                 } else {
                     if let Some(err) = err {
                         eprintln!("{err}");
@@ -306,16 +336,15 @@ impl Ferrix {
                 }
                 Task::none()
             }
-            Message::GetHostname => Task::perform(
+            Message::GetSystemData => Task::perform(
                 async move {
-                    let hostname = get_hostname();
-                    if hostname.is_some() {
-                        (hostname, None)
-                    } else {
-                        (None, Some("Empty hostname".to_string()))
+                    let sys = System::new();
+                    match sys {
+                        Ok(sys) => (Some(sys), None),
+                        Err(why) => (None, Some(why.to_string())),
                     }
                 },
-                |val| Message::HostnameReceived(val),
+                |val| Message::SystemDataReceived(val),
             ),
             Message::SelectPage(page) => {
                 self.current_page = page;
@@ -327,6 +356,11 @@ impl Ferrix {
             }
             Message::ChangeUpdatePeriod(period) => {
                 self.settings.update_period = period;
+                Task::none()
+            }
+            Message::LinkButtonPressed(url) => {
+                // TODO: add error handling
+                let _ = utils::xdg_open(url);
                 Task::none()
             }
             _ => Task::none(),
@@ -355,8 +389,8 @@ impl Ferrix {
             scripts.push(time::every(Duration::from_millis(10)).map(|_| Message::GetUsersData));
         }
 
-        if self.hostname.is_none() {
-            scripts.push(time::every(Duration::from_millis(50)).map(|_| Message::GetHostname));
+        if self.system.is_none() {
+            scripts.push(time::every(Duration::from_millis(50)).map(|_| Message::GetSystemData));
         }
 
         if self.groups_list.is_none() && self.current_page == Page::Groups {
@@ -372,6 +406,15 @@ impl Ferrix {
                     self.settings.update_period as u64 * 10u64,
                 ))
                 .map(|_| Message::GetSystemdServices),
+            );
+        }
+
+        if self.system.is_none() && self.current_page == Page::SystemMisc {
+            scripts.push(time::every(Duration::from_millis(10)).map(|_| Message::GetSystemData));
+        } else if self.system.is_some() && self.current_page == Page::SystemMisc {
+            scripts.push(
+                time::every(Duration::from_secs(self.settings.update_period as u64))
+                    .map(|_| Message::GetSystemData),
             );
         }
 
@@ -416,6 +459,7 @@ fn sidebar<'a>(cur_page: Page) -> container::Container<'a, Message> {
         sidebar_button(Page::Kernel, cur_page),
         sidebar_button(Page::KModules, cur_page),
         sidebar_button(Page::Development, cur_page),
+        sidebar_button(Page::SystemMisc, cur_page),
         text("Обслуживание").style(text::secondary),
         sidebar_button(Page::Settings, cur_page),
         sidebar_button(Page::About, cur_page),

@@ -9,10 +9,10 @@ use iced::{
 };
 
 pub fn dashboard<'a>(
-    proc: &'a Option<Processors>,
+    proc: Option<&'a Processors>,
     ram: &'a Option<RAM>,
     osr: &'a Option<OsRelease>,
-    hostname: &'a Option<String>,
+    system: &'a Option<crate::System>,
 ) -> container::Container<'a, Message> {
     let (proc_name, proc_threads) = {
         match proc {
@@ -50,8 +50,11 @@ pub fn dashboard<'a>(
             None => "Generic Linux",
         }
     };
-    let hostname = match hostname {
-        Some(hostname) => hostname as &str,
+    let hostname = match system {
+        Some(system) => match &system.hostname {
+            Some(hostname) => hostname as &str,
+            None => "Unknown hostname",
+        },
         None => "Unknown hostname",
     };
 
@@ -73,7 +76,11 @@ pub fn dashboard<'a>(
                     os_name,
                     Message::SelectPage(crate::pages::Page::Distro),
                 ),
-                card("Имя хоста", hostname, Message::Dummy,),
+                card(
+                    "Имя хоста",
+                    hostname,
+                    Message::SelectPage(crate::pages::Page::SystemMisc),
+                ),
             ]
             .spacing(5)
         ]

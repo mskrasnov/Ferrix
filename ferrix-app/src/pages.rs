@@ -6,7 +6,7 @@ use iced::{
     widget::{Column, center, column, container, row, rule, svg, table, text},
 };
 
-use crate::{Ferrix, Message};
+use crate::{Ferrix, Message, widgets::link_button};
 
 mod cpu;
 mod dashboard;
@@ -15,10 +15,36 @@ mod groups;
 mod kernel;
 mod ram;
 mod settings;
+mod system;
 mod systemd;
 mod users;
 
 pub use kernel::KernelData;
+
+use super::DataLoadingState;
+
+impl<P> DataLoadingState<P> {
+    pub fn page<'a>(&'a self) -> Option<container::Container<'a, Message>> {
+        match self {
+            Self::Loading => Some(container(center(text("Загрузка данных")))),
+            Self::Error(why) => Some(container(
+                column![
+                    text("Ошибка загрузки данных!").style(text::danger).size(28),
+                    text(why),
+                ]
+                .spacing(5),
+            )),
+            Self::Loaded(_) => None,
+        }
+    }
+
+    pub fn to_option<'a>(&'a self) -> Option<&'a P> {
+        match self {
+            Self::Loaded(data) => Some(data),
+            _ => None,
+        }
+    }
+}
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq)]
 pub enum Page {
@@ -38,6 +64,7 @@ pub enum Page {
      *          Administration          *
      ************************************/
     Distro,
+    SystemMisc,
     Users,
     Groups,
     SystemManager,
@@ -84,6 +111,7 @@ impl<'a> Page {
             Self::Kernel => "Ядро Linux",
             Self::KModules => "Модули ядра",
             Self::Development => "Разработка",
+            Self::SystemMisc => "Разное",
             Self::Settings => "Настройки",
             Self::About => "О программе",
             Self::Todo => "Не реализованный функционал",
@@ -93,16 +121,17 @@ impl<'a> Page {
     pub fn page(&'a self, state: &'a Ferrix) -> Element<'a, Message> {
         let page = match self {
             Self::Dashboard => dashboard::dashboard(
-                &state.proc_data,
+                state.proc_data.to_option(),
                 &state.ram_data,
                 &state.osrel_data,
-                &state.hostname,
+                &state.system,
             )
             .into(),
             Self::Processors => cpu::proc_page(&state.proc_data).into(),
             Self::Memory => ram::ram_page(&state.ram_data).into(),
             Self::Distro => distro::distro_page(&state.osrel_data).into(),
             Self::Kernel => kernel::kernel_page(&state.info_kernel, &state.kmodules_list).into(),
+            Self::SystemMisc => system::system_page(&state.system).into(),
             Self::Users => users::users_page(&state.users_list).into(),
             Self::Groups => groups::groups_page(&state.groups_list).into(),
             Self::SystemManager => systemd::services_page(&state.sysd_services_list).into(),
@@ -153,10 +182,18 @@ impl<'a> Page {
             .align_x(Alignment::End)
             .spacing(5),
             column![
-                text("Михаил Краснов"),
-                text("mskrasnov07@ya.ru").style(text::danger),
-                text("https://github.com/mskrasnov/ferrix").style(text::danger),
-                text("https://crates.io/crates/ferrix-app").style(text::danger),
+                row![
+                    text("(C) 2025 Михаил Краснов"),
+                    link_button("(GitHub)", "https://github.com/mskrasnov"),
+                ]
+                .spacing(5),
+                link_button("mskrasnov07 at ya dot ru", "mailto:mskrasnov07@ya.ru"),
+                link_button("GitHub", "https://github.com/mskrasnov/Ferrix"),
+                row![
+                    link_button("ferrix-app", "https://crates.io/crates/ferrix-app"),
+                    text(", "),
+                    link_button("ferrix-lib", "https://crates.io/crates/ferrix-lib"),
+                ],
             ]
             .spacing(5),
         ]

@@ -1,17 +1,18 @@
 //! CPU page
 
 use crate::{
-    Message,
+    DataLoadingState, Message,
     pages::{InfoRow, fmt_bool, fmt_val, fmt_vec, kv_info_table},
 };
 use ferrix_lib::cpu::Processors;
 
-use iced::widget::{center, column, container, scrollable, text};
+use iced::widget::{column, container, scrollable, text};
 
-pub fn proc_page<'a>(processors: &'a Option<Processors>) -> container::Container<'a, Message> {
+pub fn proc_page<'a>(
+    processors: &'a DataLoadingState<Processors>,
+) -> container::Container<'a, Message> {
     match processors {
-        None => container(center(text("Загрузка данных..."))),
-        Some(proc) => {
+        DataLoadingState::Loaded(proc) => {
             let mut proc_list = column![].spacing(5);
             for proc in &proc.entries {
                 let rows = vec![
@@ -51,5 +52,6 @@ pub fn proc_page<'a>(processors: &'a Option<Processors>) -> container::Container
             }
             container(scrollable(proc_list))
         }
+        _ => processors.page().unwrap(),
     }
 }
