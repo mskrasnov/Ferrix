@@ -8,8 +8,6 @@
 
 <img src="./screens/screen2.png" width="40%"> <img src="./screens/screen5.png" width="40%">
 
-> **NOTE:** For now, this repository contains the [`ferrix-lib`](./ferrix-lib/README.md) crate, which provides an API for obtaining information about hardware and software. I've also started work on the [`ferrix-app`](./ferrix-app/README.md), a GUI for `ferrix-lib`, but I haven't finished it yet and I don't think I'll be able to finish it by the end of this year. It's all about serious Internet outages in the region where I live - without it, I won't be able to commit to this repository.
-
 ## What is Ferrix?
 
 Ferrix is a Rust-crate and program for obtaining information about computer hardware and software. It is designed to work in modern Linux OS distributions.
