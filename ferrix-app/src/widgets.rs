@@ -1,19 +1,27 @@
 //! Custom widgets for UI
 
 // use super::Message;
+use iced::widget::svg::Handle;
 use iced::{
     Color,
     widget::{button, container, svg, text, tooltip::Position},
 };
 
-use crate::{Message, pages::Page};
+use crate::{
+    Message,
+    icons::{ABOUT_ICON, ERROR_ICON, EXPORT_ICON, SETTINGS_ICON},
+    pages::Page,
+};
 
 pub fn icon_tooltip<'a>(icon_name: &'a str, tooltip: &'a str) -> container::Container<'a, Message> {
-    let svg_path = format!(
-        "ferrix-app/data/icons/hicolor/symbolic/actions/ferrix-{}.svg",
-        icon_name
-    );
-    let icon = svg(svg_path)
+    let svg_bytes = match icon_name {
+        "about" => ABOUT_ICON,
+        "error" => ERROR_ICON,
+        "export" => EXPORT_ICON,
+        "settings" => SETTINGS_ICON,
+        _ => &[],
+    };
+    let icon = svg(Handle::from_memory(svg_bytes))
         .style(|theme: &iced::Theme, _| svg::Style {
             color: Some(theme.palette().text),
         })
@@ -44,12 +52,15 @@ pub fn icon_tooltip<'a>(icon_name: &'a str, tooltip: &'a str) -> container::Cont
     .height(16)
 }
 
-pub fn icon_button<'a>(icon_name: &'a str, tooltip: &'a str) -> button::Button<'a, Message> {
-    let svg_path = format!(
-        "ferrix-app/data/icons/hicolor/symbolic/actions/ferrix-{}.svg",
-        icon_name
-    );
-    let icon = svg(svg_path).style(|theme: &iced::Theme, _| svg::Style {
+pub fn icon_button<'a>(icon_name: &'a str, tooltip: String) -> button::Button<'a, Message> {
+    let svg_bytes = match icon_name {
+        "about" => ABOUT_ICON,
+        "error" => ERROR_ICON,
+        "export" => EXPORT_ICON,
+        "settings" => SETTINGS_ICON,
+        _ => &[],
+    };
+    let icon = svg(Handle::from_memory(svg_bytes)).style(|theme: &iced::Theme, _| svg::Style {
         color: Some(theme.palette().text),
     });
 
