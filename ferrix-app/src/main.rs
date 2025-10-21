@@ -1,16 +1,9 @@
-/*
- * main.rs
- * styles/
- * widgets/
- * modals/
- */
-
 use anyhow::Result;
 use ferrix_lib::{
     cpu::Processors,
     init::{Connection, SystemdServices},
     ram::RAM,
-    sys::{Groups, KModules, Kernel, LoadAVG, OsRelease, Uptime, Users, get_hostname},
+    sys::{Groups, LoadAVG, OsRelease, Uptime, Users, get_hostname},
 };
 use iced::{
     Alignment::Center,
@@ -20,6 +13,8 @@ use iced::{
 };
 use std::time::Duration;
 
+pub mod i18n;
+pub mod icons;
 pub mod load_state;
 pub mod modals;
 pub mod pages;
@@ -62,26 +57,25 @@ pub enum Message {
     CPUDataReceived(DataLoadingState<Processors>),
 
     GetRAMData,
-    RAMDataReceived((Option<RAM>, Option<String>)),
+    RAMDataReceived(DataLoadingState<RAM>),
 
     GetOsReleaseData,
-    OsReleaseDataReceived((Option<OsRelease>, Option<String>)),
+    OsReleaseDataReceived(DataLoadingState<OsRelease>),
 
     GetKernelData,
-    KernelDataReceived((Option<KernelData>, Option<String>)),
+    KernelDataReceived(DataLoadingState<KernelData>),
 
     GetUsersData,
-    UsersDataReceived((Option<Users>, Option<String>)),
+    UsersDataReceived(DataLoadingState<Users>),
 
     GetGroupsData,
-    GroupsDataReceived((Option<Groups>, Option<String>)),
+    GroupsDataReceived(DataLoadingState<Groups>),
 
     GetSystemdServices,
-    // SystemdServicesReceived((Option<SystemdServices>, Option<String>)),
     SystemdServicesReceived(DataLoadingState<SystemdServices>),
 
     GetSystemData,
-    SystemDataReceived((Option<System>, Option<String>)),
+    SystemDataReceived(DataLoadingState<System>),
 
     Dummy,
     ChangeTheme(Theme),
@@ -94,14 +88,13 @@ pub enum Message {
 pub struct Ferrix {
     pub current_page: Page,
     pub proc_data: DataLoadingState<Processors>,
-    pub ram_data: Option<RAM>,
-    pub osrel_data: Option<OsRelease>,
-    pub info_kernel: Option<Kernel>,
-    pub kmodules_list: Option<KModules>,
-    pub users_list: Option<Users>,
-    pub groups_list: Option<Groups>,
+    pub ram_data: DataLoadingState<RAM>,
+    pub osrel_data: DataLoadingState<OsRelease>,
+    pub info_kernel: DataLoadingState<KernelData>,
+    pub users_list: DataLoadingState<Users>,
+    pub groups_list: DataLoadingState<Groups>,
     pub sysd_services_list: DataLoadingState<SystemdServices>,
-    pub system: Option<System>,
+    pub system: DataLoadingState<System>,
     pub settings: FXSettings,
 }
 
@@ -110,14 +103,13 @@ impl Default for Ferrix {
         Self {
             current_page: Page::default(),
             proc_data: DataLoadingState::Loading,
-            ram_data: None,
-            osrel_data: None,
-            info_kernel: None,
-            kmodules_list: None,
-            users_list: None,
-            groups_list: None,
+            ram_data: DataLoadingState::Loading,
+            osrel_data: DataLoadingState::Loading,
+            info_kernel: DataLoadingState::Loading,
+            users_list: DataLoadingState::Loading,
+            groups_list: DataLoadingState::Loading,
             sysd_services_list: DataLoadingState::Loading,
-            system: None,
+            system: DataLoadingState::Loading,
             settings: FXSettings::default(),
         }
     }
@@ -176,55 +168,36 @@ impl Ferrix {
                 },
                 |val| Message::CPUDataReceived(val),
             ),
-            Message::RAMDataReceived((val, err)) => {
-                if let Some(val) = val {
-                    self.ram_data = Some(val);
-                } else {
-                    if let Some(err) = err {
-                        eprintln!("{err}");
-                    }
-                }
+            Message::RAMDataReceived(state) => {
+                self.ram_data = state;
                 Task::none()
             }
             Message::GetRAMData => Task::perform(
                 async move {
                     let ram = RAM::new();
                     match ram {
-                        Ok(ram) => (Some(ram), None),
-                        Err(why) => (None, Some(why.to_string())),
+                        Ok(ram) => DataLoadingState::Loaded(ram),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
                     }
                 },
                 |val| Message::RAMDataReceived(val),
             ),
-            Message::OsReleaseDataReceived((val, err)) => {
-                if let Some(val) = val {
-                    self.osrel_data = Some(val);
-                } else {
-                    if let Some(err) = err {
-                        eprintln!("{err}");
-                    }
-                }
+            Message::OsReleaseDataReceived(state) => {
+                self.osrel_data = state;
                 Task::none()
             }
             Message::GetOsReleaseData => Task::perform(
                 async move {
                     let osrel = OsRelease::new();
                     match osrel {
-                        Ok(osrel) => (Some(osrel), None),
-                        Err(why) => (None, Some(why.to_string())),
+                        Ok(osrel) => DataLoadingState::Loaded(osrel),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
                     }
                 },
                 |val| Message::OsReleaseDataReceived(val),
             ),
-            Message::KernelDataReceived((val, err)) => {
-                if let Some(val) = val {
-                    self.info_kernel = Some(val.kernel);
-                    self.kmodules_list = Some(val.mods);
-                } else {
-                    if let Some(err) = err {
-                        eprintln!("{err}");
-                    }
-                }
+            Message::KernelDataReceived(state) => {
+                self.info_kernel = state;
                 Task::none()
             }
             Message::GetKernelData => Task::perform(
@@ -233,21 +206,15 @@ impl Ferrix {
                     match kern {
                         Ok(mut kern) => {
                             kern.mods.modules.sort_by_key(|md| md.name.clone());
-                            (Some(kern), None)
+                            DataLoadingState::Loaded(kern)
                         }
-                        Err(why) => (None, Some(why.to_string())),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
                     }
                 },
                 |val| Message::KernelDataReceived(val),
             ),
-            Message::UsersDataReceived((val, err)) => {
-                if let Some(val) = val {
-                    self.users_list = Some(val);
-                } else {
-                    if let Some(err) = err {
-                        eprintln!("{err}");
-                    }
-                }
+            Message::UsersDataReceived(state) => {
+                self.users_list = state;
                 Task::none()
             }
             Message::GetUsersData => Task::perform(
@@ -256,21 +223,15 @@ impl Ferrix {
                     match users {
                         Ok(mut users) => {
                             users.users.sort_by_key(|usr| usr.uid);
-                            (Some(users), None)
+                            DataLoadingState::Loaded(users)
                         }
-                        Err(why) => (None, Some(why.to_string())),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
                     }
                 },
                 |val| Message::UsersDataReceived(val),
             ),
-            Message::GroupsDataReceived((val, err)) => {
-                if let Some(val) = val {
-                    self.groups_list = Some(val);
-                } else {
-                    if let Some(err) = err {
-                        eprintln!("{err}");
-                    }
-                }
+            Message::GroupsDataReceived(state) => {
+                self.groups_list = state;
                 Task::none()
             }
             Message::GetGroupsData => Task::perform(
@@ -279,9 +240,9 @@ impl Ferrix {
                     match groups {
                         Ok(mut groups) => {
                             groups.groups.sort_by_key(|grp| grp.gid);
-                            (Some(groups), None)
+                            DataLoadingState::Loaded(groups)
                         }
-                        Err(why) => (None, Some(why.to_string())),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
                     }
                 },
                 |val| Message::GroupsDataReceived(val),
@@ -306,22 +267,16 @@ impl Ferrix {
                 },
                 |val| Message::SystemdServicesReceived(val),
             ),
-            Message::SystemDataReceived((val, err)) => {
-                if let Some(val) = val {
-                    self.system = Some(val);
-                } else {
-                    if let Some(err) = err {
-                        eprintln!("{err}");
-                    }
-                }
+            Message::SystemDataReceived(state) => {
+                self.system = state;
                 Task::none()
             }
             Message::GetSystemData => Task::perform(
                 async move {
                     let sys = System::new();
                     match sys {
-                        Ok(sys) => (Some(sys), None),
-                        Err(why) => (None, Some(why.to_string())),
+                        Ok(sys) => DataLoadingState::Loaded(sys),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
                     }
                 },
                 |val| Message::SystemDataReceived(val),
@@ -411,15 +366,15 @@ impl Ferrix {
 
 fn sidebar<'a>(cur_page: Page) -> container::Container<'a, Message> {
     let buttons_bar = row![
-        icon_button("export", "Экспорт").on_press(Message::Dummy),
-        icon_button("settings", "Настройки").on_press(Message::SelectPage(Page::Settings)),
-        icon_button("about", "О программе").on_press(Message::SelectPage(Page::About)),
+        icon_button("export", fl!("sidebar-export")).on_press(Message::Dummy),
+        icon_button("settings", fl!("sidebar-settings")).on_press(Message::SelectPage(Page::Settings)),
+        icon_button("about", fl!("sidebar-about")).on_press(Message::SelectPage(Page::About)),
     ]
     .spacing(2)
     .align_y(Center);
 
     let pages_bar = column![
-        text("Оборудование").style(text::secondary),
+        text(fl!("sidebar-hardware")).style(text::secondary),
         sidebar_button(Page::Dashboard, cur_page),
         sidebar_button(Page::Processors, cur_page),
         sidebar_button(Page::Memory, cur_page),
@@ -427,7 +382,7 @@ fn sidebar<'a>(cur_page: Page) -> container::Container<'a, Message> {
         sidebar_button(Page::DMI, cur_page),
         sidebar_button(Page::Battery, cur_page),
         sidebar_button(Page::Screen, cur_page),
-        text("Администрирование").style(text::secondary),
+        text(fl!("sidebar-admin")).style(text::secondary),
         sidebar_button(Page::Distro, cur_page),
         sidebar_button(Page::Users, cur_page),
         sidebar_button(Page::Groups, cur_page),
@@ -435,12 +390,12 @@ fn sidebar<'a>(cur_page: Page) -> container::Container<'a, Message> {
         sidebar_button(Page::Software, cur_page),
         sidebar_button(Page::Environment, cur_page),
         sidebar_button(Page::Sensors, cur_page),
-        text("Система").style(text::secondary),
+        text(fl!("sidebar-system")).style(text::secondary),
         sidebar_button(Page::Kernel, cur_page),
         sidebar_button(Page::KModules, cur_page),
         sidebar_button(Page::Development, cur_page),
         sidebar_button(Page::SystemMisc, cur_page),
-        text("Обслуживание").style(text::secondary),
+        text(fl!("sidebar-manage")).style(text::secondary),
         sidebar_button(Page::Settings, cur_page),
         sidebar_button(Page::About, cur_page),
     ]
