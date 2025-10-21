@@ -1,7 +1,7 @@
 //! Groups list page
 
 use crate::{
-    Message,
+    Message, fl,
     load_state::DataLoadingState,
     pages::{InfoRow, fmt_val, kv_info_table},
 };
@@ -15,12 +15,12 @@ pub fn groups_page<'a>(groups: &'a DataLoadingState<Groups>) -> container::Conta
             let mut groups_list = column![].spacing(5);
             for grp in &groups.groups {
                 let rows = vec![
-                    InfoRow::new("Имя группы", Some(grp.name.clone())),
-                    InfoRow::new("Идентификатор группы", fmt_val(Some(grp.gid))),
-                    InfoRow::new("Члены группы", Some(format!("{:?}", &grp.users))),
+                    InfoRow::new(fl!("groups-name"), Some(grp.name.clone())),
+                    InfoRow::new(fl!("groups-id"), fmt_val(Some(grp.gid))),
+                    InfoRow::new(fl!("groups-members"), Some(format!("{:?}", &grp.users))),
                 ];
                 let grp_view = column![
-                    text(format!("Группа #{}", grp.gid)).style(text::warning),
+                    text(fl!("groups-group", group_no = grp.gid)).style(text::warning),
                     container(kv_info_table(rows)).style(container::rounded_box),
                 ]
                 .spacing(5);

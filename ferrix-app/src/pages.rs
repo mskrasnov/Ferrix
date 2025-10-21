@@ -1,12 +1,13 @@
 //! Pages with information about hardware and software
 
+use iced::widget::text::IntoFragment;
 use iced::{
     Alignment::{self, Center},
     Element, Length,
-    widget::{Column, center, column, container, row, rule, svg, table, text},
+    widget::{Column, center, column, container, row, rule, svg::Handle, table, text},
 };
 
-use crate::{Ferrix, Message, widgets::link_button};
+use crate::{Ferrix, Message, fl, icons::ERROR_ICON, widgets::link_button};
 
 mod cpu;
 mod dashboard;
@@ -67,29 +68,29 @@ impl<'a> Page {
         header_text(self.title_str())
     }
 
-    pub fn title_str(&self) -> &'static str {
+    pub fn title_str(&self) -> String {
         match self {
-            Self::Dashboard => "Обзор",
-            Self::Processors => "Процессоры",
-            Self::Memory => "Память",
-            Self::Storage => "Накопители",
-            Self::DMI => "Таблицы DMI",
-            Self::Battery => "Аккумулятор",
-            Self::Screen => "Экран",
-            Self::Distro => "Дистрибутив",
-            Self::Users => "Пользователи",
-            Self::Groups => "Группы",
-            Self::SystemManager => "Системный менеджер",
-            Self::Software => "Установленное ПО",
-            Self::Environment => "Окружение",
-            Self::Sensors => "Сенсоры",
-            Self::Kernel => "Ядро Linux",
-            Self::KModules => "Модули ядра",
-            Self::Development => "Разработка",
-            Self::SystemMisc => "Разное",
-            Self::Settings => "Настройки",
-            Self::About => "О программе",
-            Self::Todo => "Не реализованный функционал",
+            Self::Dashboard => fl!("page-dashboard"),
+            Self::Processors => fl!("page-procs"),
+            Self::Memory => fl!("page-memory"),
+            Self::Storage => fl!("page-storage"),
+            Self::DMI => fl!("page-dmi"),
+            Self::Battery => fl!("page-battery"),
+            Self::Screen => fl!("page-screen"),
+            Self::Distro => fl!("page-distro"),
+            Self::Users => fl!("page-users"),
+            Self::Groups => fl!("page-groups"),
+            Self::SystemManager => fl!("page-sysmgr"),
+            Self::Software => fl!("page-software"),
+            Self::Environment => fl!("page-env"),
+            Self::Sensors => fl!("page-sensors"),
+            Self::Kernel => fl!("page-kernel"),
+            Self::KModules => fl!("page-kmods"),
+            Self::Development => fl!("page-dev"),
+            Self::SystemMisc => fl!("page-sysmisc"),
+            Self::Settings => fl!("page-settings"),
+            Self::About => fl!("page-about"),
+            Self::Todo => fl!("page-todo"),
         }
     }
 
@@ -97,15 +98,15 @@ impl<'a> Page {
         let page = match self {
             Self::Dashboard => dashboard::dashboard(
                 state.proc_data.to_option(),
-                &state.ram_data,
-                &state.osrel_data,
-                &state.system,
+                state.ram_data.to_option(),
+                state.osrel_data.to_option(),
+                state.system.to_option(),
             )
             .into(),
             Self::Processors => cpu::proc_page(&state.proc_data).into(),
             Self::Memory => ram::ram_page(&state.ram_data).into(),
             Self::Distro => distro::distro_page(&state.osrel_data).into(),
-            Self::Kernel => kernel::kernel_page(&state.info_kernel, &state.kmodules_list).into(),
+            Self::Kernel => kernel::kernel_page(&state.info_kernel).into(),
             Self::SystemMisc => system::system_page(&state.system).into(),
             Self::Users => users::users_page(&state.users_list).into(),
             Self::Groups => groups::groups_page(&state.groups_list).into(),
@@ -120,24 +121,26 @@ impl<'a> Page {
 
     fn todo_page(&self) -> Element<'a, Message> {
         container(center(
-            text("Этот функционал ещё не реализован")
-                .size(16)
-                .style(text::secondary),
+            text(fl!("page-todo-msg")).size(16).style(text::secondary),
         ))
         .into()
     }
 
     fn about_page(&'a self) -> container::Container<'a, Message> {
-        let img = svg("ferrix-app/data/icons/hicolor/scalable/apps/com.mskrasnov.Ferrix.svg")
-            .width(128)
-            .height(128);
+        let img = iced::widget::svg(
+            "ferrix-app/data/icons/hicolor/scalable/apps/com.mskrasnov.Ferrix.svg",
+        )
+        .width(128)
+        .height(128);
         let header = row![
             img,
             column![
-                text("Ferrix — ещё один системный профайлер для Linux").size(24),
+                text(fl!("about-hdr")).size(24),
                 text(format!(
-                    "Версия Ferrix: {}. Версия ferrix-lib: {}",
+                    "{}: {}. {}: {}",
+                    fl!("about-ferrix"),
                     env!("CARGO_PKG_VERSION"),
+                    fl!("about-flib"),
                     ferrix_lib::FX_LIB_VERSION,
                 ))
                 .size(14),
@@ -149,16 +152,16 @@ impl<'a> Page {
 
         let about_info = row![
             column![
-                text("Автор:").style(text::secondary),
-                text("Фидбек:").style(text::secondary),
-                text("Исходный код:").style(text::secondary),
+                text(fl!("about-author-hdr")).style(text::secondary),
+                text(fl!("about-feedback-hdr")).style(text::secondary),
+                text(fl!("about-source-hdr")).style(text::secondary),
                 text("crates.io:").style(text::secondary),
             ]
             .align_x(Alignment::End)
             .spacing(5),
             column![
                 row![
-                    text("(C) 2025 Михаил Краснов"),
+                    text(fl!("about-author")),
                     link_button("(GitHub)", "https://github.com/mskrasnov"),
                 ]
                 .spacing(5),
@@ -174,8 +177,7 @@ impl<'a> Page {
         ]
         .spacing(5);
 
-        let misc =
-            text("Вы можете отправить донат на карту:\n\t2202 2062 5233 5406 (Сбер)\nСпасибо!");
+        let misc = text(fl!("about-donate"));
 
         let contents = column![
             column![header, rule::horizontal(1)].spacing(2),
@@ -223,10 +225,10 @@ where
     V: ToString + Clone + 'a,
 {
     let columns = [
-        table::column(hdr_name("Параметр"), |row: InfoRow<V>| {
+        table::column(hdr_name(fl!("hdr-param")), |row: InfoRow<V>| {
             text(row.param_header)
         }),
-        table::column(hdr_name("Значение"), |row: InfoRow<V>| {
+        table::column(hdr_name(fl!("hdr-value")), |row: InfoRow<V>| {
             text_fmt_val(row.value)
         })
         .width(Length::Fill),
@@ -235,11 +237,11 @@ where
     table(columns, rows).padding(2).width(Length::Fill).into()
 }
 
-fn hdr_name<'a>(s: &'a str) -> text::Text<'a> {
+fn hdr_name<'a, S: IntoFragment<'a>>(s: S) -> text::Text<'a> {
     text(s).style(text::secondary)
 }
 
-fn header_text<'a>(txt: &'a str) -> Column<'a, Message> {
+fn header_text<'a>(txt: String) -> Column<'a, Message> {
     column![text(txt).size(22), rule::horizontal(1)].spacing(2)
 }
 
@@ -272,8 +274,8 @@ where
 fn fmt_bool(val: Option<bool>) -> Option<String> {
     match val {
         Some(val) => match val {
-            true => Some("YES".to_string()),
-            false => Some("NO".to_string()),
+            true => Some(fl!("bool-true")),
+            false => Some(fl!("bool-false")),
         },
         None => None,
     }
@@ -281,14 +283,23 @@ fn fmt_bool(val: Option<bool>) -> Option<String> {
 
 fn loading_page<'a>() -> container::Container<'a, Message> {
     container(center(
-        text("Загрузка данных...").style(text::secondary).size(14),
+        text(fl!("ldr-page-tooltip"))
+            .style(text::secondary)
+            .size(14),
     ))
 }
 
 fn error_page<'a>(etext: &'a str) -> container::Container<'a, Message> {
     container(center(
         column![
-            text("Ошибка загрузки данных!").style(text::danger).size(20),
+            row![
+                iced::widget::svg(Handle::from_memory(ERROR_ICON))
+                    .width(20)
+                    .height(20),
+                text(fl!("err-page-tooltip")).size(20),
+            ]
+            .align_y(Center)
+            .spacing(5),
             text(etext).style(text::secondary).size(14),
         ]
         .align_x(Center)

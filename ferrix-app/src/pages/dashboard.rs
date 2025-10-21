@@ -1,6 +1,6 @@
 //! Dashboard page
 
-use crate::Message;
+use crate::{fl, Message};
 use ferrix_lib::{cpu::Processors, ram::RAM, sys::OsRelease};
 
 use iced::{
@@ -61,22 +61,22 @@ pub fn dashboard<'a>(
         column![
             row![
                 card(
-                    "Процессор",
-                    format!("{}, {} потоков", proc_name, proc_threads),
+                    fl!("dash-proc"),
+                    fl!("dash-proc-info", name = proc_name, threads = proc_threads),
                     Message::SelectPage(crate::pages::Page::Processors),
                 ),
                 card(
-                    "Оперативная память",
+                    fl!("dash-mem"),
                     format!("{}/{}", avail_ram, total_ram),
                     Message::SelectPage(crate::pages::Page::Memory),
                 ),
                 card(
-                    "Система",
+                    fl!("dash-sys"),
                     os_name,
                     Message::SelectPage(crate::pages::Page::Distro),
                 ),
                 card(
-                    "Имя хоста",
+                    fl!("dash-host"),
                     hostname,
                     Message::SelectPage(crate::pages::Page::SystemMisc),
                 ),

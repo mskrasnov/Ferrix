@@ -1,7 +1,7 @@
 //! CPU page
 
 use crate::{
-    DataLoadingState, Message,
+    DataLoadingState, Message, fl,
     pages::{InfoRow, fmt_bool, fmt_val, fmt_vec, kv_info_table},
 };
 use ferrix_lib::cpu::Processors;
@@ -16,35 +16,38 @@ pub fn proc_page<'a>(
             let mut proc_list = column![].spacing(5);
             for proc in &proc.entries {
                 let rows = vec![
-                    InfoRow::new("Производитель", proc.vendor_id.clone()),
-                    InfoRow::new("Семейство", fmt_val(proc.cpu_family)),
-                    InfoRow::new("Модель", proc.model_name.clone()),
-                    InfoRow::new("Stepping", fmt_val(proc.stepping)),
-                    InfoRow::new("Микрокод", proc.microcode.clone()),
-                    InfoRow::new("Частота", fmt_val(proc.cpu_mhz)),
-                    InfoRow::new("Размер L3 кеша", fmt_val(proc.cache_size)),
-                    InfoRow::new("Физический ID", fmt_val(proc.physical_id)),
-                    InfoRow::new("Siblings", fmt_val(proc.siblings)),
-                    InfoRow::new("ID ядра", fmt_val(proc.core_id)),
-                    InfoRow::new("Число ядер", fmt_val(proc.cpu_cores)),
-                    InfoRow::new("APIC ID", fmt_val(proc.apicid)),
-                    InfoRow::new("Initial APIC ID", fmt_val(proc.initial_apicid)),
-                    InfoRow::new("FPU", fmt_bool(proc.fpu)),
-                    InfoRow::new("FPU Exception", fmt_bool(proc.fpu_exception)),
-                    InfoRow::new("CPUID Level", fmt_val(proc.cpuid_level)),
-                    InfoRow::new("WP", fmt_bool(proc.wp)),
-                    InfoRow::new("Флаги", fmt_vec(&proc.flags)),
-                    InfoRow::new("Баги", fmt_vec(&proc.bugs)),
-                    InfoRow::new("BogoMIPS", fmt_val(proc.bogomips)),
-                    InfoRow::new("Размер clflush", fmt_val(proc.clflush_size)),
-                    InfoRow::new("Выравнивание кеша", fmt_val(proc.cache_alignment)),
-                    InfoRow::new("Размер адресов", proc.address_sizes.clone()),
-                    InfoRow::new("Управление питанием", proc.power_management.clone()),
+                    InfoRow::new(fl!("cpu-vendor"), proc.vendor_id.clone()),
+                    InfoRow::new(fl!("cpu-family"), fmt_val(proc.cpu_family)),
+                    InfoRow::new(fl!("cpu-model"), proc.model_name.clone()),
+                    InfoRow::new(fl!("cpu-stepping"), fmt_val(proc.stepping)),
+                    InfoRow::new(fl!("cpu-microcode"), proc.microcode.clone()),
+                    InfoRow::new(fl!("cpu-freq"), fmt_val(proc.cpu_mhz)),
+                    InfoRow::new(fl!("cpu-cache"), fmt_val(proc.cache_size)),
+                    InfoRow::new(fl!("cpu-physical-id"), fmt_val(proc.physical_id)),
+                    InfoRow::new(fl!("cpu-siblings"), fmt_val(proc.siblings)),
+                    InfoRow::new(fl!("cpu-core-id"), fmt_val(proc.core_id)),
+                    InfoRow::new(fl!("cpu-cpu-cores"), fmt_val(proc.cpu_cores)),
+                    InfoRow::new(fl!("cpu-apicid"), fmt_val(proc.apicid)),
+                    InfoRow::new(fl!("cpu-iapicid"), fmt_val(proc.initial_apicid)),
+                    InfoRow::new(fl!("cpu-fpu"), fmt_bool(proc.fpu)),
+                    InfoRow::new(fl!("cpu-fpu-e"), fmt_bool(proc.fpu_exception)),
+                    InfoRow::new(fl!("cpu-cpuid-lvl"), fmt_val(proc.cpuid_level)),
+                    InfoRow::new(fl!("cpu-wp"), fmt_bool(proc.wp)),
+                    InfoRow::new(fl!("cpu-flags"), fmt_vec(&proc.flags)),
+                    InfoRow::new(fl!("cpu-bugs"), fmt_vec(&proc.bugs)),
+                    InfoRow::new(fl!("cpu-bogomips"), fmt_val(proc.bogomips)),
+                    InfoRow::new(fl!("cpu-clflush"), fmt_val(proc.clflush_size)),
+                    InfoRow::new(fl!("cpu-cache-align"), fmt_val(proc.cache_alignment)),
+                    InfoRow::new(fl!("cpu-address-size"), proc.address_sizes.clone()),
+                    InfoRow::new(fl!("cpu-power"), proc.power_management.clone()),
                 ];
 
                 let proc_view = column![
-                    text(format!("Процессор #{}", proc.processor.unwrap_or(0)))
-                        .style(text::warning),
+                    text(fl!(
+                        "cpu-processor_no",
+                        proc_no = proc.processor.unwrap_or(0)
+                    ))
+                    .style(text::warning),
                     container(kv_info_table(rows)).style(container::rounded_box),
                 ]
                 .spacing(5);

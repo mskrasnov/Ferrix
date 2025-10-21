@@ -1,7 +1,7 @@
 //! Kernel page
 
 use crate::{
-    Message,
+    Message, fl,
     load_state::DataLoadingState,
     pages::{InfoRow, fmt_val, hdr_name, kv_info_table, text_fmt_val},
 };
@@ -29,15 +29,17 @@ impl KernelData {
 
 fn modules_table<'a>(rows: &'a [Module]) -> table::Table<'a, Message> {
     let columns = [
-        table::column(hdr_name("Имя"), |row: &'a Module| {
+        table::column(hdr_name(fl!("kmod-name")), |row: &'a Module| {
             text(&row.name).wrapping(text::Wrapping::WordOrGlyph)
         })
         .width(Length::FillPortion(1)),
-        table::column(hdr_name("Размер"), |row: &'a Module| {
+        table::column(hdr_name(fl!("kmod-size")), |row: &'a Module| {
             text_fmt_val(row.size.round(2))
         }),
-        table::column(hdr_name("Экз."), |row: &'a Module| text(row.instances)),
-        table::column(hdr_name("Зависимости"), |row: &'a Module| {
+        table::column(hdr_name(fl!("kmod-instances")), |row: &'a Module| {
+            text(row.instances)
+        }),
+        table::column(hdr_name(fl!("kmod-depends")), |row: &'a Module| {
             text(if &row.dependencies == "-" {
                 ""
             } else {
@@ -46,14 +48,14 @@ fn modules_table<'a>(rows: &'a [Module]) -> table::Table<'a, Message> {
             .wrapping(text::Wrapping::WordOrGlyph)
         })
         .width(Length::FillPortion(3)),
-        table::column(hdr_name("Сост."), |row: &'a Module| {
+        table::column(hdr_name(fl!("kmod-state")), |row: &'a Module| {
             text(&row.state).style(if &row.state == "Live" {
                 text::success
             } else {
                 text::default
             })
         }),
-        table::column(hdr_name("Адреса"), |row: &'a Module| {
+        table::column(hdr_name(fl!("kmod-addrs")), |row: &'a Module| {
             text(&row.memory_addrs)
         }),
     ];
@@ -68,15 +70,15 @@ pub fn kernel_page<'a>(
         DataLoadingState::Loaded(kernel_data) => {
             let kern = &kernel_data.kernel;
             let summary_rows = vec![
-                InfoRow::new("Summary", kern.uname.clone()),
-                InfoRow::new("Командная строка", kern.cmdline.clone()),
-                InfoRow::new("Архитектура", kern.arch.clone()),
-                InfoRow::new("Версия", kern.version.clone()),
-                InfoRow::new("Сборка", kern.build_info.clone()),
-                InfoRow::new("Макс. число процессов", fmt_val(Some(kern.pid_max))),
-                InfoRow::new("Макс. число потоков", fmt_val(Some(kern.threads_max))),
-                InfoRow::new("Макс. число user events", fmt_val(kern.user_events_max)),
-                InfoRow::new("Доступная энтропия", fmt_val(kern.enthropy_avail)),
+                InfoRow::new(fl!("kernel-summary"), kern.uname.clone()),
+                InfoRow::new(fl!("kernel-cmdline"), kern.cmdline.clone()),
+                InfoRow::new(fl!("kernel-arch"), kern.arch.clone()),
+                InfoRow::new(fl!("kernel-version"), kern.version.clone()),
+                InfoRow::new(fl!("kernel-build"), kern.build_info.clone()),
+                InfoRow::new(fl!("kernel-pid-max"), fmt_val(Some(kern.pid_max))),
+                InfoRow::new(fl!("kernel-threads-max"), fmt_val(Some(kern.threads_max))),
+                InfoRow::new(fl!("kernel-user-evs"), fmt_val(kern.user_events_max)),
+                InfoRow::new(fl!("kernel-avail-enthropy"), fmt_val(kern.enthropy_avail)),
             ];
 
             let kern_summary_data =
@@ -87,9 +89,9 @@ pub fn kernel_page<'a>(
                 container(modules_table(&kernel_data.mods.modules)).style(container::rounded_box);
 
             let layout = column![
-                text("Общая информация").style(text::warning),
+                text(fl!("kernel-summary-hdr")).style(text::warning),
                 kern_summary_data,
-                text("Загруженные модули ядра").style(text::warning),
+                text(fl!("kernel-mods-hdr")).style(text::warning),
                 kern_modules,
             ]
             .spacing(5);

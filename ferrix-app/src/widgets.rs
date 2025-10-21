@@ -89,7 +89,7 @@ pub fn icon_button<'a>(icon_name: &'a str, tooltip: String) -> button::Button<'a
 }
 
 pub fn sidebar_button<'a>(page: Page, cur_page: Page) -> button::Button<'a, Message> {
-    button(page.title_str())
+    button(text(page.title_str()))
         .style(if page != cur_page {
             button::subtle
         } else {
