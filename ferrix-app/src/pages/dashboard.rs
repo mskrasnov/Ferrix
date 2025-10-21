@@ -10,9 +10,9 @@ use iced::{
 
 pub fn dashboard<'a>(
     proc: Option<&'a Processors>,
-    ram: &'a Option<RAM>,
-    osr: &'a Option<OsRelease>,
-    system: &'a Option<crate::System>,
+    ram: Option<&'a RAM>,
+    osr: Option<&'a OsRelease>,
+    system: Option<&'a crate::System>,
 ) -> container::Container<'a, Message> {
     let (proc_name, proc_threads) = {
         match proc {

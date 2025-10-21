@@ -2,13 +2,14 @@
 
 use crate::{
     Message,
+    load_state::DataLoadingState,
     pages::{InfoRow, fmt_val, hdr_name, kv_info_table, text_fmt_val},
 };
 use ferrix_lib::sys::{KModules, Kernel, Module};
 
 use iced::{
     Length,
-    widget::{center, column, container, scrollable, table, text},
+    widget::{column, container, scrollable, table, text},
 };
 
 #[derive(Debug, Clone)]
@@ -61,12 +62,11 @@ fn modules_table<'a>(rows: &'a [Module]) -> table::Table<'a, Message> {
 }
 
 pub fn kernel_page<'a>(
-    kernel: &'a Option<Kernel>,
-    modules: &'a Option<KModules>,
+    kernel_data: &'a DataLoadingState<KernelData>,
 ) -> container::Container<'a, Message> {
-    match kernel {
-        None => container(center(text("Загрузка данных..."))),
-        Some(kern) => {
+    match kernel_data {
+        DataLoadingState::Loaded(kernel_data) => {
+            let kern = &kernel_data.kernel;
             let summary_rows = vec![
                 InfoRow::new("Summary", kern.uname.clone()),
                 InfoRow::new("Командная строка", kern.cmdline.clone()),
@@ -83,11 +83,8 @@ pub fn kernel_page<'a>(
                 column![container(kv_info_table(summary_rows)).style(container::rounded_box)]
                     .spacing(5);
 
-            let kern_modules = match modules {
-                None => container(text("Загрузка информации о модулях ядра...")),
-                Some(kmods) => container(modules_table(&kmods.modules)),
-            }
-            .style(container::rounded_box);
+            let kern_modules =
+                container(modules_table(&kernel_data.mods.modules)).style(container::rounded_box);
 
             let layout = column![
                 text("Общая информация").style(text::warning),
@@ -99,5 +96,7 @@ pub fn kernel_page<'a>(
 
             container(scrollable(layout))
         }
+        DataLoadingState::Error(why) => super::error_page(why),
+        DataLoadingState::Loading => super::loading_page(),
     }
 }

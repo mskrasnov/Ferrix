@@ -2,16 +2,18 @@
 
 use crate::{
     Message,
+    load_state::DataLoadingState,
     pages::{InfoRow, kv_info_table},
 };
 use ferrix_lib::sys::OsRelease;
 
-use iced::widget::{center, column, container, scrollable, text};
+use iced::widget::{column, container, scrollable};
 
-pub fn distro_page<'a>(osrel: &'a Option<OsRelease>) -> container::Container<'a, Message> {
+pub fn distro_page<'a>(
+    osrel: &'a DataLoadingState<OsRelease>,
+) -> container::Container<'a, Message> {
     match osrel {
-        None => container(center(text("Загрузка данных..."))),
-        Some(osrel) => {
+        DataLoadingState::Loaded(osrel) => {
             let mut os_data = column![].spacing(5);
             let rows = vec![
                 InfoRow::new("Название ОС", Some(osrel.name.clone())),
@@ -40,5 +42,7 @@ pub fn distro_page<'a>(osrel: &'a Option<OsRelease>) -> container::Container<'a,
             os_data = os_data.push(container(kv_info_table(rows)).style(container::rounded_box));
             container(scrollable(os_data))
         }
+        DataLoadingState::Error(why) => super::error_page(why),
+        DataLoadingState::Loading => super::loading_page(),
     }
 }

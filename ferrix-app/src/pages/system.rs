@@ -2,16 +2,18 @@
 
 use crate::{
     Message,
+    load_state::DataLoadingState,
     pages::{InfoRow, kv_info_table},
 };
 
 use ferrix_lib::sys::{LoadAVG, Uptime};
-use iced::widget::{center, container, scrollable, text};
+use iced::widget::{container, scrollable};
 
-pub fn system_page<'a>(system: &'a Option<crate::System>) -> container::Container<'a, Message> {
+pub fn system_page<'a>(
+    system: &'a DataLoadingState<crate::System>,
+) -> container::Container<'a, Message> {
     match system {
-        None => container(center(text("Загрузка данных..."))),
-        Some(sys) => {
+        DataLoadingState::Loaded(sys) => {
             let rows = vec![
                 InfoRow::new("Имя хоста", sys.hostname.clone()),
                 InfoRow::new(
@@ -34,6 +36,8 @@ pub fn system_page<'a>(system: &'a Option<crate::System>) -> container::Containe
 
             container(scrollable(sys_table))
         }
+        DataLoadingState::Error(why) => super::error_page(why),
+        DataLoadingState::Loading => super::loading_page(),
     }
 }
 

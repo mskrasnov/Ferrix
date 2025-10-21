@@ -2,16 +2,16 @@
 
 use crate::{
     Message,
+    load_state::DataLoadingState,
     pages::{InfoRow, fmt_val, kv_info_table},
 };
 use ferrix_lib::sys::Users;
 
-use iced::widget::{center, column, container, scrollable, text};
+use iced::widget::{column, container, scrollable, text};
 
-pub fn users_page<'a>(users: &'a Option<Users>) -> container::Container<'a, Message> {
+pub fn users_page<'a>(users: &'a DataLoadingState<Users>) -> container::Container<'a, Message> {
     match users {
-        None => container(center(text("Загрузка данных..."))),
-        Some(users) => {
+        DataLoadingState::Loaded(users) => {
             let mut users_list = column![].spacing(5);
             for usr in &users.users {
                 let rows = vec![
@@ -31,5 +31,7 @@ pub fn users_page<'a>(users: &'a Option<Users>) -> container::Container<'a, Mess
             }
             container(scrollable(users_list))
         }
+        DataLoadingState::Error(why) => super::error_page(why),
+        DataLoadingState::Loading => super::loading_page(),
     }
 }

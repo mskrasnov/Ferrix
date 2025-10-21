@@ -2,16 +2,16 @@
 
 use crate::{
     Message,
+    load_state::DataLoadingState,
     pages::{InfoRow, fmt_val, kv_info_table},
 };
 use ferrix_lib::ram::RAM;
 
-use iced::widget::{center, column, container, scrollable, text};
+use iced::widget::{column, container, scrollable};
 
-pub fn ram_page<'a>(ram: &'a Option<RAM>) -> container::Container<'a, Message> {
+pub fn ram_page<'a>(ram: &'a DataLoadingState<RAM>) -> container::Container<'a, Message> {
     match ram {
-        None => container(center(text("Загрузка данных..."))),
-        Some(ram) => {
+        DataLoadingState::Loaded(ram) => {
             let mut ram_data = column![].spacing(5);
             let rows = vec![
                 InfoRow::new("Общий объём", fmt_val(ram.total.round(2))),
@@ -65,5 +65,7 @@ pub fn ram_page<'a>(ram: &'a Option<RAM>) -> container::Container<'a, Message> {
             ram_data = ram_data.push(container(kv_info_table(rows)).style(container::rounded_box));
             container(scrollable(ram_data))
         }
+        DataLoadingState::Error(why) => super::error_page(why),
+        DataLoadingState::Loading => super::loading_page(),
     }
 }

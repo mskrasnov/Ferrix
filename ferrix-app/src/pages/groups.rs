@@ -2,16 +2,16 @@
 
 use crate::{
     Message,
+    load_state::DataLoadingState,
     pages::{InfoRow, fmt_val, kv_info_table},
 };
 use ferrix_lib::sys::Groups;
 
-use iced::widget::{center, column, container, scrollable, text};
+use iced::widget::{column, container, scrollable, text};
 
-pub fn groups_page<'a>(groups: &'a Option<Groups>) -> container::Container<'a, Message> {
+pub fn groups_page<'a>(groups: &'a DataLoadingState<Groups>) -> container::Container<'a, Message> {
     match groups {
-        None => container(center(text("Загрузка данных..."))),
-        Some(groups) => {
+        DataLoadingState::Loaded(groups) => {
             let mut groups_list = column![].spacing(5);
             for grp in &groups.groups {
                 let rows = vec![
@@ -28,5 +28,7 @@ pub fn groups_page<'a>(groups: &'a Option<Groups>) -> container::Container<'a, M
             }
             container(scrollable(groups_list))
         }
+        DataLoadingState::Error(why) => super::error_page(why),
+        DataLoadingState::Loading => super::loading_page(),
     }
 }
