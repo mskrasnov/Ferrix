@@ -30,8 +30,8 @@
 
 use crate::traits::ToJson;
 use anyhow::{Result, anyhow};
-use serde::Serialize;
-use smbioslib::SMBiosData;
+use serde::{Deserialize, Serialize};
+pub use smbioslib::SMBiosData;
 
 /// A structure containing data from the DMI table
 ///
@@ -75,6 +75,18 @@ pub struct DMITable {
 
     /// Information about installed memory devices (Type 17)
     pub mem_devices: MemoryDevices,
+}
+
+/// Each SMBIOS structure has a handle or instance value associated
+/// with it. Some structs will reference other structures by using
+/// this value.
+#[derive(Debug, Serialize, Clone)]
+pub struct Handle(pub u16);
+
+impl From<smbioslib::Handle> for Handle {
+    fn from(value: smbioslib::Handle) -> Self {
+        Self(value.0)
+    }
 }
 
 /* TODO:
@@ -135,7 +147,7 @@ impl ToJson for DMITable {}
  * Если не обернуть данные в поле "hardware" (тег <hardware> в XML), *
  * то итоговый XML просто не распарсится.                            *
  *********************************************************************/
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct DMITableXml<'a> {
     pub hardware: &'a DMITable,
 }
@@ -152,8 +164,64 @@ impl<'a> From<&'a DMITable> for DMITableXml<'a> {
     }
 }
 
+macro_rules! impl_from_struct {
+    ($s:ident, $p:path, {
+        $(
+            $field_name:ident : $field_type:ty
+        ),* $(,)?
+    }) => {
+        impl From<$p> for $s {
+            fn from(value: $p) -> Self {
+                Self {
+                    $(
+                        $field_name: value.$field_name,
+                    )*
+                }
+            }
+        }
+
+        impl ToJson for $s {}
+    };
+}
+
+/// BIOS ROM Size
+#[derive(Debug, Serialize, Clone)]
+pub enum RomSize {
+    /// Size of this ROM in bytes
+    Kilobytes(u16),
+
+    /// Extended size of the physical device(s) containing the
+    /// BIOS (in MB)
+    Megabytes(u16),
+
+    /// Extended size of the physical device(s) containing the
+    /// BIOS (in GB)
+    Gigabytes(u16),
+
+    /// Extended size of the physical device(s) containing the
+    /// BIOS in raw form.
+    ///
+    /// The standard currently only defines MB and GB as given
+    /// in the high nibble (bits 15-14).
+    Undefined(u16),
+
+    SeeExtendedRomSize,
+}
+
+impl From<smbioslib::RomSize> for RomSize {
+    fn from(value: smbioslib::RomSize) -> Self {
+        match value {
+            smbioslib::RomSize::Kilobytes(s) => Self::Kilobytes(s),
+            smbioslib::RomSize::Megabytes(s) => Self::Megabytes(s),
+            smbioslib::RomSize::Gigabytes(s) => Self::Gigabytes(s),
+            smbioslib::RomSize::Undefined(s) => Self::Undefined(s),
+            smbioslib::RomSize::SeeExtendedRomSize => Self::SeeExtendedRomSize,
+        }
+    }
+}
+
 /// Information about BIOS/UEFI
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct Bios {
     /// BIOS vendor's name
     pub vendor: Option<String>,
@@ -168,7 +236,7 @@ pub struct Bios {
     pub release_date: Option<String>,
 
     /// BIOS ROM size
-    pub rom_size: Option<smbioslib::RomSize>,
+    pub rom_size: Option<RomSize>,
 
     /// BIOS characteristics
     pub characteristics: Option<BiosCharacteristics>,
@@ -198,7 +266,7 @@ pub struct Bios {
     pub e_c_firmware_minor_release: Option<u8>,
 
     /// Extended BIOS ROM size
-    pub extended_rom_size: Option<smbioslib::RomSize>,
+    pub extended_rom_size: Option<RomSize>,
 }
 
 impl Bios {
@@ -223,7 +291,10 @@ impl Bios {
             version: t.version().ok(),
             starting_address_segment: t.starting_address_segment(),
             release_date: t.release_date().ok(),
-            rom_size: t.rom_size(),
+            rom_size: match t.rom_size() {
+                Some(s) => Some(RomSize::from(s)),
+                None => None,
+            },
             characteristics: match t.characteristics() {
                 Some(c) => Some(BiosCharacteristics::from(c)),
                 None => None,
@@ -242,7 +313,10 @@ impl Bios {
             system_bios_minor_release: t.system_bios_minor_release(),
             e_c_firmware_major_release: t.e_c_firmware_major_release(),
             e_c_firmware_minor_release: t.e_c_firmware_minor_release(),
-            extended_rom_size: t.extended_rom_size(),
+            extended_rom_size: match t.extended_rom_size() {
+                Some(s) => Some(RomSize::from(s)),
+                None => None,
+            },
         })
     }
 }
@@ -250,7 +324,7 @@ impl Bios {
 impl ToJson for Bios {}
 
 /// BIOS characteristics
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct BiosCharacteristics {
     /// Unknown
     pub unknown: bool,
@@ -384,7 +458,7 @@ impl From<smbioslib::BiosCharacteristics> for BiosCharacteristics {
 impl ToJson for BiosCharacteristics {}
 
 /// Characteristics extension byte 0
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BiosCharacteristicsExtension0 {
     /// ACPI is supported
     pub acpi_is_supported: bool,
@@ -428,7 +502,7 @@ impl From<smbioslib::BiosCharacteristicsExtension0> for BiosCharacteristicsExten
 impl ToJson for BiosCharacteristicsExtension0 {}
 
 /// Characteristics extension byte 0
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BiosCharacteristicsExtension1 {
     /// BIOS Boot Specification is supported
     pub bios_boot_specification_is_supported: bool,
@@ -482,8 +556,87 @@ impl From<smbioslib::BiosCharacteristicsExtension1> for BiosCharacteristicsExten
 }
 impl ToJson for BiosCharacteristicsExtension1 {}
 
+/// System UUID Data
+#[derive(Debug, Serialize, Clone)]
+pub enum SystemUuidData {
+    IdNotPresentButSettable,
+    IdNotPresent,
+    Uuid(SystemUuid),
+}
+
+impl From<smbioslib::SystemUuidData> for SystemUuidData {
+    fn from(value: smbioslib::SystemUuidData) -> Self {
+        match value {
+            smbioslib::SystemUuidData::IdNotPresentButSettable => Self::IdNotPresentButSettable,
+            smbioslib::SystemUuidData::IdNotPresent => Self::IdNotPresent,
+            smbioslib::SystemUuidData::Uuid(u) => Self::Uuid(SystemUuid::from(u)),
+        }
+    }
+}
+
+/// System UUID
+#[derive(Debug, Serialize, Clone)]
+pub struct SystemUuid {
+    /// Raw byte array for this UUID
+    pub raw: [u8; 16],
+}
+
+impl_from_struct!(SystemUuid, smbioslib::SystemUuid, {
+    raw: [u8; 16],
+});
+
+/// System wakeup data
+#[derive(Debug, Serialize, Clone)]
+pub struct SystemWakeUpTypeData {
+    /// Raw value
+    ///
+    /// Is most usable when `value` is None
+    pub raw: u8,
+
+    pub value: SystemWakeUpType,
+}
+
+impl From<smbioslib::SystemWakeUpTypeData> for SystemWakeUpTypeData {
+    fn from(value: smbioslib::SystemWakeUpTypeData) -> Self {
+        Self {
+            raw: value.raw,
+            value: SystemWakeUpType::from(value.value),
+        }
+    }
+}
+
+/// System wakeup type
+#[derive(Debug, Serialize, Clone)]
+pub enum SystemWakeUpType {
+    Other,
+    Unknown,
+    ApmTimer,
+    ModernRing,
+    LanRemote,
+    PowerSwitch,
+    PciPme,
+    ACPowerRestored,
+    None,
+}
+
+impl From<smbioslib::SystemWakeUpType> for SystemWakeUpType {
+    fn from(value: smbioslib::SystemWakeUpType) -> Self {
+        match value {
+            smbioslib::SystemWakeUpType::Other => Self::Other,
+            smbioslib::SystemWakeUpType::Unknown => Self::Unknown,
+            smbioslib::SystemWakeUpType::ApmTimer => Self::ApmTimer,
+            smbioslib::SystemWakeUpType::ModernRing => Self::ModernRing,
+            smbioslib::SystemWakeUpType::LanRemote => Self::LanRemote,
+            smbioslib::SystemWakeUpType::PowerSwitch => Self::PowerSwitch,
+            smbioslib::SystemWakeUpType::PciPme => Self::PciPme,
+            smbioslib::SystemWakeUpType::ACPowerRestored => Self::ACPowerRestored,
+            smbioslib::SystemWakeUpType::None => Self::None,
+        }
+    }
+}
+
 /// Attributes of the overall system
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct System {
     /// System manufacturer
     pub manufacturer: Option<String>,
@@ -498,12 +651,12 @@ pub struct System {
     pub serial_number: Option<String>,
 
     /// System UUID
-    pub uuid: Option<smbioslib::SystemUuidData>,
+    pub uuid: Option<SystemUuidData>,
 
     /// Wake-up type
     ///
     /// Identifies the event that caused the system to power up
-    pub wakeup_type: Option<smbioslib::SystemWakeUpTypeData>,
+    pub wakeup_type: Option<SystemWakeUpTypeData>,
 
     /// SKU Number (particular computer information for sale.
     /// Also called a product ID or purchase order number.
@@ -538,8 +691,14 @@ impl System {
             product_name: t.product_name().ok(),
             version: t.version().ok(),
             serial_number: t.serial_number().ok(),
-            uuid: t.uuid(),
-            wakeup_type: t.wakeup_type(),
+            uuid: match t.uuid() {
+                Some(u) => Some(SystemUuidData::from(u)),
+                None => None,
+            },
+            wakeup_type: match t.wakeup_type() {
+                Some(wt) => Some(SystemWakeUpTypeData::from(wt)),
+                None => None,
+            },
             sku_number: t.sku_number().ok(),
             family: t.family().ok(),
         })
@@ -548,8 +707,64 @@ impl System {
 
 impl ToJson for System {}
 
+/// Board type data
+#[derive(Debug, Serialize, Clone)]
+pub struct BoardTypeData {
+    pub raw: u8,
+    pub value: BoardType,
+}
+
+impl From<smbioslib::BoardTypeData> for BoardTypeData {
+    fn from(value: smbioslib::BoardTypeData) -> Self {
+        Self {
+            raw: value.raw,
+            value: BoardType::from(value.value),
+        }
+    }
+}
+
+/// Board type
+#[derive(Debug, Serialize, Clone)]
+pub enum BoardType {
+    Unknown,
+    Other,
+    ServerBlade,
+    ConnectivitySwitch,
+    SystemManagementModule,
+    ProcessorModule,
+    IOModule,
+    MemoryModule,
+    Daughterboard,
+    Motherboard,
+    ProcessorMemoryModule,
+    ProcessorIOModule,
+    InterconnectBoard,
+    None,
+}
+
+impl From<smbioslib::BoardType> for BoardType {
+    fn from(value: smbioslib::BoardType) -> Self {
+        match value {
+            smbioslib::BoardType::Unknown => Self::Unknown,
+            smbioslib::BoardType::Other => Self::Other,
+            smbioslib::BoardType::ServerBlade => Self::ServerBlade,
+            smbioslib::BoardType::ConnectivitySwitch => Self::ConnectivitySwitch,
+            smbioslib::BoardType::SystemManagementModule => Self::SystemManagementModule,
+            smbioslib::BoardType::ProcessorModule => Self::ProcessorModule,
+            smbioslib::BoardType::IOModule => Self::IOModule,
+            smbioslib::BoardType::MemoryModule => Self::MemoryModule,
+            smbioslib::BoardType::Daughterboard => Self::Daughterboard,
+            smbioslib::BoardType::Motherboard => Self::Motherboard,
+            smbioslib::BoardType::ProcessorMemoryModule => Self::ProcessorMemoryModule,
+            smbioslib::BoardType::ProcessorIOModule => Self::ProcessorIOModule,
+            smbioslib::BoardType::InterconnectBoard => Self::InterconnectBoard,
+            smbioslib::BoardType::None => Self::None,
+        }
+    }
+}
+
 /// Information about baseboard/module
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct Baseboard {
     /// Baseboard manufacturer
     pub manufacturer: Option<String>,
@@ -571,10 +786,10 @@ pub struct Baseboard {
 
     /// Handle, or instance number, associated with the chassis in
     /// which this board resides.
-    pub chassis_handle: Option<smbioslib::Handle>,
+    pub chassis_handle: Option<Handle>,
 
     /// Type of baseboard
-    pub board_type: Option<smbioslib::BoardTypeData>,
+    pub board_type: Option<BoardTypeData>,
 }
 
 impl Baseboard {
@@ -605,8 +820,14 @@ impl Baseboard {
                 None => None,
             },
             location_in_chassis: t.location_in_chassis().ok(),
-            chassis_handle: t.chassis_handle(),
-            board_type: t.board_type(),
+            chassis_handle: match t.chassis_handle() {
+                Some(h) => Some(Handle::from(h)),
+                None => None,
+            },
+            board_type: match t.board_type() {
+                Some(bt) => Some(BoardTypeData::from(bt)),
+                None => None,
+            },
         })
     }
 }
@@ -616,7 +837,7 @@ impl ToJson for Baseboard {}
 /// Baseboard feature flags
 ///
 /// Collection of flags that identify features of this board
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BaseboardFeatures {
     /// Set if the board is a hosting board (e.g. motherboard)
     pub hosting_board: bool,
@@ -655,14 +876,252 @@ impl From<smbioslib::BaseboardFeatures> for BaseboardFeatures {
 }
 impl ToJson for BaseboardFeatures {}
 
+/// Chassis type data
+#[derive(Debug, Serialize, Clone)]
+pub struct ChassisTypeData {
+    pub raw: u8,
+    pub value: ChassisType,
+    pub lock_presence: ChassisLockPresence,
+}
+
+impl From<smbioslib::ChassisTypeData> for ChassisTypeData {
+    fn from(value: smbioslib::ChassisTypeData) -> Self {
+        Self {
+            raw: value.raw,
+            value: ChassisType::from(value.value),
+            lock_presence: ChassisLockPresence::from(value.lock_presence),
+        }
+    }
+}
+
+/// Chassis type
+#[derive(Debug, Serialize, Clone)]
+pub enum ChassisType {
+    Other,
+    Unknown,
+    Desktop,
+    LowProfileDesktop,
+    PizzaBox,
+    MiniTower,
+    Tower,
+    Portable,
+    Laptop,
+    Notebook,
+    HandHeld,
+    DockingStation,
+    AllInOne,
+    SubNotebook,
+    SpaceSaving,
+    LunchBox,
+    MainServerChassis,
+    ExpansionChassis,
+    SubChassis,
+    BusExpansionChassis,
+    PeripheralChassis,
+    RaidChassis,
+    RackMountChassis,
+    SealedCasePC,
+    MultiSystemChassis,
+    CompactPci,
+    AdvancedTca,
+    Blade,
+    BladeEnclosure,
+    Tablet,
+    Convertible,
+    Detachable,
+    IoTGateway,
+    EmbeddedPC,
+    MiniPC,
+    StickPC,
+    None,
+}
+
+impl From<smbioslib::ChassisType> for ChassisType {
+    fn from(value: smbioslib::ChassisType) -> Self {
+        match value {
+            smbioslib::ChassisType::Other => Self::Other,
+            smbioslib::ChassisType::Unknown => Self::Unknown,
+            smbioslib::ChassisType::Desktop => Self::Desktop,
+            smbioslib::ChassisType::LowProfileDesktop => Self::LowProfileDesktop,
+            smbioslib::ChassisType::PizzaBox => Self::PizzaBox,
+            smbioslib::ChassisType::MiniTower => Self::MiniTower,
+            smbioslib::ChassisType::Tower => Self::Tower,
+            smbioslib::ChassisType::Portable => Self::Portable,
+            smbioslib::ChassisType::Laptop => Self::Laptop,
+            smbioslib::ChassisType::Notebook => Self::Notebook,
+            smbioslib::ChassisType::HandHeld => Self::HandHeld,
+            smbioslib::ChassisType::DockingStation => Self::DockingStation,
+            smbioslib::ChassisType::AllInOne => Self::AllInOne,
+            smbioslib::ChassisType::SubNotebook => Self::SubNotebook,
+            smbioslib::ChassisType::SpaceSaving => Self::SpaceSaving,
+            smbioslib::ChassisType::LunchBox => Self::LunchBox,
+            smbioslib::ChassisType::MainServerChassis => Self::MainServerChassis,
+            smbioslib::ChassisType::ExpansionChassis => Self::ExpansionChassis,
+            smbioslib::ChassisType::SubChassis => Self::SubChassis,
+            smbioslib::ChassisType::BusExpansionChassis => Self::BusExpansionChassis,
+            smbioslib::ChassisType::PeripheralChassis => Self::PeripheralChassis,
+            smbioslib::ChassisType::RaidChassis => Self::RaidChassis,
+            smbioslib::ChassisType::RackMountChassis => Self::RackMountChassis,
+            smbioslib::ChassisType::SealedCasePC => Self::SealedCasePC,
+            smbioslib::ChassisType::MultiSystemChassis => Self::MultiSystemChassis,
+            smbioslib::ChassisType::CompactPci => Self::CompactPci,
+            smbioslib::ChassisType::AdvancedTca => Self::AdvancedTca,
+            smbioslib::ChassisType::Blade => Self::Blade,
+            smbioslib::ChassisType::BladeEnclosure => Self::BladeEnclosure,
+            smbioslib::ChassisType::Tablet => Self::Tablet,
+            smbioslib::ChassisType::Convertible => Self::Convertible,
+            smbioslib::ChassisType::Detachable => Self::Detachable,
+            smbioslib::ChassisType::IoTGateway => Self::IoTGateway,
+            smbioslib::ChassisType::EmbeddedPC => Self::EmbeddedPC,
+            smbioslib::ChassisType::MiniPC => Self::MiniPC,
+            smbioslib::ChassisType::StickPC => Self::StickPC,
+            smbioslib::ChassisType::None => Self::None,
+        }
+    }
+}
+
+/// Chassis lock presence
+#[derive(Debug, Serialize, Clone)]
+pub enum ChassisLockPresence {
+    Present,
+    NotPresent,
+}
+
+impl From<smbioslib::ChassisLockPresence> for ChassisLockPresence {
+    fn from(value: smbioslib::ChassisLockPresence) -> Self {
+        match value {
+            smbioslib::ChassisLockPresence::Present => Self::Present,
+            smbioslib::ChassisLockPresence::NotPresent => Self::NotPresent,
+        }
+    }
+}
+
+/// Chassis state data
+#[derive(Debug, Serialize, Clone)]
+pub struct ChassisStateData {
+    pub raw: u8,
+    pub value: ChassisState,
+}
+
+impl From<smbioslib::ChassisStateData> for ChassisStateData {
+    fn from(value: smbioslib::ChassisStateData) -> Self {
+        Self {
+            raw: value.raw,
+            value: ChassisState::from(value.value),
+        }
+    }
+}
+
+/// Chassis state
+#[derive(Debug, Serialize, Clone)]
+pub enum ChassisState {
+    Other,
+    Unknown,
+    Safe,
+    Warning,
+    Critical,
+    NonRecoverable,
+    None,
+}
+
+impl From<smbioslib::ChassisState> for ChassisState {
+    fn from(value: smbioslib::ChassisState) -> Self {
+        match value {
+            smbioslib::ChassisState::Other => Self::Other,
+            smbioslib::ChassisState::Unknown => Self::Unknown,
+            smbioslib::ChassisState::Safe => Self::Safe,
+            smbioslib::ChassisState::Warning => Self::Warning,
+            smbioslib::ChassisState::Critical => Self::Critical,
+            smbioslib::ChassisState::NonRecoverable => Self::NonRecoverable,
+            smbioslib::ChassisState::None => Self::None,
+        }
+    }
+}
+
+/// Chassis security status data
+#[derive(Debug, Serialize, Clone)]
+pub struct ChassisSecurityStatusData {
+    pub raw: u8,
+    pub value: ChassisSecurityStatus,
+}
+
+impl From<smbioslib::ChassisSecurityStatusData> for ChassisSecurityStatusData {
+    fn from(value: smbioslib::ChassisSecurityStatusData) -> Self {
+        Self {
+            raw: value.raw,
+            value: ChassisSecurityStatus::from(value.value),
+        }
+    }
+}
+
+/// Chassis security status
+#[derive(Debug, Serialize, Clone)]
+pub enum ChassisSecurityStatus {
+    Other,
+    Unknown,
+    StatusNone,
+    ExternalInterfaceLockedOut,
+    ExternalInterfaceEnabled,
+    None,
+}
+
+impl From<smbioslib::ChassisSecurityStatus> for ChassisSecurityStatus {
+    fn from(value: smbioslib::ChassisSecurityStatus) -> Self {
+        match value {
+            smbioslib::ChassisSecurityStatus::Other => Self::Other,
+            smbioslib::ChassisSecurityStatus::Unknown => Self::Unknown,
+            smbioslib::ChassisSecurityStatus::StatusNone => Self::StatusNone,
+            smbioslib::ChassisSecurityStatus::ExternalInterfaceLockedOut => {
+                Self::ExternalInterfaceLockedOut
+            }
+            smbioslib::ChassisSecurityStatus::ExternalInterfaceEnabled => {
+                Self::ExternalInterfaceEnabled
+            }
+            smbioslib::ChassisSecurityStatus::None => Self::None,
+        }
+    }
+}
+
+/// Chassis height
+#[derive(Debug, Serialize, Clone)]
+pub enum ChassisHeight {
+    Unspecified,
+    U(u8),
+}
+
+impl From<smbioslib::ChassisHeight> for ChassisHeight {
+    fn from(value: smbioslib::ChassisHeight) -> Self {
+        match value {
+            smbioslib::ChassisHeight::Unspecified => Self::Unspecified,
+            smbioslib::ChassisHeight::U(u) => Self::U(u),
+        }
+    }
+}
+
+/// Number of Power Cords
+#[derive(Debug, Serialize, Clone)]
+pub enum PowerCords {
+    Unspecified,
+    Count(u8),
+}
+
+impl From<smbioslib::PowerCords> for PowerCords {
+    fn from(value: smbioslib::PowerCords) -> Self {
+        match value {
+            smbioslib::PowerCords::Unspecified => Self::Unspecified,
+            smbioslib::PowerCords::Count(cnt) => Self::Count(cnt),
+        }
+    }
+}
+
 /// Information about system enclosure or chassis
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct Chassis {
     /// Enclosure/chassis manufacturer
     pub manufacturer: Option<String>,
 
     /// Chassis type
-    pub chassis_type: Option<smbioslib::ChassisTypeData>,
+    pub chassis_type: Option<ChassisTypeData>,
 
     /// Version
     pub version: Option<String>,
@@ -674,16 +1133,16 @@ pub struct Chassis {
     pub asset_tag_number: Option<String>,
 
     /// State of the enclosure whet it was last booted
-    pub bootup_state: Option<smbioslib::ChassisStateData>,
+    pub bootup_state: Option<ChassisStateData>,
 
     /// State of the enclosure's power supply when last booted
-    pub power_supply_state: Option<smbioslib::ChassisStateData>,
+    pub power_supply_state: Option<ChassisStateData>,
 
     /// Thermal state of the enclosure when last booted
-    pub thermal_state: Option<smbioslib::ChassisStateData>,
+    pub thermal_state: Option<ChassisStateData>,
 
     /// Physical security status of the enclosure when last booted
-    pub security_status: Option<smbioslib::ChassisSecurityStatusData>,
+    pub security_status: Option<ChassisSecurityStatusData>,
 
     /// OEM- or BIOS vendor-specific information
     pub oem_defined: Option<u32>,
@@ -693,10 +1152,10 @@ pub struct Chassis {
     /// A U is a standard unit of measure for the height of a rack
     /// or rack-mountable component and is equal to 1.75 inches or
     /// 4.445 cm
-    pub height: Option<smbioslib::ChassisHeight>,
+    pub height: Option<ChassisHeight>,
 
     /// Number of power cords associated with the enclosure/chassis
-    pub number_of_power_cords: Option<smbioslib::PowerCords>,
+    pub number_of_power_cords: Option<PowerCords>,
 
     /// Number of Contained Element records that follow, in the
     /// range 0 to 255 Each Contained Element group comprises m
@@ -736,17 +1195,38 @@ impl Chassis {
 
         Ok(Self {
             manufacturer: t.manufacturer().ok(),
-            chassis_type: t.chassis_type(),
+            chassis_type: match t.chassis_type() {
+                Some(ct) => Some(ChassisTypeData::from(ct)),
+                None => None,
+            },
             version: t.version().ok(),
             serial_number: t.serial_number().ok(),
             asset_tag_number: t.asset_tag_number().ok(),
-            bootup_state: t.bootup_state(),
-            power_supply_state: t.power_supply_state(),
-            thermal_state: t.thermal_state(),
-            security_status: t.security_status(),
+            bootup_state: match t.bootup_state() {
+                Some(bs) => Some(ChassisStateData::from(bs)),
+                None => None,
+            },
+            power_supply_state: match t.power_supply_state() {
+                Some(pss) => Some(ChassisStateData::from(pss)),
+                None => None,
+            },
+            thermal_state: match t.thermal_state() {
+                Some(ts) => Some(ChassisStateData::from(ts)),
+                None => None,
+            },
+            security_status: match t.security_status() {
+                Some(ss) => Some(ChassisSecurityStatusData::from(ss)),
+                None => None,
+            },
             oem_defined: t.oem_defined(),
-            height: t.height(),
-            number_of_power_cords: t.number_of_power_cords(),
+            height: match t.height() {
+                Some(h) => Some(ChassisHeight::from(h)),
+                None => None,
+            },
+            number_of_power_cords: match t.number_of_power_cords() {
+                Some(npc) => Some(PowerCords::from(npc)),
+                None => None,
+            },
             contained_element_count: t.contained_element_count(),
             contained_element_record_length: t.contained_element_record_length(),
             sku_number: t.sku_number().ok(),
@@ -905,7 +1385,7 @@ impl Processor {
 impl ToJson for Processor {}
 
 /// Defines which functions the processor supports
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ProcessorCharacteristics {
     /// Bit 1 unknown
     pub unknown: bool,
@@ -983,6 +1463,15 @@ impl Caches {
 
 impl ToJson for Caches {}
 
+// struct_migrate!(CacheConfiguration, smbioslib::CacheConfiguaration, {
+//     raw: u16,
+// });
+
+#[derive(Debug, Serialize)]
+pub struct CacheConfiguaration {
+    pub raw: u16,
+}
+
 /// This structure defines the attributes of CPU cache device in the
 /// system. One structure is specified for each such device, whether
 /// the device is internal to or external to the CPU module.
@@ -992,7 +1481,7 @@ pub struct Cache {
     pub socket_designation: Option<String>,
 
     /// Bit fields describing the cache configuration
-    pub cache_configuration: Option<smbioslib::CacheConfiguaration>,
+    pub cache_configuration: Option<CacheConfiguaration>,
 
     /// Maximum size that can be installed
     pub maximum_cache_size: Option<smbioslib::CacheMemorySize>,
@@ -1031,7 +1520,10 @@ impl<'a> From<smbioslib::SMBiosCacheInformation<'a>> for Cache {
     fn from(value: smbioslib::SMBiosCacheInformation) -> Self {
         Self {
             socket_designation: value.socket_designation().ok(),
-            cache_configuration: value.cache_configuration(),
+            cache_configuration: match value.cache_configuration() {
+                Some(conf) => Some(CacheConfiguaration { raw: conf.raw }),
+                None => None,
+            },
             maximum_cache_size: value.maximum_cache_size(),
             installed_size: value.installed_size(),
             supported_sram_type: value.supported_sram_type(),
