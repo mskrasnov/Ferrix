@@ -25,4 +25,11 @@ impl<P> DataLoadingState<P> {
     pub fn is_some(&self) -> bool {
         !self.is_none()
     }
+
+    pub fn is_error(&self) -> bool {
+        match self {
+            Self::Error(_) => true,
+            _ => false,
+        }
+    }
 }
