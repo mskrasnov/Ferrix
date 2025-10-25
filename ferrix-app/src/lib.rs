@@ -8,6 +8,7 @@ pub mod utils;
 pub mod widgets;
 
 pub mod dmi;
+pub mod kernel;
 
 pub use load_state::DataLoadingState;
 pub use pages::*;

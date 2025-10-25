@@ -32,4 +32,11 @@ impl<P> DataLoadingState<P> {
             _ => false,
         }
     }
+
+    pub fn unwrap(self) -> P {
+        match self {
+            Self::Loaded(data) => data,
+            _ => panic!("Data not found!"),
+        }
+    }
 }
