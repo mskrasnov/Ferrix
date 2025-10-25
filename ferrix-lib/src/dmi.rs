@@ -170,7 +170,7 @@ macro_rules! impl_from_struct {
 /// Each SMBIOS structure has a handle or instance value associated
 /// with it. Some structs will reference other structures by using
 /// this value.
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Copy, Clone)]
 pub struct Handle(pub u16);
 
 impl From<smbioslib::Handle> for Handle {
