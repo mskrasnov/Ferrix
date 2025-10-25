@@ -10,6 +10,14 @@ repository.workspace = true
 readme = "README.md"
 keywords = ["ferrix", "hardware"]
 
+[[bin]]
+name = "ferrix-app"
+path = "src/bin/app.rs"
+
+[[bin]]
+name = "ferrix-polkit"
+path = "src/bin/polkit.rs"
+
 [package.metadata.deb]
 maintainer = "Michail Krasnov <mskrasnov07@ya.ru>"
 copyright = "2025, Michail Krasnov <mskrasnov07@ya.ru>"
@@ -27,17 +35,23 @@ section = "utility"
 priority = "optional"
 assets = [
     ["target/release/ferrix-app", "usr/bin/", "755"],
+    ["target/release/ferrix-polkit", "usr/bin/", "755"],
     ["data/Ferrix.desktop", "usr/share/applications/", "644"],
-    ["data/icons/hicolor/scalable/apps/com.mskrasnov.Ferrix.svg", "usr/share/icons/hicolor/scalable/apps/", "644"],
-    ["data/icons/hicolor/symbolic/apps/com.mskrasnov.Ferrix-symbolic.svg", "usr/share/icons/hicolor/symbolic/apps/", "644"],
+    ["data/com.mskrasnov.Ferrix.svg", "usr/share/icons/hicolor/scalable/apps/", "644"],
+    ["data/com.mskrasnov.Ferrix.svg", "usr/share/Ferrix/", "644"],
+    # ["data/icons/hicolor/symbolic/apps/com.mskrasnov.Ferrix-symbolic.svg", "usr/share/icons/hicolor/symbolic/apps/", "644"],
+    ["data/com.ferrix.policy", "/usr/share/polkit-1/actions/", "644"],
 ]
 
 [dependencies]
 anyhow = "1.0.98"
+async-std = "1.13.2"
 ferrix-lib = { path = "../ferrix-lib", version = "0.2.0" }
 i18n-embed = { version = "0.16.0", features = ["fluent-system", "desktop-requester"] }
 i18n-embed-fl = "0.10.0"
 iced = { version = "0.14.0-dev", git = "https://github.com/iced-rs/iced", features = ["tokio", "svg", "image"] }
 lazy_static = "1.5.0"
 rust-embed = "8.8.0"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
 tokio = { version = "1.47.1", features = ["full"] }

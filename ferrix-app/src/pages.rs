@@ -106,7 +106,7 @@ impl<'a> Page {
             .into(),
             Self::Processors => cpu::proc_page(&state.proc_data).into(),
             Self::Memory => ram::ram_page(&state.ram_data).into(),
-            Self::DMI => dmi::chassis_page(&state.dmi_chassis_data).into(),
+            Self::DMI => dmi::chassis_page(&state.dmi_data).into(),
             Self::Distro => distro::distro_page(&state.osrel_data).into(),
             Self::Kernel => kernel::kernel_page(&state.info_kernel).into(),
             Self::SystemMisc => system::system_page(&state.system).into(),
@@ -129,11 +129,9 @@ impl<'a> Page {
     }
 
     fn about_page(&'a self) -> container::Container<'a, Message> {
-        let img = iced::widget::svg(
-            "ferrix-app/data/icons/hicolor/scalable/apps/com.mskrasnov.Ferrix.svg",
-        )
-        .width(128)
-        .height(128);
+        let img = iced::widget::svg("/usr/share/Ferrix/com.mskrasnov.Ferrix.svg")
+            .width(128)
+            .height(128);
         let header = row![
             img,
             column![

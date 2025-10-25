@@ -1,3 +1,20 @@
+pub mod i18n;
+pub mod icons;
+pub mod load_state;
+pub mod modals;
+pub mod pages;
+pub mod styles;
+pub mod utils;
+pub mod widgets;
+
+pub mod dmi;
+
+pub use load_state::DataLoadingState;
+pub use pages::*;
+
+use dmi::DMIResult;
+use widgets::{icon_button, sidebar_button};
+
 use anyhow::Result;
 use ferrix_lib::{
     cpu::Processors,
@@ -8,49 +25,12 @@ use ferrix_lib::{
 };
 use iced::{
     Alignment::Center,
-    Element, Length, Size, Subscription, Task, Theme, time,
+    Element, Length, Subscription, Task, Theme, time,
     widget::{column, container, row, scrollable, text},
-    window::Settings,
 };
 use std::time::Duration;
 
-pub mod i18n;
-pub mod icons;
-pub mod load_state;
-pub mod modals;
-pub mod pages;
-pub mod styles;
-pub mod utils;
-pub mod widgets;
-
-use load_state::DataLoadingState;
-use pages::*;
-
-use crate::widgets::{icon_button, sidebar_button};
-
-const APP_LOGO: &[u8] = include_bytes!("../data/icons/hicolor/scalable/apps/win_logo.png");
-
-pub fn main() -> iced::Result {
-    iced::application(Ferrix::default, Ferrix::update, Ferrix::view)
-        .settings(iced::Settings {
-            default_text_size: iced::Pixels(12.),
-            ..Default::default()
-        })
-        .window(Settings {
-            icon: Some(iced::window::icon::from_file_data(APP_LOGO, None).unwrap()),
-            min_size: Some(Size {
-                width: 790.,
-                height: 480.,
-            }),
-            ..Default::default()
-        })
-        .window_size((790., 480.))
-        .antialiasing(true)
-        .subscription(Ferrix::subscription)
-        .theme(Ferrix::theme)
-        .title("Ferrix")
-        .run()
-}
+use crate::dmi::get_dmi_data;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -62,6 +42,9 @@ pub enum Message {
 
     GetChassisData,
     ChassisDataReceived(DataLoadingState<Chassis>),
+
+    GetDMIData,
+    DMIDataReceived(DataLoadingState<DMIResult>),
 
     GetOsReleaseData,
     OsReleaseDataReceived(DataLoadingState<OsRelease>),
@@ -93,8 +76,8 @@ pub struct Ferrix {
     pub current_page: Page,
     pub proc_data: DataLoadingState<Processors>,
     pub ram_data: DataLoadingState<RAM>,
-    // pub smbios_data: DataLoadingState<SMBiosData>,
     pub dmi_chassis_data: DataLoadingState<Chassis>,
+    pub dmi_data: DataLoadingState<DMIResult>,
     pub osrel_data: DataLoadingState<OsRelease>,
     pub info_kernel: DataLoadingState<KernelData>,
     pub users_list: DataLoadingState<Users>,
@@ -102,6 +85,7 @@ pub struct Ferrix {
     pub sysd_services_list: DataLoadingState<SystemdServices>,
     pub system: DataLoadingState<System>,
     pub settings: FXSettings,
+    pub is_polkit: bool,
 }
 
 impl Default for Ferrix {
@@ -111,6 +95,7 @@ impl Default for Ferrix {
             proc_data: DataLoadingState::Loading,
             ram_data: DataLoadingState::Loading,
             dmi_chassis_data: DataLoadingState::Loading,
+            dmi_data: DataLoadingState::Loading,
             osrel_data: DataLoadingState::Loading,
             info_kernel: DataLoadingState::Loading,
             users_list: DataLoadingState::Loading,
@@ -118,6 +103,7 @@ impl Default for Ferrix {
             sysd_services_list: DataLoadingState::Loading,
             system: DataLoadingState::Loading,
             settings: FXSettings::default(),
+            is_polkit: false,
         }
     }
 }
@@ -155,11 +141,11 @@ impl Default for FXSettings {
 }
 
 impl Ferrix {
-    fn theme(&self) -> Theme {
+    pub fn theme(&self) -> Theme {
         self.settings.theme.clone()
     }
 
-    fn update(&mut self, message: Message) -> Task<Message> {
+    pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
             Message::CPUDataReceived(state) => {
                 self.proc_data = state;
@@ -189,6 +175,24 @@ impl Ferrix {
                 },
                 |val| Message::ChassisDataReceived(val),
             ),
+            Message::DMIDataReceived(state) => {
+                self.is_polkit = true;
+                if state.is_some() && self.is_polkit {
+                    self.dmi_data = state;
+                } else if !self.is_polkit {
+                    self.dmi_data = state;
+                }
+                Task::none()
+            }
+            Message::GetDMIData => {
+                if self.dmi_data.is_none() && self.current_page == Page::DMI && !self.is_polkit {
+                    Task::perform(async move { get_dmi_data().await }, |val| {
+                        Message::DMIDataReceived(val)
+                    })
+                } else {
+                    Task::none()
+                }
+            }
             Message::RAMDataReceived(state) => {
                 self.ram_data = state;
                 Task::none()
@@ -323,7 +327,7 @@ impl Ferrix {
         }
     }
 
-    fn subscription(&self) -> Subscription<Message> {
+    pub fn subscription(&self) -> Subscription<Message> {
         let mut scripts = vec![
             time::every(Duration::from_secs(self.settings.update_period as u64))
                 .map(|_| Message::GetCPUData),
@@ -378,10 +382,14 @@ impl Ferrix {
             scripts.push(time::every(Duration::from_millis(10)).map(|_| Message::GetChassisData));
         }
 
+        if self.current_page == Page::DMI && !self.is_polkit && self.dmi_data.is_none() {
+            scripts.push(time::every(Duration::from_secs(1)).map(|_| Message::GetDMIData));
+        }
+
         Subscription::batch(scripts)
     }
 
-    fn view<'a>(&'a self) -> Element<'a, Message> {
+    pub fn view<'a>(&'a self) -> Element<'a, Message> {
         row![sidebar(self.current_page), self.current_page.page(&self)]
             .spacing(5)
             .padding(5)
