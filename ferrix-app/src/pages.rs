@@ -12,6 +12,7 @@ use crate::{Ferrix, Message, fl, icons::ERROR_ICON, widgets::link_button};
 mod cpu;
 mod dashboard;
 mod distro;
+mod dmi;
 mod groups;
 mod kernel;
 mod ram;
@@ -105,6 +106,7 @@ impl<'a> Page {
             .into(),
             Self::Processors => cpu::proc_page(&state.proc_data).into(),
             Self::Memory => ram::ram_page(&state.ram_data).into(),
+            Self::DMI => dmi::chassis_page(&state.dmi_chassis_data).into(),
             Self::Distro => distro::distro_page(&state.osrel_data).into(),
             Self::Kernel => kernel::kernel_page(&state.info_kernel).into(),
             Self::SystemMisc => system::system_page(&state.system).into(),

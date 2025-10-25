@@ -1,6 +1,7 @@
 use anyhow::Result;
 use ferrix_lib::{
     cpu::Processors,
+    dmi::Chassis,
     init::{Connection, SystemdServices},
     ram::RAM,
     sys::{Groups, LoadAVG, OsRelease, Uptime, Users, get_hostname},
@@ -59,6 +60,9 @@ pub enum Message {
     GetRAMData,
     RAMDataReceived(DataLoadingState<RAM>),
 
+    GetChassisData,
+    ChassisDataReceived(DataLoadingState<Chassis>),
+
     GetOsReleaseData,
     OsReleaseDataReceived(DataLoadingState<OsRelease>),
 
@@ -89,6 +93,8 @@ pub struct Ferrix {
     pub current_page: Page,
     pub proc_data: DataLoadingState<Processors>,
     pub ram_data: DataLoadingState<RAM>,
+    // pub smbios_data: DataLoadingState<SMBiosData>,
+    pub dmi_chassis_data: DataLoadingState<Chassis>,
     pub osrel_data: DataLoadingState<OsRelease>,
     pub info_kernel: DataLoadingState<KernelData>,
     pub users_list: DataLoadingState<Users>,
@@ -104,6 +110,7 @@ impl Default for Ferrix {
             current_page: Page::default(),
             proc_data: DataLoadingState::Loading,
             ram_data: DataLoadingState::Loading,
+            dmi_chassis_data: DataLoadingState::Loading,
             osrel_data: DataLoadingState::Loading,
             info_kernel: DataLoadingState::Loading,
             users_list: DataLoadingState::Loading,
@@ -167,6 +174,20 @@ impl Ferrix {
                     }
                 },
                 |val| Message::CPUDataReceived(val),
+            ),
+            Message::ChassisDataReceived(state) => {
+                self.dmi_chassis_data = state;
+                Task::none()
+            }
+            Message::GetChassisData => Task::perform(
+                async move {
+                    let chassis = Chassis::new();
+                    match chassis {
+                        Ok(chassis) => DataLoadingState::Loaded(chassis),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
+                    }
+                },
+                |val| Message::ChassisDataReceived(val),
             ),
             Message::RAMDataReceived(state) => {
                 self.ram_data = state;
@@ -353,6 +374,10 @@ impl Ferrix {
             );
         }
 
+        if self.dmi_chassis_data.is_none() && self.current_page == Page::DMI {
+            scripts.push(time::every(Duration::from_millis(10)).map(|_| Message::GetChassisData));
+        }
+
         Subscription::batch(scripts)
     }
 
@@ -367,7 +392,8 @@ impl Ferrix {
 fn sidebar<'a>(cur_page: Page) -> container::Container<'a, Message> {
     let buttons_bar = row![
         icon_button("export", fl!("sidebar-export")).on_press(Message::Dummy),
-        icon_button("settings", fl!("sidebar-settings")).on_press(Message::SelectPage(Page::Settings)),
+        icon_button("settings", fl!("sidebar-settings"))
+            .on_press(Message::SelectPage(Page::Settings)),
         icon_button("about", fl!("sidebar-about")).on_press(Message::SelectPage(Page::About)),
     ]
     .spacing(2)

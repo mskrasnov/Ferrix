@@ -28,6 +28,8 @@
 //! dbg!(dmi);
 //! ```
 
+use std::fmt::Display;
+
 use crate::traits::ToJson;
 use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
@@ -76,25 +78,6 @@ pub struct DMITable {
     /// Information about installed memory devices (Type 17)
     pub mem_devices: MemoryDevices,
 }
-
-/// Each SMBIOS structure has a handle or instance value associated
-/// with it. Some structs will reference other structures by using
-/// this value.
-#[derive(Debug, Serialize, Clone)]
-pub struct Handle(pub u16);
-
-impl From<smbioslib::Handle> for Handle {
-    fn from(value: smbioslib::Handle) -> Self {
-        Self(value.0)
-    }
-}
-
-/* TODO:
- * - Type 5, 6, 10, 14m 15, 22, 23, 25, 27, 28, 29, 30, 31, 33, 34,
- *        35, 36, 37, 38, 39, 41, ... - в последнюю очередь
- * - Type 7i, 8i, 9i, 11, 12, 13, 16, 17i, 18i, 19, 20i, 21, 24, 26,
- *        32, 40, 41i, 133, 200, 248, 127 - в первую очередь
- */
 
 impl DMITable {
     /// Get information from DMI table
@@ -184,8 +167,26 @@ macro_rules! impl_from_struct {
     };
 }
 
+/// Each SMBIOS structure has a handle or instance value associated
+/// with it. Some structs will reference other structures by using
+/// this value.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Handle(pub u16);
+
+impl From<smbioslib::Handle> for Handle {
+    fn from(value: smbioslib::Handle) -> Self {
+        Self(value.0)
+    }
+}
+
+impl Display for Handle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 /// BIOS ROM Size
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum RomSize {
     /// Size of this ROM in bytes
     Kilobytes(u16),
@@ -220,8 +221,24 @@ impl From<smbioslib::RomSize> for RomSize {
     }
 }
 
+impl Display for RomSize {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Kilobytes(n) => format!("{n} KB"),
+                Self::Megabytes(n) => format!("{n} MB"),
+                Self::Gigabytes(n) => format!("{n} GB"),
+                Self::Undefined(n) => format!("{n} ??"),
+                Self::SeeExtendedRomSize => format!("see extended ROM size"),
+            }
+        )
+    }
+}
+
 /// Information about BIOS/UEFI
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Bios {
     /// BIOS vendor's name
     pub vendor: Option<String>,
@@ -324,7 +341,7 @@ impl Bios {
 impl ToJson for Bios {}
 
 /// BIOS characteristics
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BiosCharacteristics {
     /// Unknown
     pub unknown: bool,
@@ -557,7 +574,7 @@ impl From<smbioslib::BiosCharacteristicsExtension1> for BiosCharacteristicsExten
 impl ToJson for BiosCharacteristicsExtension1 {}
 
 /// System UUID Data
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum SystemUuidData {
     IdNotPresentButSettable,
     IdNotPresent,
@@ -574,8 +591,22 @@ impl From<smbioslib::SystemUuidData> for SystemUuidData {
     }
 }
 
+impl Display for SystemUuidData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::IdNotPresentButSettable => format!("ID not present but settable"),
+                Self::IdNotPresent => format!("ID not present"),
+                Self::Uuid(uuid) => format!("{uuid}"),
+            }
+        )
+    }
+}
+
 /// System UUID
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SystemUuid {
     /// Raw byte array for this UUID
     pub raw: [u8; 16],
@@ -585,8 +616,14 @@ impl_from_struct!(SystemUuid, smbioslib::SystemUuid, {
     raw: [u8; 16],
 });
 
+impl Display for SystemUuid {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", String::from_utf8_lossy(&self.raw))
+    }
+}
+
 /// System wakeup data
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SystemWakeUpTypeData {
     /// Raw value
     ///
@@ -606,7 +643,7 @@ impl From<smbioslib::SystemWakeUpTypeData> for SystemWakeUpTypeData {
 }
 
 /// System wakeup type
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum SystemWakeUpType {
     Other,
     Unknown,
@@ -635,8 +672,28 @@ impl From<smbioslib::SystemWakeUpType> for SystemWakeUpType {
     }
 }
 
+impl Display for SystemWakeUpType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Other => "Other",
+                Self::Unknown => "Unknown",
+                Self::ApmTimer => "APM Timer",
+                Self::ModernRing => "Modern Ring",
+                Self::LanRemote => "LAN Remote",
+                Self::PowerSwitch => "Power Switch",
+                Self::PciPme => "PCI PME#",
+                Self::ACPowerRestored => "AC Power Restored",
+                Self::None => "Unknown to this standard, check the raw value",
+            }
+        )
+    }
+}
+
 /// Attributes of the overall system
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct System {
     /// System manufacturer
     pub manufacturer: Option<String>,
@@ -708,7 +765,7 @@ impl System {
 impl ToJson for System {}
 
 /// Board type data
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BoardTypeData {
     pub raw: u8,
     pub value: BoardType,
@@ -724,7 +781,7 @@ impl From<smbioslib::BoardTypeData> for BoardTypeData {
 }
 
 /// Board type
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum BoardType {
     Unknown,
     Other,
@@ -763,8 +820,33 @@ impl From<smbioslib::BoardType> for BoardType {
     }
 }
 
+impl Display for BoardType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Unknown => "Unknown",
+                Self::Other => "Other",
+                Self::ServerBlade => "Server Blade",
+                Self::ConnectivitySwitch => "Connectivity Switch",
+                Self::SystemManagementModule => "System Management Module",
+                Self::ProcessorModule => "Processor Module",
+                Self::IOModule => "I/O Module",
+                Self::MemoryModule => "Memory Module",
+                Self::Daughterboard => "Daughter Board",
+                Self::Motherboard => "Motherboard (includes processor, memory, and I/O)",
+                Self::ProcessorMemoryModule => "Processor or Memory Module",
+                Self::ProcessorIOModule => "Processor or I/O Module",
+                Self::InterconnectBoard => "Interconnect Board",
+                Self::None => "Unknown to this standard, check the raw value",
+            }
+        )
+    }
+}
+
 /// Information about baseboard/module
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Baseboard {
     /// Baseboard manufacturer
     pub manufacturer: Option<String>,
@@ -877,7 +959,7 @@ impl From<smbioslib::BaseboardFeatures> for BaseboardFeatures {
 impl ToJson for BaseboardFeatures {}
 
 /// Chassis type data
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ChassisTypeData {
     pub raw: u8,
     pub value: ChassisType,
@@ -895,7 +977,7 @@ impl From<smbioslib::ChassisTypeData> for ChassisTypeData {
 }
 
 /// Chassis type
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum ChassisType {
     Other,
     Unknown,
@@ -980,8 +1062,56 @@ impl From<smbioslib::ChassisType> for ChassisType {
     }
 }
 
+impl Display for ChassisType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Other => "Other",
+                Self::Unknown => "Unknown",
+                Self::Desktop => "Desktop",
+                Self::LowProfileDesktop => "Low profile desktop",
+                Self::PizzaBox => "Pizza Box",
+                Self::MiniTower => "Mini Tower",
+                Self::Tower => "Tower",
+                Self::Portable => "Portable",
+                Self::Laptop => "Laptop",
+                Self::Notebook => "Notebook",
+                Self::HandHeld => "Hand Held",
+                Self::DockingStation => "Docking Station",
+                Self::AllInOne => "All In One",
+                Self::SubNotebook => "Sub Notebook",
+                Self::SpaceSaving => "Space Saving",
+                Self::LunchBox => "Lunch Box",
+                Self::MainServerChassis => "Main server chassis",
+                Self::ExpansionChassis => "Expansion chassis",
+                Self::SubChassis => "Sub chassis",
+                Self::BusExpansionChassis => "Bus expansion chassis",
+                Self::PeripheralChassis => "Peripheral chassis",
+                Self::RaidChassis => "RAID chassis",
+                Self::RackMountChassis => "Rack Mount chassis",
+                Self::SealedCasePC => "Sealed-case chassis",
+                Self::MultiSystemChassis => "Multi-system chassis",
+                Self::CompactPci => "Compact PCI",
+                Self::AdvancedTca => "Advanced TCA",
+                Self::Blade => "Blade",
+                Self::BladeEnclosure => "Blade encloser",
+                Self::Tablet => "Tablet",
+                Self::Convertible => "Convertivle",
+                Self::Detachable => "Detachable",
+                Self::IoTGateway => "IoT Gateway",
+                Self::EmbeddedPC => "Embedded PC",
+                Self::MiniPC => "Mini PC",
+                Self::StickPC => "Stick PC",
+                Self::None => "Unknown to this standard, check the raw value",
+            }
+        )
+    }
+}
+
 /// Chassis lock presence
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum ChassisLockPresence {
     Present,
     NotPresent,
@@ -996,8 +1126,21 @@ impl From<smbioslib::ChassisLockPresence> for ChassisLockPresence {
     }
 }
 
+impl Display for ChassisLockPresence {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Present => "Present",
+                Self::NotPresent => "Not present",
+            }
+        )
+    }
+}
+
 /// Chassis state data
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ChassisStateData {
     pub raw: u8,
     pub value: ChassisState,
@@ -1013,7 +1156,7 @@ impl From<smbioslib::ChassisStateData> for ChassisStateData {
 }
 
 /// Chassis state
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum ChassisState {
     Other,
     Unknown,
@@ -1038,8 +1181,26 @@ impl From<smbioslib::ChassisState> for ChassisState {
     }
 }
 
+impl Display for ChassisState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Other => "Other",
+                Self::Unknown => "Unknown",
+                Self::Safe => "Safe",
+                Self::Warning => "Warning",
+                Self::Critical => "Critical",
+                Self::NonRecoverable => "Non-recoverable",
+                Self::None => "Unknown to this standard, check the raw value",
+            }
+        )
+    }
+}
+
 /// Chassis security status data
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ChassisSecurityStatusData {
     pub raw: u8,
     pub value: ChassisSecurityStatus,
@@ -1055,7 +1216,7 @@ impl From<smbioslib::ChassisSecurityStatusData> for ChassisSecurityStatusData {
 }
 
 /// Chassis security status
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum ChassisSecurityStatus {
     Other,
     Unknown,
@@ -1082,8 +1243,25 @@ impl From<smbioslib::ChassisSecurityStatus> for ChassisSecurityStatus {
     }
 }
 
+impl Display for ChassisSecurityStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Other => "Other",
+                Self::Unknown => "Unknown",
+                Self::StatusNone => "None",
+                Self::ExternalInterfaceLockedOut => "External interface locked out",
+                Self::ExternalInterfaceEnabled => "External interface enabled",
+                Self::None => "Unknown to this standard, check the raw value",
+            }
+        )
+    }
+}
+
 /// Chassis height
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum ChassisHeight {
     Unspecified,
     U(u8),
@@ -1098,8 +1276,21 @@ impl From<smbioslib::ChassisHeight> for ChassisHeight {
     }
 }
 
+impl Display for ChassisHeight {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Unspecified => format!("Unspecified"),
+                Self::U(u) => format!("{u} U (1 U = 1.75 inch or 4.445 cm)"),
+            }
+        )
+    }
+}
+
 /// Number of Power Cords
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum PowerCords {
     Unspecified,
     Count(u8),
@@ -1114,8 +1305,21 @@ impl From<smbioslib::PowerCords> for PowerCords {
     }
 }
 
+impl Display for PowerCords {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Unspecified => format!("Unspecified"),
+                Self::Count(cnt) => format!("{cnt}"),
+            }
+        )
+    }
+}
+
 /// Information about system enclosure or chassis
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Chassis {
     /// Enclosure/chassis manufacturer
     pub manufacturer: Option<String>,
