@@ -23,7 +23,7 @@
 use crate::utils::read_to_string;
 use crate::{traits::*, utils::Size};
 use anyhow::{Result, anyhow};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::env::vars;
 
 /// A structure containing all collected information about
@@ -556,7 +556,7 @@ fn sanitize_str(s: &str) -> String {
 }
 
 /// Linux kernel modules list
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct KModules {
     pub modules: Vec<Module>,
 }
@@ -575,7 +575,7 @@ impl KModules {
     }
 }
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Module {
     /// The name of the loaded kernel module
     pub name: String,

@@ -23,9 +23,9 @@
 use std::{fmt::Display, path::Path};
 
 use anyhow::Result;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Default, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone, Copy)]
 pub enum Size {
     B(usize),
     KB(f32),
