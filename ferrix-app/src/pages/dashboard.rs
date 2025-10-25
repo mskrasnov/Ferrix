@@ -1,11 +1,14 @@
 //! Dashboard page
 
-use crate::{fl, Message};
+use crate::{Message, Page, fl};
 use ferrix_lib::{cpu::Processors, ram::RAM, sys::OsRelease};
 
 use iced::{
-    Font, Length, never,
-    widget::{button, column, container, rich_text, row, space, span, text::IntoFragment},
+    Element, Font, Length, never,
+    widget::text,
+    widget::{
+        button, column, container, progress_bar, rich_text, row, space, span, text::IntoFragment,
+    },
 };
 
 pub fn dashboard<'a>(
@@ -40,6 +43,8 @@ pub fn dashboard<'a>(
             None => (ferrix_lib::utils::Size::None, ferrix_lib::utils::Size::None),
         }
     };
+    let total_ram_bytes = total_ram.get_bytes2().unwrap_or(0) as f32;
+    let avail_ram_bytes = avail_ram.get_bytes2().unwrap_or(0) as f32;
     let os_name = {
         match osr {
             Some(osr) => match &osr.pretty_name {
@@ -63,25 +68,25 @@ pub fn dashboard<'a>(
                 card(
                     fl!("dash-proc"),
                     fl!("dash-proc-info", name = proc_name, threads = proc_threads),
-                    Message::SelectPage(crate::pages::Page::Processors),
+                    Message::SelectPage(Page::Processors),
                 ),
-                card(
+                widget_card(
                     fl!("dash-mem"),
-                    format!("{}/{}", avail_ram, total_ram),
-                    Message::SelectPage(crate::pages::Page::Memory),
+                    column![
+                        text(format!("{}/{}", avail_ram, total_ram)),
+                        progress_bar(0.0..=total_ram_bytes, total_ram_bytes - avail_ram_bytes),
+                    ]
+                    .spacing(5),
+                    Message::SelectPage(Page::Memory),
                 ),
-                card(
-                    fl!("dash-sys"),
-                    os_name,
-                    Message::SelectPage(crate::pages::Page::Distro),
-                ),
+                card(fl!("dash-sys"), os_name, Message::SelectPage(Page::Distro)),
                 card(
                     fl!("dash-host"),
                     hostname,
-                    Message::SelectPage(crate::pages::Page::SystemMisc),
+                    Message::SelectPage(Page::SystemMisc),
                 ),
             ]
-            .spacing(5)
+            .spacing(5),
         ]
         .spacing(5),
     )
@@ -106,6 +111,40 @@ where
                 .on_link_click(never),
                 space().width(Length::Fill).height(Length::Fill),
                 iced::widget::text(contents),
+            ]
+            .spacing(5),
+        )
+        .width(135)
+        .max_width(135)
+        .height(135)
+        .max_height(135)
+        .style(container::rounded_box)
+        .padding(5),
+    )
+    .style(button::text)
+    .padding(0)
+    .on_press(on_press)
+}
+
+fn widget_card<'a, H, C>(header: H, contents: C, on_press: Message) -> button::Button<'a, Message>
+where
+    H: IntoFragment<'a>,
+    C: Into<Element<'a, Message>>,
+{
+    button(
+        container(
+            column![
+                rich_text![
+                    span(header)
+                        .font(Font {
+                            weight: iced::font::Weight::Bold,
+                            ..Default::default()
+                        })
+                        .size(16),
+                ]
+                .on_link_click(never),
+                space().width(Length::Fill).height(Length::Fill),
+                contents.into(),
             ]
             .spacing(5),
         )
