@@ -85,22 +85,24 @@ run: build
 	@echo "$(YELLOW)Running Ferrix...$(NC)"
 	$(RELEASE_DIR)/$(BINARY_NAME)
 
+run_debug:
+	@echo "$(YELLOW)Running Ferrix in the $(GREEN)debug mode$(YELLOW)...$(NC)"
+	cargo run --bin=ferrix-app
+
 debug:
 	@echo "$(YELLOW)Building in debug mode...$(NC)"
 	cargo build
 	@echo "$(GREEN)Debug build completed$(NC)"
 
 help:
-	@echo "Ferrix Build System"
-	@echo ""
 	@echo "Available targets:"
-	@echo "  $(GREEN)build$(NC)    - Build the project in release mode (default)"
-	@echo "  $(GREEN)install$(NC)  - Build and install system-wide"
+	@echo "  $(GREEN)build$(NC)     - Build the project in release mode (default)"
+	@echo "  $(GREEN)install$(NC)   - Build and install system-wide"
 	@echo "  $(GREEN)uninstall$(NC) - Remove installed files"
-	@echo "  $(GREEN)clean$(NC)    - Remove build artifacts"
-	@echo "  $(GREEN)run$(NC)      - Build and run without installing"
-	@echo "  $(GREEN)debug$(NC)    - Build in debug mode"
-	@echo "  $(GREEN)help$(NC)     - Show this help message"
+	@echo "  $(GREEN)clean$(NC)     - Remove build artifacts"
+	@echo "  $(GREEN)run$(NC)       - Build and run without installing"
+	@echo "  $(GREEN)debug$(NC)     - Build in debug mode"
+	@echo "  $(GREEN)help$(NC)      - Show this help message"
 	@echo ""
 	@echo "Examples:"
 	@echo "  make install    # Build and install"
