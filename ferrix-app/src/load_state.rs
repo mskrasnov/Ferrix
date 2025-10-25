@@ -1,6 +1,8 @@
 //! Data loading states
 
-#[derive(Debug, Clone)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub enum DataLoadingState<P> {
     Loading,
     Error(String),
