@@ -54,11 +54,7 @@ For Linux, there are a bunch of different console programs for getting informati
 
 ## Installation
 
-```bash
-cargo install ferrix-app
-```
-
-... or download pre-built binaries from [GitHub Releases](https://github.com/mskrasnov/ferrix/releases/latest)
+Download pre-built binaries from [GitHub Releases](https://github.com/mskrasnov/ferrix/releases/latest)
 
 ... or build Ferrix from sources:
 
@@ -66,8 +62,10 @@ cargo install ferrix-app
 git clone https://github.com/mskrasnov/ferrix
 cd ferrix
 
-cargo build --release
-./target/release/ferrix-app
+make build
+sudo make install
+
+# Run `sudo make uninstall` to uninstall app
 ```
 
 ### Build dependencies
