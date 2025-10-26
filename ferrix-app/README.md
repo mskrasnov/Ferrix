@@ -2,9 +2,6 @@
   <img src="data/icons/hicolor/scalable/apps/com.mskrasnov.Ferrix.svg" width="200">
   <h1>Ferrix — Swiss Knife for Linux Hardware Diagnostics</h1>
   <p><b>A simple program for getting information about computer hardware and installed software.</b></p>
-  <!-- <h4> -->
-    <!-- <a href="" -->
-  <!-- </h4> -->
   <img src="assets/main_win.png" width="45%">
 
   [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![Rust](https://img.shields.io/badge/Made%20with-Rust-orange?logo=rust)](https://www.rust-lang.org/) [![GitHub Release](https://img.shields.io/github/v/release/mskrasnov/ferrix?logo=github)](https://github.com/mskrasnov/ferrix/releases)
@@ -75,7 +72,7 @@ sudo make install
 
 ## Technology stack
 
-- **OS:** Linux with `glibc` and `systemd`;
+- **OS:** Linux with `glibc`, `dbus` and `systemd`;
 - **Multilanguage:** coming soon...
 - **Programming lang.:** [Rust](https://rust-lang.org);
 - **GUI:** [iced](https://iced.rs);
@@ -90,7 +87,7 @@ Developing Ferrix takes time and passion. If you find it useful, please consider
 
 - **Star ⭐ this repo!** It helps others discover Ferrix;
 - **Write comments, questions, bug reports, or suggestions** for new functionality in [issues](https://github.com/mskrasnov/Ferrix/issues/new).
-- If you are from Russia, **send me a donation 💰** to the card: `2202 2062 5233 5406` (Sberbank). This will help me keep my enthusiasm alive, as well as pay my mobile internet bills so that I can continue working on Ferrix.
+- If you are from Russia, **send me a donation 💰** to the card: `2202 2062 5233 5406` (Sberbank) or support me in [Boosty](https://boosty.to/mskrasnov). This will help me keep my enthusiasm alive, as well as pay my mobile internet bills so that I can continue working on Ferrix.
 - **Spread the world!** Tell friends, post on forums.
     
 ## License

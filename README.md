@@ -29,61 +29,40 @@ Ferrix is a Rust-crate and program for obtaining information about computer hard
     - [X] XML;
 <!-- 3. Reset GNOME Desktop settings; -->
 
-<!--## Installation
-
-### Use Flatpak (recommend)
+## Build & Install
 
 ```bash
-flatpak install flathub com.mskrasnov.Ferrix
+git clone https://github.com/mskrasnov/Ferrix
+cd Ferrix
+
+make build
 ```
 
-### Use AppImage (for portable builds of Ferrix)
+If you use Debian, perform:
 
-Download `*.AppImage` package (runs anywhere):
+```bash
+make deb
+```
 
-1. Grab the latest *stable* `*.AppImage` from [Releases](https://github.com/mskrasnov/Ferrix/releases);
-2. Make it executable: `chmod +x Ferrix-*.AppImage`;
-3. Run it: `./Ferrix-*.AppImage`-->
+And install `deb`-package:
 
-<!-- ## Screenshots -->
+```bash
+sudo dpkg -i ./target/debian/ferrix-app_${VERSION}-${BUILD_NUM}_${ARCH}.deb
+```
 
-<!-- <details> -->
-  <!-- <summary><b>Show</b></summary> -->
+If you use other Linux system, perform:
 
-  <!-- <br> -->
-
-<!-- **Dashboard** -->
-<!-- ![Dashboard page screenshot](assets/main_page.png) -->
-
-<!-- **OS info** -->
-<!-- ![OS page screenshot](assets/os_page.png) -->
-
-<!-- **CPU info** -->
-<!-- ![CPU info page](assets/cpu_page.png) -->
-
-<!-- **RAM info** -->
-<!-- ![RAM info page](assets/ram_page.png) -->
-
-<!-- **Information about system storage** -->
-<!-- ![Storage info page](assets/storage_page.png) -->
-
-<!-- **Motherboard info** -->
-<!-- ![Motherboard and BIOS info page](assets/dmi_page.png) -->
-
-<!-- **systemd services info** -->
-<!-- ![systemd info](assets/systemd_page.png) -->
-
-<!-- **GNOME settings reset page** -->
-<!-- ![Reset settings page](assets/reset_page.png) -->
-
-<!-- **Dark mode** -->
-<!-- ![Dark mode pages](assets/dark_mode.png) -->
-
-<!-- </details> -->
+```bash
+make run # to run Ferrix...
+# ... or
+make install # to install Ferrix.
+# Perform:
+make uninstall # to uninstall Ferrix from your system.
+```
 
 ## Technology stack
 
-- **OS:** Linux with `glibc` and `systemd`;
+- **OS:** Linux with `glibc`, `dbus` and `systemd`;
 - **Programming language:** Rust 1.88+ (2024 edition);
 - **GUI:** [`iced`](https://iced.rs);
 - **Hardware:** modern PC or laptop;
@@ -94,7 +73,7 @@ Developing Ferrix takes time and passion. If you find it useful, please consider
 
 - **Star ⭐ this repo!** It helps others discover Ferrix;
 - **Write comments, questions, bug reports, or suggestions** for new functionality in [issues](https://github.com/mskrasnov/Ferrix/issues/new).
-- If you are from Russia, **send me a donation 💰** to the card: `2202 2062 5233 5406` (Sberbank). This will help me keep my enthusiasm alive, as well as pay my mobile internet bills so that I can continue working on Ferrix.
+- If you are from Russia, **send me a donation 💰** to the card: `2202 2062 5233 5406` (Sberbank) or support me in [Boosty](https://boosty.to/mskrasnov). This will help me keep my enthusiasm alive, as well as pay my mobile internet bills so that I can continue working on Ferrix.
 - **Spread the world!** Tell friends, post on forums.
 
 ## License
