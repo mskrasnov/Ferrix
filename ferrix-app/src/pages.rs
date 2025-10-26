@@ -160,9 +160,10 @@ impl<'a> Page {
                 text(fl!("about-feedback-hdr")).style(text::secondary),
                 text(fl!("about-source-hdr")).style(text::secondary),
                 text("crates.io:").style(text::secondary),
+                text("Blog:").style(text::secondary),
             ]
             .align_x(Alignment::End)
-            .spacing(5),
+            .spacing(3),
             column![
                 row![
                     text(fl!("about-author")),
@@ -176,23 +177,28 @@ impl<'a> Page {
                     text(", "),
                     link_button("ferrix-lib", "https://crates.io/crates/ferrix-lib"),
                 ],
+                link_button("mskrasnov", "https://boosty.to/mskrasnov"),
             ]
-            .spacing(5),
+            .spacing(3),
         ]
         .spacing(5);
 
-        let misc = text(fl!("about-donate"));
+        let donate = column![
+            text(fl!("about-donate")),
+            link_button("Donate me on Boosty!", "https://boosty.to/mskrasnov"),
+        ]
+        .spacing(5);
 
         let contents = column![
             column![header, rule::horizontal(1)].spacing(2),
             about_info,
             row![
-                text("Support me!").style(text::warning),
+                text("Support me!").style(text::warning).size(16),
                 rule::horizontal(1)
             ]
             .align_y(Center)
             .spacing(5),
-            misc,
+            donate,
         ]
         .spacing(5);
 
