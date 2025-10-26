@@ -41,9 +41,6 @@ pub enum Message {
     GetRAMData,
     RAMDataReceived(DataLoadingState<RAM>),
 
-    GetChassisData,
-    ChassisDataReceived(DataLoadingState<Chassis>),
-
     GetDMIData,
     DMIDataReceived(DataLoadingState<DMIResult>),
 
@@ -161,20 +158,6 @@ impl Ferrix {
                     }
                 },
                 |val| Message::CPUDataReceived(val),
-            ),
-            Message::ChassisDataReceived(state) => {
-                self.dmi_chassis_data = state;
-                Task::none()
-            }
-            Message::GetChassisData => Task::perform(
-                async move {
-                    let chassis = Chassis::new();
-                    match chassis {
-                        Ok(chassis) => DataLoadingState::Loaded(chassis),
-                        Err(why) => DataLoadingState::Error(why.to_string()),
-                    }
-                },
-                |val| Message::ChassisDataReceived(val),
             ),
             Message::DMIDataReceived(state) => {
                 self.is_polkit = true;
@@ -377,10 +360,6 @@ impl Ferrix {
                 time::every(Duration::from_secs(self.settings.update_period as u64))
                     .map(|_| Message::GetSystemData),
             );
-        }
-
-        if self.dmi_chassis_data.is_none() && self.current_page == Page::DMI {
-            scripts.push(time::every(Duration::from_millis(10)).map(|_| Message::GetChassisData));
         }
 
         if self.current_page == Page::DMI && !self.is_polkit && self.dmi_data.is_none() {
