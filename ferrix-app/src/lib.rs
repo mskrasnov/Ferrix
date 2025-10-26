@@ -14,6 +14,7 @@ pub use load_state::DataLoadingState;
 pub use pages::*;
 
 use dmi::DMIResult;
+use serde::{Deserialize, Serialize};
 use widgets::{icon_button, sidebar_button};
 
 use anyhow::Result;
@@ -29,9 +30,11 @@ use iced::{
     Element, Length, Subscription, Task, Theme, time,
     widget::{column, container, row, scrollable, text},
 };
-use std::time::Duration;
+use std::{fmt::Display, fs, path::Path, time::Duration};
 
 use crate::dmi::get_dmi_data;
+
+const SETTINGS_PATH: &str = "./ferrix.conf";
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -66,10 +69,11 @@ pub enum Message {
     SystemDataReceived(DataLoadingState<System>),
 
     Dummy,
-    ChangeTheme(Theme),
+    ChangeTheme(Style),
     SelectPage(Page),
     ChangeUpdatePeriod(u8),
     LinkButtonPressed(String),
+    SaveSettingsButtonPressed,
 }
 
 #[derive(Debug)]
@@ -107,7 +111,7 @@ impl Default for Ferrix {
             groups_list: DataLoadingState::Loading,
             sysd_services_list: DataLoadingState::Loading,
             system: DataLoadingState::Loading,
-            settings: FXSettings::default(),
+            settings: FXSettings::read(SETTINGS_PATH).unwrap_or_default(),
             is_polkit: false,
         }
     }
@@ -130,24 +134,69 @@ impl System {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct FXSettings {
     pub update_period: u8,
-    pub theme: Theme,
+    pub style: Style,
+}
+
+impl FXSettings {
+    pub fn read<P: AsRef<Path>>(pth: P) -> Result<Self> {
+        let contents = fs::read_to_string(pth)?;
+        let data = toml::from_str(&contents)?;
+        Ok(data)
+    }
+
+    pub fn write<'a, P: AsRef<Path>>(&'a self, pth: P) -> Result<()> {
+        let contents = toml::to_string(&self)?;
+        fs::write(pth, contents)?;
+        Ok(())
+    }
 }
 
 impl Default for FXSettings {
     fn default() -> Self {
         Self {
             update_period: 1,
-            theme: Theme::GruvboxDark,
+            style: Style::default(),
         }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, Default, PartialEq)]
+pub enum Style {
+    Light,
+    #[default]
+    Dark,
+}
+
+impl Style {
+    pub const ALL: &[Self] = &[Self::Light, Self::Dark];
+
+    pub fn to_theme(&self) -> Theme {
+        match self {
+            Self::Light => Theme::GruvboxLight,
+            Self::Dark => Theme::GruvboxDark,
+        }
+    }
+}
+
+impl Display for Style {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Light => "Light",
+                Self::Dark => "Dark",
+            }
+        )
     }
 }
 
 impl Ferrix {
     pub fn theme(&self) -> Theme {
-        self.settings.theme.clone()
+        self.settings.style.to_theme()
     }
 
     pub fn update(&mut self, message: Message) -> Task<Message> {
@@ -320,8 +369,8 @@ impl Ferrix {
                 self.current_page = page;
                 Task::none()
             }
-            Message::ChangeTheme(theme) => {
-                self.settings.theme = theme;
+            Message::ChangeTheme(style) => {
+                self.settings.style = style;
                 Task::none()
             }
             Message::ChangeUpdatePeriod(period) => {
@@ -331,6 +380,11 @@ impl Ferrix {
             Message::LinkButtonPressed(url) => {
                 // TODO: add error handling
                 let _ = utils::xdg_open(url);
+                Task::none()
+            }
+            Message::SaveSettingsButtonPressed => {
+                // TODO: add error handling
+                let _ = self.settings.write(SETTINGS_PATH);
                 Task::none()
             }
             _ => Task::none(),

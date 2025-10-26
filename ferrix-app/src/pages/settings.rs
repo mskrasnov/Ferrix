@@ -3,8 +3,7 @@
 use crate::{Ferrix, Message, widgets::icon_tooltip};
 use iced::{
     Alignment::Center,
-    Theme,
-    widget::{center, column, container, pick_list, row, rule, slider, text},
+    widget::{button, center, column, container, pick_list, row, rule, slider, text},
 };
 
 pub fn settings_page<'a>(state: &'a Ferrix) -> container::Container<'a, Message> {
@@ -38,8 +37,8 @@ pub fn settings_page<'a>(state: &'a Ferrix) -> container::Container<'a, Message>
     .spacing(5);
 
     let theme_selector = pick_list(
-        Theme::ALL,
-        Some(&state.settings.theme),
+        crate::Style::ALL,
+        Some(state.settings.style),
         Message::ChangeTheme,
     );
     let theme_changer = column![
@@ -60,6 +59,13 @@ pub fn settings_page<'a>(state: &'a Ferrix) -> container::Container<'a, Message>
     ]
     .spacing(5);
 
-    let layout = container(column![update_changer, theme_changer].spacing(5));
+    let layout = container(
+        column![
+            update_changer,
+            theme_changer,
+            button("Save").on_press(Message::SaveSettingsButtonPressed),
+        ]
+        .spacing(5),
+    );
     layout
 }
