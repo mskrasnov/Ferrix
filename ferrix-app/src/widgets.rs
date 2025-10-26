@@ -2,6 +2,7 @@
 
 // use super::Message;
 use iced::widget::svg::Handle;
+use iced::widget::tooltip;
 use iced::{
     Color,
     widget::{button, container, svg, text, tooltip::Position},
@@ -98,9 +99,28 @@ pub fn sidebar_button<'a>(page: Page, cur_page: Page) -> button::Button<'a, Mess
         .on_press(Message::SelectPage(page))
 }
 
-pub fn link_button<'a>(placeholder: &'a str, link: &'a str) -> button::Button<'a, Message> {
-    button(placeholder)
-        .style(super::styles::link_button)
-        .padding(0)
-        .on_press(Message::LinkButtonPressed(link.to_string()))
+pub fn link_button<'a>(placeholder: &'a str, link: &'a str) -> tooltip::Tooltip<'a, Message> {
+    tooltip(
+        button(placeholder)
+            .style(super::styles::link_button)
+            .padding(0)
+            .on_press(Message::LinkButtonPressed(link.to_string())),
+        container(text(link).size(11).style(|s: &iced::Theme| text::Style {
+            color: Some(if s.extended_palette().is_dark {
+                s.palette().text
+            } else {
+                Color::WHITE
+            }),
+        }))
+        .padding(2)
+        .style(|_| container::Style {
+            background: Some(iced::Background::Color(Color::from_rgba8(0, 0, 0, 0.71))),
+            border: iced::Border {
+                radius: iced::border::Radius::from(2),
+                ..iced::Border::default()
+            },
+            ..Default::default()
+        }),
+        Position::Bottom,
+    )
 }
