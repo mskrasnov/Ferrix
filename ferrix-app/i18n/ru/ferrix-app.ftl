@@ -92,6 +92,8 @@ dash-mem = Память
 dash-sys = Система
 dash-host = Имя хоста
 dash-proc-info = {$name}, {$threads} потоков
+dash-proc-usage = Нагрузка на ЦП
+dash-proc-usg_label = Общая: {$usage}%
 
 # DISTRO PAGE
 distro-name = Имя ОС

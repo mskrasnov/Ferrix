@@ -1,7 +1,11 @@
 //! Dashboard page
 
 use crate::{Message, Page, fl};
-use ferrix_lib::{cpu::Processors, ram::RAM, sys::OsRelease};
+use ferrix_lib::{
+    cpu::{Processors, Stat},
+    ram::RAM,
+    sys::OsRelease,
+};
 
 use iced::{
     Element, Font, Length, never,
@@ -13,6 +17,7 @@ use iced::{
 
 pub fn dashboard<'a>(
     proc: Option<&'a Processors>,
+    stat: (Option<&'a Stat>, Option<&'a Stat>),
     ram: Option<&'a RAM>,
     osr: Option<&'a OsRelease>,
     system: Option<&'a crate::System>,
@@ -61,6 +66,18 @@ pub fn dashboard<'a>(
         },
         None => "Unknown hostname",
     };
+    let (prev_stat, cur_stat) = stat;
+    let cpu_usage = if prev_stat.is_none() || cur_stat.is_none() {
+        0.0
+    } else {
+        let prev_stat = prev_stat.unwrap();
+        let cur_stat = cur_stat.unwrap();
+
+        match &cur_stat.cpu {
+            Some(cpu) => cpu.usage_percentage(prev_stat.cpu),
+            None => 0.0,
+        }
+    };
 
     container(
         column![
@@ -87,6 +104,18 @@ pub fn dashboard<'a>(
                 ),
             ]
             .spacing(5),
+            widget_card(
+                fl!("dash-proc-usage"),
+                column![
+                    text(fl!(
+                        "dash-proc-usg_label",
+                        usage = format!("{cpu_usage:.2}")
+                    )),
+                    progress_bar(0.0..=100., cpu_usage),
+                ]
+                .spacing(5),
+                Message::SelectPage(Page::Processors)
+            ),
         ]
         .spacing(5),
     )

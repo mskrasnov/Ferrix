@@ -18,7 +18,7 @@ use widgets::{icon_button, sidebar_button};
 
 use anyhow::Result;
 use ferrix_lib::{
-    cpu::Processors,
+    cpu::{Processors, Stat},
     dmi::Chassis,
     init::{Connection, SystemdServices},
     ram::RAM,
@@ -37,6 +37,9 @@ use crate::dmi::get_dmi_data;
 pub enum Message {
     GetCPUData,
     CPUDataReceived(DataLoadingState<Processors>),
+
+    GetProcStat,
+    ProcStatReceived(DataLoadingState<Stat>),
 
     GetRAMData,
     RAMDataReceived(DataLoadingState<RAM>),
@@ -73,6 +76,8 @@ pub enum Message {
 pub struct Ferrix {
     pub current_page: Page,
     pub proc_data: DataLoadingState<Processors>,
+    pub prev_proc_stat: DataLoadingState<Stat>,
+    pub curr_proc_stat: DataLoadingState<Stat>,
     pub ram_data: DataLoadingState<RAM>,
     pub dmi_chassis_data: DataLoadingState<Chassis>,
     pub dmi_data: DataLoadingState<DMIResult>,
@@ -91,6 +96,8 @@ impl Default for Ferrix {
         Self {
             current_page: Page::default(),
             proc_data: DataLoadingState::Loading,
+            prev_proc_stat: DataLoadingState::Loading,
+            curr_proc_stat: DataLoadingState::Loading,
             ram_data: DataLoadingState::Loading,
             dmi_chassis_data: DataLoadingState::Loading,
             dmi_data: DataLoadingState::Loading,
@@ -158,6 +165,25 @@ impl Ferrix {
                     }
                 },
                 |val| Message::CPUDataReceived(val),
+            ),
+            Message::ProcStatReceived(state) => {
+                if self.curr_proc_stat.is_some() {
+                    self.prev_proc_stat = self.curr_proc_stat.clone();
+                } else if self.curr_proc_stat.is_none() && self.prev_proc_stat.is_none() {
+                    self.prev_proc_stat = state.clone();
+                }
+                self.curr_proc_stat = state;
+                Task::none()
+            }
+            Message::GetProcStat => Task::perform(
+                async move {
+                    let stat = Stat::new();
+                    match stat {
+                        Ok(stat) => DataLoadingState::Loaded(stat),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
+                    }
+                },
+                |val| Message::ProcStatReceived(val),
             ),
             Message::DMIDataReceived(state) => {
                 self.is_polkit = true;
@@ -316,8 +342,15 @@ impl Ferrix {
             time::every(Duration::from_secs(self.settings.update_period as u64))
                 .map(|_| Message::GetCPUData),
             time::every(Duration::from_secs(self.settings.update_period as u64))
-                .map(|_| Message::GetRAMData),
+                .map(|_| Message::GetProcStat),
         ];
+
+        if self.current_page == Page::Dashboard {
+            scripts.push(
+                time::every(Duration::from_secs(self.settings.update_period as u64))
+                    .map(|_| Message::GetRAMData),
+            );
+        }
 
         if self.osrel_data.is_none()
             && (self.current_page == Page::Distro || self.current_page == Page::Dashboard)

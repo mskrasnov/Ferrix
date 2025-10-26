@@ -92,6 +92,8 @@ dash-mem = Memory
 dash-sys = System
 dash-host = Hostname
 dash-proc-info = {$name}, {$threads} threads
+dash-proc-usage = CPU Usage
+dash-proc-usg_label = Total usage: {$usage}%
 
 # DISTRO PAGE
 distro-name = OS Name

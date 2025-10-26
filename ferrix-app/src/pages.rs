@@ -99,6 +99,10 @@ impl<'a> Page {
         let page = match self {
             Self::Dashboard => dashboard::dashboard(
                 state.proc_data.to_option(),
+                (
+                    state.prev_proc_stat.to_option(),
+                    state.curr_proc_stat.to_option(),
+                ),
                 state.ram_data.to_option(),
                 state.osrel_data.to_option(),
                 state.system.to_option(),
