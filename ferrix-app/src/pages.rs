@@ -182,6 +182,12 @@ impl<'a> Page {
         let contents = column![
             column![header, rule::horizontal(1)].spacing(2),
             about_info,
+            row![
+                text("Support me!").style(text::warning),
+                rule::horizontal(1)
+            ]
+            .align_y(Center)
+            .spacing(5),
             misc,
         ]
         .spacing(5);
