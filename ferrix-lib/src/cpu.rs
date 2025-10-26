@@ -33,7 +33,7 @@
 //! ```
 
 use anyhow::Result;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::fs::read_to_string;
 
 use crate::traits::{ToJson, ToPlainText, print_opt_val};
@@ -156,7 +156,8 @@ impl ToJson for CPU {}
 #[cfg(target_arch = "x86_64")]
 impl ToPlainText for CPU {
     fn to_plain(&self) -> String {
-        let mut s = match self.processor { Some(proc) => format!("\nProcessor #{proc}\n"),
+        let mut s = match self.processor {
+            Some(proc) => format!("\nProcessor #{proc}\n"),
             None => format!("\nProcessor #unknown\n"),
         };
         s += "\tArchitecture: x86_64\n";
@@ -290,4 +291,199 @@ fn get_bool(s: &str) -> bool {
         "yes" | "ok" => true,
         _ => false,
     }
+}
+
+/// Processor usage statistics
+#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+pub struct Stat {
+    pub cpu: Option<CpuUsage>,
+    pub cpus: Vec<CpuUsage>,
+    pub interrupts: Option<u64>,
+    pub context_switches: Option<u64>,
+    pub boot_time: Option<u64>,
+    pub processes_created: Option<u64>,
+    pub processes_running: Option<u64>,
+    pub processes_blocked: Option<u64>,
+    pub softirq: Option<SoftIrq>,
+}
+
+impl Stat {
+    pub fn new() -> Result<Self> {
+        parse_proc_stat()
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+pub struct CpuUsage {
+    pub user: Option<u64>,
+    pub nice: Option<u64>,
+    pub system: Option<u64>,
+    pub idle: Option<u64>,
+    pub iowait: Option<u64>,
+    pub irq: Option<u64>,
+    pub softirq: Option<u64>,
+    pub steal: Option<u64>,
+    pub guest: Option<u64>,
+    pub guest_nice: Option<u64>,
+}
+
+impl CpuUsage {
+    pub fn total_time(&self) -> u64 {
+        self.user.unwrap_or(0)
+            + self.nice.unwrap_or(0)
+            + self.system.unwrap_or(0)
+            + self.idle.unwrap_or(0)
+            + self.iowait.unwrap_or(0)
+            + self.irq.unwrap_or(0)
+            + self.softirq.unwrap_or(0)
+            + self.steal.unwrap_or(0)
+    }
+
+    pub fn active_time(&self) -> u64 {
+        self.total_time() - self.idle.unwrap_or(0) - self.iowait.unwrap_or(0)
+    }
+
+    pub fn usage_percentage<'a>(&'a self, prev: Option<&'a Self>) -> f64 {
+        if prev.is_none() {
+            return 0.0;
+        }
+        let prev = prev.unwrap();
+
+        let total_diff = self.total_time() - prev.total_time();
+        let active_diff = self.active_time() - prev.active_time();
+
+        if total_diff > 0 {
+            (active_diff as f64 / total_diff as f64) * 100.0
+        } else {
+            0.0
+        }
+    }
+}
+
+impl From<&str> for CpuUsage {
+    fn from(value: &str) -> Self {
+        let parts = value.split_whitespace().collect::<Vec<&str>>();
+        if parts.is_empty() || parts.len() >= 11 {
+            return Self::default();
+        }
+
+        Self {
+            user: parts[1].parse().ok(),
+            nice: parts[2].parse().ok(),
+            system: parts[3].parse().ok(),
+            idle: parts[4].parse().ok(),
+            iowait: parts[5].parse().ok(),
+            irq: parts[6].parse().ok(),
+            softirq: parts[7].parse().ok(),
+            steal: parts[8].parse().ok(),
+            guest: parts[9].parse().ok(),
+            guest_nice: parts[10].parse().ok(),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+pub struct SoftIrq {
+    pub total: Option<u64>,
+    pub hi: Option<u64>,
+    pub timer: Option<u64>,
+    pub net_tx: Option<u64>,
+    pub net_rx: Option<u64>,
+    pub block: Option<u64>,
+    pub irq_poll: Option<u64>,
+    pub tasklet: Option<u64>,
+    pub shed: Option<u64>,
+    pub hrtimer: Option<u64>,
+    pub rcu: Option<u64>,
+}
+
+impl From<&str> for SoftIrq {
+    fn from(value: &str) -> Self {
+        let parts = value.split_whitespace().collect::<Vec<&str>>();
+        if parts.is_empty() || parts.len() >= 12 {
+            return Self::default();
+        }
+
+        Self {
+            total: parts[1].parse().ok(),
+            hi: parts[2].parse().ok(),
+            timer: parts[3].parse().ok(),
+            net_tx: parts[4].parse().ok(),
+            net_rx: parts[5].parse().ok(),
+            block: parts[6].parse().ok(),
+            irq_poll: parts[7].parse().ok(),
+            tasklet: parts[8].parse().ok(),
+            shed: parts[9].parse().ok(),
+            hrtimer: parts[10].parse().ok(),
+            rcu: parts[11].parse().ok(),
+        }
+    }
+}
+
+fn parse_proc_stat() -> Result<Stat> {
+    let content = read_to_string("/proc/stat")?;
+    let mut stat = Stat::default();
+
+    for line in content.lines() {
+        let parts = line.split_whitespace().collect::<Vec<&str>>();
+        if parts.is_empty() {
+            continue;
+        }
+        match parts[0] {
+            "cpu" => {
+                if parts.len() >= 11 {
+                    stat.cpu = Some(CpuUsage::from(line));
+                }
+            }
+            key if key.starts_with("cpu")
+                && key[3..]
+                    .chars()
+                    .next()
+                    .map(|c| c.is_ascii_digit())
+                    .unwrap_or(false) =>
+            {
+                if parts.len() >= 11 {
+                    stat.cpus.push(CpuUsage::from(line));
+                }
+            }
+            "intr" => {
+                if parts.len() >= 2 {
+                    stat.interrupts = parts[1].parse().ok();
+                }
+            }
+            "ctxt" => {
+                if parts.len() >= 2 {
+                    stat.context_switches = parts[1].parse().ok();
+                }
+            }
+            "btime" => {
+                if parts.len() >= 2 {
+                    stat.boot_time = parts[1].parse().ok();
+                }
+            }
+            "processes" => {
+                if parts.len() >= 2 {
+                    stat.processes_created = parts[1].parse().ok();
+                }
+            }
+            "procs_running" => {
+                if parts.len() >= 2 {
+                    stat.processes_running = parts[1].parse().ok();
+                }
+            }
+            "procs_blocked" => {
+                if parts.len() >= 2 {
+                    stat.processes_blocked = parts[1].parse().ok();
+                }
+            }
+            "softirq" => {
+                if parts.len() >= 12 {
+                    stat.softirq = Some(SoftIrq::from(line));
+                }
+            }
+            _ => {}
+        }
+    }
+
+    todo!()
 }
