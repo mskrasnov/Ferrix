@@ -313,7 +313,7 @@ impl Stat {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, Default)]
 pub struct CpuUsage {
     pub user: Option<u64>,
     pub nice: Option<u64>,
@@ -343,7 +343,7 @@ impl CpuUsage {
         self.total_time() - self.idle.unwrap_or(0) - self.iowait.unwrap_or(0)
     }
 
-    pub fn usage_percentage<'a>(&'a self, prev: Option<&'a Self>) -> f64 {
+    pub fn usage_percentage(&self, prev: Option<Self>) -> f32 {
         if prev.is_none() {
             return 0.0;
         }
@@ -353,7 +353,7 @@ impl CpuUsage {
         let active_diff = self.active_time() - prev.active_time();
 
         if total_diff > 0 {
-            (active_diff as f64 / total_diff as f64) * 100.0
+            (active_diff as f32 / total_diff as f32) * 100.0
         } else {
             0.0
         }
@@ -363,7 +363,7 @@ impl CpuUsage {
 impl From<&str> for CpuUsage {
     fn from(value: &str) -> Self {
         let parts = value.split_whitespace().collect::<Vec<&str>>();
-        if parts.is_empty() || parts.len() >= 11 {
+        if parts.is_empty() || parts.len() < 11 {
             return Self::default();
         }
 
@@ -382,7 +382,7 @@ impl From<&str> for CpuUsage {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, Default)]
 pub struct SoftIrq {
     pub total: Option<u64>,
     pub hi: Option<u64>,
@@ -400,7 +400,7 @@ pub struct SoftIrq {
 impl From<&str> for SoftIrq {
     fn from(value: &str) -> Self {
         let parts = value.split_whitespace().collect::<Vec<&str>>();
-        if parts.is_empty() || parts.len() >= 12 {
+        if parts.is_empty() || parts.len() < 12 {
             return Self::default();
         }
 
@@ -484,6 +484,5 @@ fn parse_proc_stat() -> Result<Stat> {
             _ => {}
         }
     }
-
-    todo!()
+    Ok(stat)
 }
