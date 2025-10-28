@@ -32,7 +32,7 @@ use iced::{
 };
 use std::{fmt::Display, fs, path::Path, time::Duration};
 
-use crate::dmi::get_dmi_data;
+use crate::{dmi::get_dmi_data, utils::get_home};
 
 const SETTINGS_PATH: &str = "./ferrix.conf";
 
@@ -114,7 +114,8 @@ impl Default for Ferrix {
             groups_list: DataLoadingState::Loading,
             sysd_services_list: DataLoadingState::Loading,
             system: DataLoadingState::Loading,
-            settings: FXSettings::read(SETTINGS_PATH).unwrap_or_default(),
+            settings: FXSettings::read(get_home().join(".config").join(SETTINGS_PATH))
+                .unwrap_or_default(),
             is_polkit: false,
         }
     }
@@ -401,7 +402,9 @@ impl Ferrix {
             }
             Message::SaveSettingsButtonPressed => {
                 // TODO: add error handling
-                let _ = self.settings.write(SETTINGS_PATH);
+                let _ = self
+                    .settings
+                    .write(get_home().join(".config").join(SETTINGS_PATH));
                 Task::none()
             }
             _ => Task::none(),
