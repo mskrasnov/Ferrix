@@ -23,7 +23,7 @@ pub fn users_page<'a>(users: &'a DataLoadingState<Users>) -> container::Containe
                     InfoRow::new("Оболочка входа", Some(usr.login_shell.clone())),
                 ];
                 let usr_view = column![
-                    text(format!("Пользователь #{}", usr.gid)).style(text::warning),
+                    text(format!("Пользователь #{}", usr.uid)).style(text::warning),
                     container(kv_info_table(rows)).style(container::rounded_box),
                 ]
                 .spacing(5);
