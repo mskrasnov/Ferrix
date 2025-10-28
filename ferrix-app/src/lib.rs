@@ -426,10 +426,12 @@ impl Ferrix {
         if self.osrel_data.is_none()
             && (self.current_page == Page::Distro || self.current_page == Page::Dashboard)
         {
-            scripts.push(time::every(Duration::from_millis(50)).map(|_| Message::GetOsReleaseData));
+            scripts.push(time::every(Duration::from_millis(10)).map(|_| Message::GetOsReleaseData));
         }
 
-        if self.current_page == Page::Screen {
+        if self.drm_data.is_none() && self.current_page == Page::Screen {
+            scripts.push(time::every(Duration::from_millis(10)).map(|_| Message::GetDRMData));
+        } else if self.drm_data.is_some() && self.current_page == Page::Screen {
             scripts.push(
                 time::every(Duration::from_secs(self.settings.update_period as u64))
                     .map(|_| Message::GetDRMData),
@@ -437,7 +439,7 @@ impl Ferrix {
         }
 
         if self.info_kernel.is_none() && self.current_page == Page::Kernel {
-            scripts.push(time::every(Duration::from_millis(50)).map(|_| Message::GetKernelData));
+            scripts.push(time::every(Duration::from_millis(10)).map(|_| Message::GetKernelData));
         }
 
         if self.users_list.is_none() && self.current_page == Page::Users {
@@ -445,7 +447,7 @@ impl Ferrix {
         }
 
         if self.system.is_none() {
-            scripts.push(time::every(Duration::from_millis(50)).map(|_| Message::GetSystemData));
+            scripts.push(time::every(Duration::from_millis(10)).map(|_| Message::GetSystemData));
         }
 
         if self.groups_list.is_none() && self.current_page == Page::Groups {
