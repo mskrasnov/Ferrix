@@ -43,7 +43,7 @@ use ferrix_lib::{
     drm::Video,
     init::{Connection, SystemdServices},
     ram::RAM,
-    sys::{Groups, LoadAVG, OsRelease, Uptime, Users, get_hostname},
+    sys::{get_current_desktop, get_env_vars, get_hostname, get_lang, Groups, LoadAVG, OsRelease, Uptime, Users},
 };
 use iced::{
     Alignment::Center,
@@ -146,6 +146,9 @@ pub struct System {
     pub hostname: Option<String>,
     pub loadavg: Option<LoadAVG>,
     pub uptime: Option<Uptime>,
+    pub desktop: Option<String>,
+    pub language: Option<String>,
+    pub env_vars: Vec<(String, String)>,
 }
 
 impl System {
@@ -154,6 +157,9 @@ impl System {
             hostname: get_hostname(),
             loadavg: Some(LoadAVG::new()?),
             uptime: Some(Uptime::new()?),
+            desktop: get_current_desktop(),
+            language: get_lang(),
+            env_vars: get_env_vars(),
         })
     }
 }

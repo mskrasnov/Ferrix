@@ -34,6 +34,7 @@ mod dashboard;
 mod distro;
 mod dmi;
 mod drm;
+mod env;
 mod groups;
 mod kernel;
 mod ram;
@@ -139,6 +140,7 @@ impl<'a> Page {
             Self::Users => users::users_page(&state.users_list).into(),
             Self::Groups => groups::groups_page(&state.groups_list).into(),
             Self::SystemManager => systemd::services_page(&state.sysd_services_list).into(),
+            Self::Environment => env::env_page(&state.system).into(),
             Self::Settings => settings::settings_page(&state).into(),
             Self::About => self.about_page().into(),
             _ => self.todo_page(),
