@@ -95,6 +95,8 @@ dash-mem = Память
 dash-sys = Система
 dash-host = Имя хоста
 dash-proc-info = {$name}, {$threads} потоков
+dash-mem-used = Использ.: {$used}
+dash-mem-total = Всего: {$total}
 dash-proc-usage = Нагрузка на ЦП
 dash-proc-usg_label = Общая: {$usage}%
 

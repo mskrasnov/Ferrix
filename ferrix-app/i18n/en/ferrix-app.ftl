@@ -44,8 +44,7 @@ about-feedback-hdr = Feedback:
 about-source-hdr = Source code:
 about-blog = Blog:
 about-author = (C) 2025 Michail Krasnov
-# about-donate = You can send me a donation to card: 2202 2062 5233 5406 (Sber; Russia). Thank You!
-about-donate = ""
+about-donate = Can you support me?
 about-donate-lbl = Donate me on Boosty!
 about-support = Support me!
 
@@ -96,6 +95,8 @@ dash-mem = Memory
 dash-sys = System
 dash-host = Hostname
 dash-proc-info = {$name}, {$threads} threads
+dash-mem-used = Used: {$used}
+dash-mem-total = Total: {$total}
 dash-proc-usage = CPU Usage
 dash-proc-usg_label = Total usage: {$usage}%
 

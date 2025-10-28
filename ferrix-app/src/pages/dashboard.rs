@@ -72,10 +72,10 @@ pub fn dashboard<'a>(
     let total_ram_bytes = total_ram.get_bytes2().unwrap_or(0) as f32;
     let avail_ram_bytes = avail_ram.get_bytes2().unwrap_or(0) as f32;
 
-    let free_ram_bytes = total_ram_bytes - avail_ram_bytes;
-    let free_ram = Size::B(free_ram_bytes as usize)
+    let used_ram_bytes = total_ram_bytes - avail_ram_bytes;
+    let used_ram = Size::B(used_ram_bytes as usize)
         .round(2)
-        .unwrap_or(Size::B(free_ram_bytes as usize));
+        .unwrap_or(Size::B(used_ram_bytes as usize));
 
     let os_name = {
         match osr {
@@ -124,8 +124,9 @@ pub fn dashboard<'a>(
                 widget_card(
                     fl!("dash-mem"),
                     column![
-                        text(format!("{}/{}", free_ram, total_ram)),
-                        progress_bar(0.0..=total_ram_bytes, free_ram_bytes),
+                        text(fl!("dash-mem-used", used = used_ram.to_string())),
+                        text(fl!("dash-mem-total", total = total_ram.to_string())),
+                        progress_bar(0.0..=total_ram_bytes, used_ram_bytes),
                     ]
                     .spacing(5),
                     Message::SelectPage(Page::Memory),
