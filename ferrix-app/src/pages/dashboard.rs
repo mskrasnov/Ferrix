@@ -25,6 +25,7 @@ use ferrix_lib::{
     cpu::{Processors, Stat},
     ram::RAM,
     sys::OsRelease,
+    utils::Size,
 };
 
 use iced::{
@@ -60,16 +61,22 @@ pub fn dashboard<'a>(
     let (total_ram, avail_ram) = {
         match ram {
             Some(ram) => (
-                ram.total.round(2).unwrap_or(ferrix_lib::utils::Size::None),
+                ram.total.round(2).unwrap_or(Size::None),
                 ram.available
                     .round(2)
                     .unwrap_or(ferrix_lib::utils::Size::None),
             ),
-            None => (ferrix_lib::utils::Size::None, ferrix_lib::utils::Size::None),
+            None => (Size::None, Size::None),
         }
     };
     let total_ram_bytes = total_ram.get_bytes2().unwrap_or(0) as f32;
     let avail_ram_bytes = avail_ram.get_bytes2().unwrap_or(0) as f32;
+
+    let free_ram_bytes = total_ram_bytes - avail_ram_bytes;
+    let free_ram = Size::B(free_ram_bytes as usize)
+        .round(2)
+        .unwrap_or(Size::B(free_ram_bytes as usize));
+
     let os_name = {
         match osr {
             Some(osr) => match &osr.pretty_name {
@@ -117,8 +124,8 @@ pub fn dashboard<'a>(
                 widget_card(
                     fl!("dash-mem"),
                     column![
-                        text(format!("{}/{}", avail_ram, total_ram)),
-                        progress_bar(0.0..=total_ram_bytes, total_ram_bytes - avail_ram_bytes),
+                        text(format!("{}/{}", free_ram, total_ram)),
+                        progress_bar(0.0..=total_ram_bytes, free_ram_bytes),
                     ]
                     .spacing(5),
                     Message::SelectPage(Page::Memory),
