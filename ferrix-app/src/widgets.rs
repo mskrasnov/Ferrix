@@ -15,7 +15,10 @@ use crate::{
     pages::Page,
 };
 
-pub fn icon_tooltip<'a>(icon_name: &'a str, tooltip: &'a str) -> container::Container<'a, Message> {
+pub fn icon_tooltip<'a, T>(icon_name: &'a str, tooltip: T) -> container::Container<'a, Message>
+where
+    T: IntoFragment<'a>,
+{
     let svg_bytes = match icon_name {
         "about" => ABOUT_ICON,
         "error" => ERROR_ICON,
