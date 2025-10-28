@@ -86,6 +86,13 @@ pub fn dashboard<'a>(
         },
         None => "Unknown hostname",
     };
+    let de = match system {
+        Some(system) => match &system.desktop {
+            Some(de) => de as &str,
+            None => "Unknown desktop",
+        },
+        None => "Unknown desktop",
+    };
     let (prev_stat, cur_stat) = stat;
     let cpu_usage = if prev_stat.is_none() || cur_stat.is_none() {
         0.0
@@ -124,18 +131,22 @@ pub fn dashboard<'a>(
                 ),
             ]
             .spacing(5),
-            widget_card(
-                fl!("dash-proc-usage"),
-                column![
-                    text(fl!(
-                        "dash-proc-usg_label",
-                        usage = format!("{cpu_usage:.2}")
-                    )),
-                    progress_bar(0.0..=100., cpu_usage),
-                ]
-                .spacing(5),
-                Message::SelectPage(Page::Processors)
-            ),
+            row![
+                widget_card(
+                    fl!("dash-proc-usage"),
+                    column![
+                        text(fl!(
+                            "dash-proc-usg_label",
+                            usage = format!("{cpu_usage:.2}")
+                        )),
+                        progress_bar(0.0..=100., cpu_usage),
+                    ]
+                    .spacing(5),
+                    Message::SelectPage(Page::Processors)
+                ),
+                card(fl!("misc-de"), de, Message::SelectPage(Page::SystemMisc)),
+            ]
+            .spacing(5),
         ]
         .spacing(5),
     )

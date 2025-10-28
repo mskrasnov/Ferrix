@@ -218,6 +218,8 @@ misc-hostname = Имя хоста
 misc-loadavg = Средняя нагрузка
 misc-uptime = Время работы
 misc-uptime-val = работы: {$up}, простоя: {$down}
+misc-de = Рабочее окружение
+misc-lang = Язык
 
 # SYSTEMD PAGE
 sysd-hdr-name = Имя

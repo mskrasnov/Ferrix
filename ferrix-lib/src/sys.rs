@@ -24,18 +24,12 @@ use crate::utils::read_to_string;
 use crate::{traits::*, utils::Size};
 use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
-use std::env::vars;
+use std::env::{var, vars};
 
 /// A structure containing all collected information about
 /// installed system
 #[derive(Debug, Serialize)]
 pub struct Sys {
-    /// Information about kernel
-    pub kernel: Kernel,
-
-    /// Information about installed distro
-    pub os_release: OsRelease,
-
     /// Machine ID
     pub machine_id: Option<String>,
 
@@ -51,12 +45,6 @@ pub struct Sys {
     /// System load (average)
     pub loadavg: LoadAVG,
 
-    /// Information about users
-    pub users: Users,
-
-    /// List of user groups
-    pub groups: Groups,
-
     /// List of installed shells
     pub shells: Shells,
 
@@ -69,15 +57,11 @@ pub struct Sys {
 impl Sys {
     pub fn new() -> Result<Self> {
         Ok(Self {
-            kernel: Kernel::new()?,
-            os_release: OsRelease::new()?,
             machine_id: read_to_string("/etc/machine-id").ok(),
             timezone: read_to_string("/etc/timezone").ok(),
-            env_vars: vars().collect(),
+            env_vars: get_env_vars(),
             uptime: Uptime::new()?,
             loadavg: LoadAVG::new()?,
-            users: Users::new()?,
-            groups: Groups::new()?,
             shells: get_shells()?,
             hostname: get_hostname(),
             // locale: todo!(),
@@ -634,4 +618,20 @@ impl TryFrom<&str> for Module {
             _ => Err(anyhow!("Unknown field: \"{value}\"")),
         }
     }
+}
+
+pub fn get_current_desktop() -> Option<String> {
+    var("XDG_CURRENT_DESKTOP").ok()
+}
+
+pub fn get_lang() -> Option<String> {
+    let lang = var("LANG").ok();
+    let lc_all = var("LC_ALL").ok();
+    if lang.is_some() { lang } else { lc_all }
+}
+
+pub fn get_env_vars() -> Vec<(String, String)> {
+    let mut vars = vars().collect::<Vec<(String, String)>>();
+    vars.sort_by_key(|v| v.0.clone());
+    vars
 }

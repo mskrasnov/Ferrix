@@ -218,6 +218,8 @@ misc-hostname = Host name
 misc-loadavg = Load average
 misc-uptime = Uptime
 misc-uptime-val = uptime: {$up}, downtime: {$down}
+misc-de = Desktop
+misc-lang = Language
 
 # SYSTEMD PAGE
 sysd-hdr-name = Name
