@@ -42,8 +42,11 @@ about-flib = Версия ferrix-lib
 about-author-hdr = Автор:
 about-feedback-hdr = Фидбек:
 about-source-hdr = Исходный код:
+about-blog = Блог:
 about-author = (C) 2025 Михаил Краснов
 about-donate = Вы можете отправить мне донат на карту: 2202 2062 5233 5406 (Сбер; Россия). Спасибо!
+about-donate-lbl = Закиньте донат на мой Boosty!
+about-support = Поддержать меня!
 
 # TABLE HEADERS
 hdr-param = Параметр

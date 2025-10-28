@@ -2,6 +2,7 @@
 
 // use super::Message;
 use iced::widget::svg::Handle;
+use iced::widget::text::IntoFragment;
 use iced::widget::tooltip;
 use iced::{
     Color,
@@ -99,9 +100,12 @@ pub fn sidebar_button<'a>(page: Page, cur_page: Page) -> button::Button<'a, Mess
         .on_press(Message::SelectPage(page))
 }
 
-pub fn link_button<'a>(placeholder: &'a str, link: &'a str) -> tooltip::Tooltip<'a, Message> {
+pub fn link_button<'a, P>(placeholder: P, link: &'a str) -> tooltip::Tooltip<'a, Message>
+where
+    P: IntoFragment<'a>,
+{
     tooltip(
-        button(placeholder)
+        button(text(placeholder))
             .style(super::styles::link_button)
             .padding(0)
             .on_press(Message::LinkButtonPressed(link.to_string())),
