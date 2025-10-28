@@ -50,6 +50,8 @@ pub fn system_page<'a>(
                         None => format!("???"),
                     }),
                 ),
+                InfoRow::new(fl!("misc-de"), sys.desktop.clone()),
+                InfoRow::new(fl!("misc-lang"), sys.language.clone()),
             ];
 
             let sys_table = container(kv_info_table(rows)).style(container::rounded_box);
