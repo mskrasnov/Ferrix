@@ -13,6 +13,7 @@ mod cpu;
 mod dashboard;
 mod distro;
 mod dmi;
+mod drm;
 mod groups;
 mod kernel;
 mod ram;
@@ -111,6 +112,7 @@ impl<'a> Page {
             Self::Processors => cpu::proc_page(&state.proc_data).into(),
             Self::Memory => ram::ram_page(&state.ram_data).into(),
             Self::DMI => dmi::chassis_page(&state.dmi_data).into(),
+            Self::Screen => drm::drm_page(&state.drm_data).into(),
             Self::Distro => distro::distro_page(&state.osrel_data).into(),
             Self::Kernel => kernel::kernel_page(&state.info_kernel).into(),
             Self::SystemMisc => system::system_page(&state.system).into(),

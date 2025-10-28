@@ -20,7 +20,7 @@ use widgets::{icon_button, sidebar_button};
 use anyhow::Result;
 use ferrix_lib::{
     cpu::{Processors, Stat},
-    dmi::Chassis,
+    drm::Video,
     init::{Connection, SystemdServices},
     ram::RAM,
     sys::{Groups, LoadAVG, OsRelease, Uptime, Users, get_hostname},
@@ -49,6 +49,9 @@ pub enum Message {
 
     GetDMIData,
     DMIDataReceived(DataLoadingState<DMIResult>),
+
+    GetDRMData,
+    DRMDataReceived(DataLoadingState<Video>),
 
     GetOsReleaseData,
     OsReleaseDataReceived(DataLoadingState<OsRelease>),
@@ -83,8 +86,8 @@ pub struct Ferrix {
     pub prev_proc_stat: DataLoadingState<Stat>,
     pub curr_proc_stat: DataLoadingState<Stat>,
     pub ram_data: DataLoadingState<RAM>,
-    pub dmi_chassis_data: DataLoadingState<Chassis>,
     pub dmi_data: DataLoadingState<DMIResult>,
+    pub drm_data: DataLoadingState<Video>,
     pub osrel_data: DataLoadingState<OsRelease>,
     pub info_kernel: DataLoadingState<KernelData>,
     pub users_list: DataLoadingState<Users>,
@@ -103,8 +106,8 @@ impl Default for Ferrix {
             prev_proc_stat: DataLoadingState::Loading,
             curr_proc_stat: DataLoadingState::Loading,
             ram_data: DataLoadingState::Loading,
-            dmi_chassis_data: DataLoadingState::Loading,
             dmi_data: DataLoadingState::Loading,
+            drm_data: DataLoadingState::Loading,
             osrel_data: DataLoadingState::Loading,
             info_kernel: DataLoadingState::Loading,
             users_list: DataLoadingState::Loading,
@@ -252,6 +255,20 @@ impl Ferrix {
                     Task::none()
                 }
             }
+            Message::DRMDataReceived(state) => {
+                self.drm_data = state;
+                Task::none()
+            }
+            Message::GetDRMData => Task::perform(
+                async move {
+                    let drm = Video::new();
+                    match drm {
+                        Ok(drm) => DataLoadingState::Loaded(drm),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
+                    }
+                },
+                |val| Message::DRMDataReceived(val),
+            ),
             Message::RAMDataReceived(state) => {
                 self.ram_data = state;
                 Task::none()
@@ -410,6 +427,13 @@ impl Ferrix {
             && (self.current_page == Page::Distro || self.current_page == Page::Dashboard)
         {
             scripts.push(time::every(Duration::from_millis(50)).map(|_| Message::GetOsReleaseData));
+        }
+
+        if self.current_page == Page::Screen {
+            scripts.push(
+                time::every(Duration::from_secs(self.settings.update_period as u64))
+                    .map(|_| Message::GetDRMData),
+            );
         }
 
         if self.info_kernel.is_none() && self.current_page == Page::Kernel {
