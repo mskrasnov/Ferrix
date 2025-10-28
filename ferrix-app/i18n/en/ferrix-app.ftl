@@ -115,6 +115,28 @@ distro-logo = Logo
 distro-def-host = Default hostname
 distro-sysext-lvl = System extensions level
 
+# DRM PAGE
+drm-title = Screen #{$idx}
+drm-summary = Summary
+drm-vparams = Video params
+drm-edid-not-found = EDID data for screen #{$idx} not found!
+drm-not-enabled = Screen #{$idx} isn't enabled!
+drm-modes = Support modes
+drm-mode = Mode
+drm-manufacturer = Manufacturer
+drm-pcode = Product code
+drm-snum = Serial number
+drm-date = Week/Year
+drm-edid-ver = EDID Version
+drm-edid-rev = EDID Revision
+drm-size = Screen size, cm
+drm-gamma = Display gamma (default)
+drm-signal = Signal type
+drm-digital = Digital
+drm-analog = Analogue
+drm-bit-depth = Bit depth
+drm-interface = Video interface
+
 # GROUPS PAGE
 groups-group = Group #{$group_no}
 groups-name = Group name
@@ -175,3 +197,4 @@ ram-nfs-unstable = NFS Unstable
 ram-bounce = Bounce buffers
 ram-writeback-tmp = Temporary buffers (for FUSE)
 ram-commit-limit = Commit limit (max.)
+

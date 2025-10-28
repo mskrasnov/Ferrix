@@ -115,6 +115,28 @@ distro-logo = Логотип
 distro-def-host = Стандартное имя хоста
 distro-sysext-lvl = Уровень поддержки расширений
 
+# DRM PAGE
+drm-title = Экран №{$idx}
+drm-summary = Общая информация
+drm-vparams = Параметры видео
+drm-edid-not-found = Данные EDID для экрана №{$idx} не существуют!
+drm-not-enabled = Экран №{$idx} выключен!
+drm-modes = Поддерживаемые разрешения
+drm-mode = Разрешение
+drm-manufacturer = Производитель
+drm-pcode = Код продукта
+drm-snum = Серийный номер
+drm-date = Неделя/Год
+drm-edid-ver = Версия EDID
+drm-edid-rev = Ревизия EDID
+drm-size = Размер экрана, см
+drm-gamma = Гамма дисплея (стандартная)
+drm-signal = Тип сигнала
+drm-digital = Цифровой
+drm-analog = Аналоговый
+drm-bit-depth = Глубина цвета
+drm-interface = Видеоинтерфейс
+
 # GROUPS PAGE
 groups-group = Группа №{$group_no}
 groups-name = Имя группы
