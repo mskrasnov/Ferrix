@@ -75,14 +75,15 @@
 
 use crate::traits::ToJson;
 use anyhow::{Result, anyhow};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::{
+    fmt::Display,
     fs::{read, read_dir, read_to_string},
     path::Path,
 };
 
 /// Information about video devices
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Video {
     pub devices: Vec<DRM>,
 }
@@ -121,7 +122,7 @@ impl Video {
 impl ToJson for Video {}
 
 /// Information about selected display
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DRM {
     /// Is enabled
     pub enabled: bool,
@@ -173,7 +174,7 @@ impl DRM {
 /// Information from `edid` file (EDID v1.4 only supported yet)
 ///
 /// Read [Wikipedia](https://en.wikipedia.org/wiki/Extended_Display_Identification_Data) for details.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EDID {
     //  NAME          TYPE       BYTES
     /// Manufacturer ID. This is a legacy Plug and Play ID assigned
@@ -264,7 +265,7 @@ impl EDID {
 }
 
 /// Video input parameters bitmap
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum VideoInputParams {
     Digital(VideoInputParamsDigital),
     Analog(VideoInputParamsAnalog),
@@ -285,7 +286,7 @@ impl VideoInputParams {
 }
 
 /// Digital input
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct VideoInputParamsDigital {
     /// Bit depth
     pub bit_depth: BitDepth,
@@ -308,7 +309,7 @@ impl VideoInputParamsDigital {
 }
 
 /// Bit depth
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum BitDepth {
     Undefined,
 
@@ -353,8 +354,28 @@ impl From<u8> for BitDepth {
     }
 }
 
+impl Display for BitDepth {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Undefined => "Undefined".to_string(),
+                Self::B6 => "6 bits".to_string(),
+                Self::B8 => "8 bits".to_string(),
+                Self::B10 => "10 bits".to_string(),
+                Self::B12 => "12 bits".to_string(),
+                Self::B14 => "14 bits".to_string(),
+                Self::B16 => "16 bits".to_string(),
+                Self::Reserved => "Reserved value".to_string(),
+                Self::Unknown(val) => format!("Unknown ({val})"),
+            }
+        )
+    }
+}
+
 /// Video interface (EDID data may be incorrect)
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum VideoInterface {
     Undefined,
     DVI,
@@ -379,7 +400,25 @@ impl From<u8> for VideoInterface {
     }
 }
 
-#[derive(Debug, Serialize)]
+impl Display for VideoInterface {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Undefined => "Undefined".to_string(),
+                Self::DVI => "DVI".to_string(),
+                Self::HDMIa => "HDMI-a".to_string(),
+                Self::HDMIb => "HDMI-b".to_string(),
+                Self::MDDI => "MDDI".to_string(),
+                Self::DisplayPort => "Display Port".to_string(),
+                Self::Unknown(val) => format!("Unknown (code: {val})"),
+            }
+        )
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct VideoInputParamsAnalog {
     /// Video white and sync levels, relative to blank:
     ///
