@@ -1,7 +1,7 @@
 //! Users list page
 
 use crate::{
-    Message,
+    Message, fl,
     load_state::DataLoadingState,
     pages::{InfoRow, fmt_val, kv_info_table},
 };
@@ -15,15 +15,15 @@ pub fn users_page<'a>(users: &'a DataLoadingState<Users>) -> container::Containe
             let mut users_list = column![].spacing(5);
             for usr in &users.users {
                 let rows = vec![
-                    InfoRow::new("Имя пользователя", Some(usr.name.clone())),
-                    InfoRow::new("ID пользователя", fmt_val(Some(usr.uid))),
-                    InfoRow::new("ID группы", fmt_val(Some(usr.gid))),
-                    InfoRow::new("GECOS", usr.gecos.clone()),
-                    InfoRow::new("Домашний каталог", Some(usr.home_dir.clone())),
-                    InfoRow::new("Оболочка входа", Some(usr.login_shell.clone())),
+                    InfoRow::new(fl!("users-name"), Some(usr.name.clone())),
+                    InfoRow::new(fl!("users-id"), fmt_val(Some(usr.uid))),
+                    InfoRow::new(fl!("users-gid"), fmt_val(Some(usr.gid))),
+                    InfoRow::new(fl!("users-gecos"), usr.gecos.clone()),
+                    InfoRow::new(fl!("users-home"), Some(usr.home_dir.clone())),
+                    InfoRow::new(fl!("users-shell"), Some(usr.login_shell.clone())),
                 ];
                 let usr_view = column![
-                    text(format!("Пользователь #{}", usr.uid)).style(text::warning),
+                    text(fl!("users-hdr", id = usr.uid)).style(text::warning),
                     container(kv_info_table(rows)).style(container::rounded_box),
                 ]
                 .spacing(5);

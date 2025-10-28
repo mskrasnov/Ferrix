@@ -228,3 +228,12 @@ sysd-hdr-work = Work
 sysd-warning = Warning:
 sysd-warn-txt = Increase the window size to display a number of lines more correctly!
 sysd-total = Total services: {$total}
+
+# USERS PAGE
+users-name = User name
+users-id = User ID
+users-gid = Group ID
+users-gecos = GECOS
+users-home = Home directory
+users-shell = Login shell
+users-hdr = User #{$id}

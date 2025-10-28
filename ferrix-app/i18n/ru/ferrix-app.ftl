@@ -228,3 +228,12 @@ sysd-hdr-work = Работает
 sysd-warning = Внимание:
 sysd-warn-txt = Увеличьте размер окна для более корректного отображения ряда строк!
 sysd-total = Всего сервисов: {$total}
+
+# USERS PAGE
+users-name = Имя пользователя
+users-id = ID пользователя
+users-gid = ID группы
+users-gecos = GECOS
+users-home = Домашний каталог
+users-shell = Оболочка входа
+users-hdr = Пользователь №{$id}
