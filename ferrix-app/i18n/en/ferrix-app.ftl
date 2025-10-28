@@ -213,8 +213,18 @@ settings-save = Save
 style-dark = Dark
 style-light = Light
 
-# SYSTEM MISH PAGE
+# SYSTEM MISC PAGE
 misc-hostname = Host name
 misc-loadavg = Load average
 misc-uptime = Uptime
 misc-uptime-val = uptime: {$up}, downtime: {$down}
+
+# SYSTEMD PAGE
+sysd-hdr-name = Name
+sysd-hdr-descr = Description
+sysd-hdr-load = Loaded
+sysd-hdr-actv = Active
+sysd-hdr-work = Work
+sysd-warning = Warning:
+sysd-warn-txt = Increase the window size to display a number of lines more correctly!
+sysd-total = Total services: {$total}
