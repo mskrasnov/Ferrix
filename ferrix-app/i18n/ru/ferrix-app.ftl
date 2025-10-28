@@ -31,6 +31,7 @@ page-dev = Разработка
 page-sysmisc = Разное
 page-settings = Настройки
 page-about = О программе
+page-export = Мастер экспорта
 page-todo = Не реализованный функционал
 
 page-todo-msg = Этот функционал пока не реализован

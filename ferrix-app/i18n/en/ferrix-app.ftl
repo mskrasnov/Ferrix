@@ -31,6 +31,7 @@ page-dev = Development
 page-sysmisc = Misc
 page-settings = Settings
 page-about = About
+page-export = Export Manager
 page-todo = Not implemented functionality
 
 page-todo-msg = This functionality has not been implemented yet

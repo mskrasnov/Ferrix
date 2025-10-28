@@ -83,6 +83,7 @@ pub enum Page {
      ************************************/
     Settings,
     About,
+    Export,
     Todo,
 }
 
@@ -113,6 +114,7 @@ impl<'a> Page {
             Self::SystemMisc => fl!("page-sysmisc"),
             Self::Settings => fl!("page-settings"),
             Self::About => fl!("page-about"),
+            Self::Export => fl!("page-export"),
             Self::Todo => fl!("page-todo"),
         }
     }

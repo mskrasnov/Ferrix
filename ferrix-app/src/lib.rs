@@ -43,7 +43,10 @@ use ferrix_lib::{
     drm::Video,
     init::{Connection, SystemdServices},
     ram::RAM,
-    sys::{get_current_desktop, get_env_vars, get_hostname, get_lang, Groups, LoadAVG, OsRelease, Uptime, Users},
+    sys::{
+        Groups, LoadAVG, OsRelease, Uptime, Users, get_current_desktop, get_env_vars, get_hostname,
+        get_lang,
+    },
 };
 use iced::{
     Alignment::Center,
@@ -521,7 +524,7 @@ impl Ferrix {
 
 fn sidebar<'a>(cur_page: Page) -> container::Container<'a, Message> {
     let buttons_bar = row![
-        icon_button("export", fl!("sidebar-export")).on_press(Message::Dummy),
+        icon_button("export", fl!("sidebar-export")).on_press(Message::SelectPage(Page::Export)),
         icon_button("settings", fl!("sidebar-settings"))
             .on_press(Message::SelectPage(Page::Settings)),
         icon_button("about", fl!("sidebar-about")).on_press(Message::SelectPage(Page::About)),
