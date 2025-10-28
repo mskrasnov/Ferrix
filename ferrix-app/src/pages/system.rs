@@ -1,7 +1,7 @@
 //! Summary information about system
 
 use crate::{
-    Message,
+    Message, fl,
     load_state::DataLoadingState,
     pages::{InfoRow, kv_info_table},
 };
@@ -15,16 +15,16 @@ pub fn system_page<'a>(
     match system {
         DataLoadingState::Loaded(sys) => {
             let rows = vec![
-                InfoRow::new("Имя хоста", sys.hostname.clone()),
+                InfoRow::new(fl!("misc-hostname"), sys.hostname.clone()),
                 InfoRow::new(
-                    "Средняя нагрузка",
+                    fl!("misc-loadavg"),
                     Some(match &sys.loadavg {
                         Some(loadavg) => string_loadavg(loadavg),
                         None => format!("???"),
                     }),
                 ),
                 InfoRow::new(
-                    "Время работы",
+                    fl!("misc-uptime"),
                     Some(match &sys.uptime {
                         Some(uptime) => string_uptime(uptime),
                         None => format!("???"),
@@ -46,10 +46,10 @@ fn string_loadavg(lavg: &LoadAVG) -> String {
 }
 
 fn string_uptime(uptime: &Uptime) -> String {
-    format!(
-        "работы: {}, простоя: {}",
-        string_time(uptime.0),
-        string_time(uptime.1),
+    fl!(
+        "misc-uptime-val",
+        up = string_time(uptime.0),
+        down = string_time(uptime.1)
     )
 }
 

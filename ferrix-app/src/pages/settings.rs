@@ -1,6 +1,6 @@
 //! Program settings page
 
-use crate::{Ferrix, Message, widgets::icon_tooltip};
+use crate::{Ferrix, Message, fl, widgets::icon_tooltip};
 use iced::{
     Alignment::Center,
     widget::{button, center, column, container, pick_list, row, rule, slider, text},
@@ -14,11 +14,10 @@ pub fn settings_page<'a>(state: &'a Ferrix) -> container::Container<'a, Message>
     );
     let update_changer = column![
         row![
-            text("Период обновления").size(16),
+            text(fl!("settings-update-period")).size(16),
             icon_tooltip(
                 "about",
-                "Укажите период обновления данных (в секундах).\n\
-                 Чем выше период обновления, тем ниже нагрузка на ПК."
+                fl!("settings-uperiod-tip"),
             ),
             rule::horizontal(1.)
         ]
@@ -43,17 +42,16 @@ pub fn settings_page<'a>(state: &'a Ferrix) -> container::Container<'a, Message>
     );
     let theme_changer = column![
         row![
-            text("Оформление программы").size(16),
+            text(fl!("settings-look")).size(16),
             icon_tooltip(
                 "about",
-                "Стиль оформления влияет на цвета интерфейса\n\
-                 и шрифта. Выберите то, что нравится вам."
+                fl!("settings-look-tip")
             ),
             rule::horizontal(1.)
         ]
         .spacing(5)
         .align_y(Center),
-        row![text("Выберите нужный стиль оформления:"), theme_selector]
+        row![text(fl!("settings-look-select")), theme_selector]
             .spacing(5)
             .align_y(Center),
     ]
@@ -63,7 +61,7 @@ pub fn settings_page<'a>(state: &'a Ferrix) -> container::Container<'a, Message>
         column![
             update_changer,
             theme_changer,
-            button("Save").on_press(Message::SaveSettingsButtonPressed),
+            button(text(fl!("settings-save"))).on_press(Message::SaveSettingsButtonPressed),
         ]
         .spacing(5),
     );

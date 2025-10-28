@@ -190,8 +190,8 @@ impl Display for Style {
             f,
             "{}",
             match self {
-                Self::Light => "Light",
-                Self::Dark => "Dark",
+                Self::Light => fl!("style-light"),
+                Self::Dark => fl!("style-dark"),
             }
         )
     }

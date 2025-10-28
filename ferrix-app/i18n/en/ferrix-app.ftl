@@ -201,3 +201,20 @@ ram-bounce = Bounce buffers
 ram-writeback-tmp = Temporary buffers (for FUSE)
 ram-commit-limit = Commit limit (max.)
 
+# SETTINGS PAGE
+settings-update-period = Update period
+settings-uperiod-tip = Specify the data update period (in secs). The higher the update period, the lower the load on the PC.
+settings-look = Look and feel
+settings-look-tip = The design style affects the interface and font colors. Choose what you like.
+settings-look-select = Select the needed style:
+settings-save = Save
+
+# STYLE LABELS
+style-dark = Dark
+style-light = Light
+
+# SYSTEM MISH PAGE
+misc-hostname = Host name
+misc-loadavg = Load average
+misc-uptime = Uptime
+misc-uptime-val = uptime: {$up}, downtime: {$down}

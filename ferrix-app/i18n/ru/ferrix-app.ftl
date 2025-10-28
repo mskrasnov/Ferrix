@@ -200,3 +200,21 @@ ram-nfs-unstable = Нестабильный NFS
 ram-bounce = Bounce буферы
 ram-writeback-tmp = Временные буферы (для FUSE)
 ram-commit-limit = Можно выделить (max.)
+
+# SETTINGS PAGE
+settings-update-period = Период обновления
+settings-uperiod-tip = Укажите период обновления данных (в сек.). Чем выше период обновления, тем ниже нагрузка на ПК.
+settings-look = Оформления программы
+settings-look-tip = Стиль оформления влияет на цвета интерфейса и шрифта. Выберите то, что нравится вам.
+settings-look-select = Выберите нужный стиль оформления:
+settings-save = Сохранить
+
+# STYLE LABELS
+style-dark = Тёмный
+style-light = Светлый
+
+# SYSTEM MISH PAGE
+misc-hostname = Имя хоста
+misc-loadavg = Средняя нагрузка
+misc-uptime = Время работы
+misc-uptime-val = работы: {$up}, простоя: {$down}
