@@ -26,15 +26,12 @@ For Linux, there are a bunch of different console programs for getting informati
 
 - **Dashboard** with key system metrics at a glance;
 - **Real time monitoring** of CPU, memory and others PC's components;
-- **System health scoring** based on multiple factors.
 
 ### Hardware Information
 
 - Processor details;
 - Memory specifications;
-- Storage information;
-- Battery status;
-- Data from DMI tables;
+- [TODO] Data from DMI tables;
 
 ### Software Information
 
@@ -46,7 +43,7 @@ For Linux, there are a bunch of different console programs for getting informati
 ### User Experience
 
 - **Modern, clean interface** based on [iced](https://iced.rs);
-- **Minimal dependencies** (`systemd`, `glibc`);
+- **Minimal dependencies** (`systemd`, `glibc`, `dbus`, `polkit`, `xdg`);
 - **Fast startup** and low memory footprint.
 
 ## Installation
@@ -72,8 +69,8 @@ sudo make install
 
 ## Technology stack
 
-- **OS:** Linux with `glibc`, `dbus` and `systemd`;
-- **Multilanguage:** coming soon...
+- **OS:** Linux with `glibc`, `dbus`, `polkit` and `systemd`;
+- **Multilanguage:** English and Russian translations;
 - **Programming lang.:** [Rust](https://rust-lang.org);
 - **GUI:** [iced](https://iced.rs);
 
@@ -87,7 +84,7 @@ Developing Ferrix takes time and passion. If you find it useful, please consider
 
 - **Star ⭐ this repo!** It helps others discover Ferrix;
 - **Write comments, questions, bug reports, or suggestions** for new functionality in [issues](https://github.com/mskrasnov/Ferrix/issues/new).
-- If you are from Russia, **send me a donation 💰** to the card: `2202 2062 5233 5406` (Sberbank) or support me in [Boosty](https://boosty.to/mskrasnov). This will help me keep my enthusiasm alive, as well as pay my mobile internet bills so that I can continue working on Ferrix.
+- If you are from Russia, **send me a donation 💰** in [Boosty](https://boosty.to/mskrasnov). This will help me keep my enthusiasm alive, as well as pay my mobile internet bills so that I can continue working on Ferrix.
 - **Spread the world!** Tell friends, post on forums.
     
 ## License

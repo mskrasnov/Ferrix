@@ -27,7 +27,10 @@ Ferrix is a Rust-crate and program for obtaining information about computer hard
 2. Convert collected data into:
     - [X] JSON;
     - [X] XML;
-<!-- 3. Reset GNOME Desktop settings; -->
+
+## Functions (`ferrix-app` crate)
+
+See [ferrix-app/README](ferrix-app/README.md).
 
 ## Build & Install
 
@@ -73,7 +76,7 @@ Developing Ferrix takes time and passion. If you find it useful, please consider
 
 - **Star ⭐ this repo!** It helps others discover Ferrix;
 - **Write comments, questions, bug reports, or suggestions** for new functionality in [issues](https://github.com/mskrasnov/Ferrix/issues/new).
-- If you are from Russia, **send me a donation 💰** to the card: `2202 2062 5233 5406` (Sberbank) or support me in [Boosty](https://boosty.to/mskrasnov). This will help me keep my enthusiasm alive, as well as pay my mobile internet bills so that I can continue working on Ferrix.
+- If you are from Russia, **send me a donation 💰** in [Boosty](https://boosty.to/mskrasnov). This will help me keep my enthusiasm alive, as well as pay my mobile internet bills so that I can continue working on Ferrix.
 - **Spread the world!** Tell friends, post on forums.
 
 ## License
