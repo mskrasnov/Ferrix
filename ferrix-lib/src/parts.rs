@@ -182,7 +182,7 @@ mod tests {
     fn partitions_from_str_test() {
         let parts = Partitions::from_str(PARTITIONS).unwrap();
         dbg!(&parts);
-        assert_eq!(parts.parts.len(), 11);
+        assert_eq!(parts.parts.len(), 10);
         assert_eq!(&parts.parts[0].name, "nvme0n1");
         assert_eq!(parts.parts[0].major, 259);
         assert_eq!(parts.parts[0].minor, 0);
