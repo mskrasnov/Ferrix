@@ -1,6 +1,6 @@
 <div align="center">
   <img src="data/icons/hicolor/scalable/apps/com.mskrasnov.Ferrix.svg" width="200">
-  <h1>Ferrix — Swiss Knife for Linux Hardware Diagnostics</h1>
+  <h1>Ferrix System Monitor — Swiss Knife for Linux Hardware Diagnostics</h1>
   <p><b>A simple program for getting information about computer hardware and installed software.</b></p>
   <img src="assets/main_win.png" width="45%">
 
@@ -9,9 +9,9 @@
 
 A lightweight, fast and modern system information tool for Linux, built with Rust and Iced.
 
-## What is Ferrix?
+## What is FSM?
 
-Ferrix is a Rust-crate and program for obtaining information about computer hardware and software. It is designed to work in modern Linux OS distributions.
+Ferrix System Monitor is a Rust-crate and program for obtaining information about computer hardware and software. It is designed to work in modern Linux OS distributions.
 
 ## Motivation
 
@@ -78,9 +78,9 @@ sudo make install
   <img alt="iced" title="iced" src="https://gist.githubusercontent.com/hecrj/ad7ecd38f6e47ff3688a38c79fd108f0/raw/74384875ecbad02ae2a926425e9bcafd0695bade/color.svg" width="350px">
 </a>
 
-## ❤️ Support Ferrix
+## ❤️ Support Ferrix System Monitor
 
-Developing Ferrix takes time and passion. If you find it useful, please consider supporting its development:
+Developing Ferrix System Monitor takes time and passion. If you find it useful, please consider supporting its development:
 
 - **Star ⭐ this repo!** It helps others discover Ferrix;
 - **Write comments, questions, bug reports, or suggestions** for new functionality in [issues](https://github.com/mskrasnov/Ferrix/issues/new).
@@ -89,4 +89,4 @@ Developing Ferrix takes time and passion. If you find it useful, please consider
     
 ## License
 
-Ferrix (`ferrix-lib`, `ferrix-app`) is distributed under the [GNU GPLv3](../LICENSE) license.
+Ferrix System Monitor (`ferrix-lib`, `ferrix-app`) is distributed under the [GNU GPLv3](../LICENSE) license.
