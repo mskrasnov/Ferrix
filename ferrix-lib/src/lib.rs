@@ -47,6 +47,7 @@ pub mod cpu;
 pub mod dmi;
 pub mod drm;
 pub mod init;
+pub mod parts;
 pub mod ram;
 pub mod sys;
 
