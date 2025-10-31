@@ -39,6 +39,7 @@ use widgets::{icon_button, sidebar_button};
 
 use anyhow::Result;
 use ferrix_lib::{
+    battery::BatInfo,
     cpu::{Processors, Stat},
     drm::Video,
     init::{Connection, SystemdServices},
@@ -72,6 +73,9 @@ pub enum Message {
 
     GetDMIData,
     DMIDataReceived(DataLoadingState<DMIResult>),
+
+    GetBatInfo,
+    BatInfoReceived(DataLoadingState<BatInfo>),
 
     GetDRMData,
     DRMDataReceived(DataLoadingState<Video>),
@@ -110,6 +114,7 @@ pub struct Ferrix {
     pub curr_proc_stat: DataLoadingState<Stat>,
     pub ram_data: DataLoadingState<RAM>,
     pub dmi_data: DataLoadingState<DMIResult>,
+    pub bat_data: DataLoadingState<BatInfo>,
     pub drm_data: DataLoadingState<Video>,
     pub osrel_data: DataLoadingState<OsRelease>,
     pub info_kernel: DataLoadingState<KernelData>,
@@ -130,6 +135,7 @@ impl Default for Ferrix {
             curr_proc_stat: DataLoadingState::Loading,
             ram_data: DataLoadingState::Loading,
             dmi_data: DataLoadingState::Loading,
+            bat_data: DataLoadingState::Loading,
             drm_data: DataLoadingState::Loading,
             osrel_data: DataLoadingState::Loading,
             info_kernel: DataLoadingState::Loading,
@@ -285,6 +291,20 @@ impl Ferrix {
                     Task::none()
                 }
             }
+            Message::BatInfoReceived(state) => {
+                self.bat_data = state;
+                Task::none()
+            }
+            Message::GetBatInfo => Task::perform(
+                async move {
+                    let bat = BatInfo::new();
+                    match bat {
+                        Ok(bat) => DataLoadingState::Loaded(bat),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
+                    }
+                },
+                |val| Message::BatInfoReceived(val),
+            ),
             Message::DRMDataReceived(state) => {
                 self.drm_data = state;
                 Task::none()
@@ -467,6 +487,15 @@ impl Ferrix {
             scripts.push(
                 time::every(Duration::from_secs(self.settings.update_period as u64))
                     .map(|_| Message::GetDRMData),
+            );
+        }
+
+        if self.bat_data.is_none() && self.current_page == Page::Battery {
+            scripts.push(time::every(Duration::from_millis(10)).map(|_| Message::GetBatInfo));
+        } else if self.bat_data.is_some() && self.current_page == Page::Battery {
+            scripts.push(
+                time::every(Duration::from_secs(self.settings.update_period as u64))
+                    .map(|_| Message::GetBatInfo),
             );
         }
 

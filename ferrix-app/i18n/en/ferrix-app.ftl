@@ -37,8 +37,8 @@ page-todo = Not implemented functionality
 page-todo-msg = This functionality has not been implemented yet
 
 # ABOUT PAGE
-about-hdr = Ferrix — yet another system profiler for Linux
-about-ferrix = Ferrix version
+about-hdr = FSM — yet another system profiler for Linux
+about-ferrix = Ferrix System Monitor version
 about-flib = ferrix-lib version
 about-author-hdr = Author:
 about-feedback-hdr = Feedback:
@@ -48,6 +48,38 @@ about-author = (C) 2025 Michail Krasnov
 about-donate = Can you support me?
 about-donate-lbl = Donate me on Boosty!
 about-support = Support me!
+
+# BATTERY PAGE
+bat-header = Battery {$name}
+bat-unknown-name = <unknown name>
+bat-status = Status
+bat-status-ful = Full
+bat-status-dis = Discharging
+bat-status-cha = Charging
+bat-status-noc = Not charging
+bat-status-non = None
+bat-status-unknown = Unknown ({$status})
+bat-status-isnpresent = Status is not present!
+bat-capacity = Capacity
+bat-lvl-ful = Full
+bat-lvl-nor = Normal
+bat-lvl-hig = High
+bat-lvl-low = Low
+bat-lvl-cri = Critical!
+bat-lvl-non = None
+bat-lvl-unk = Unknown ({$lbl})
+bat-health = Health level, %
+bat-tech = Technology
+bat-cycle-cnt = Cycle count
+bat-volt-min-des = Minimal designed voltage, V
+bat-volt-now = Current voltage, V
+bat-power-now = Current power
+bat-energy-full-des = Full designed energy, Wh
+bat-energy-full = Full energy, Wh
+bat-energy-now = Current energy, Wh
+bat-model = Battery model
+bat-manufact = Manufacturer
+bat-serial = Serial number
 
 # TABLE HEADERS
 hdr-param = Parameter

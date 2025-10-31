@@ -43,6 +43,7 @@
 //! let pjson_str = data.to_json_pretty()?;
 //! ```
 
+pub mod battery;
 pub mod cpu;
 pub mod dmi;
 pub mod drm;

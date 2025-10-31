@@ -29,6 +29,7 @@ use iced::{
 
 use crate::{Ferrix, Message, fl, icons::ERROR_ICON, widgets::link_button};
 
+mod battery;
 mod cpu;
 mod dashboard;
 mod distro;
@@ -135,6 +136,7 @@ impl<'a> Page {
             Self::Processors => cpu::proc_page(&state.proc_data).into(),
             Self::Memory => ram::ram_page(&state.ram_data).into(),
             Self::DMI => dmi::chassis_page(&state.dmi_data).into(),
+            Self::Battery => battery::bat_page(&state.bat_data).into(),
             Self::Screen => drm::drm_page(&state.drm_data).into(),
             Self::Distro => distro::distro_page(&state.osrel_data).into(),
             Self::Kernel => kernel::kernel_page(&state.info_kernel).into(),
@@ -167,7 +169,7 @@ impl<'a> Page {
             column![
                 text(fl!("about-hdr")).size(24),
                 text(format!(
-                    "{}: {}. {}: {}",
+                    "{}: {}, {}: {}",
                     fl!("about-ferrix"),
                     env!("CARGO_PKG_VERSION"),
                     fl!("about-flib"),

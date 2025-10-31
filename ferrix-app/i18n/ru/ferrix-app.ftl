@@ -37,8 +37,8 @@ page-todo = Не реализованный функционал
 page-todo-msg = Этот функционал пока не реализован
 
 # ABOUT PAGE
-about-hdr = Ferrix — ещё один системный профайлер для Linux
-about-ferrix = Версия Ferrix
+about-hdr = FSM — ещё один системный профайлер для Linux
+about-ferrix = Версия Ferrix System Monitor
 about-flib = Версия ferrix-lib
 about-author-hdr = Автор:
 about-feedback-hdr = Фидбек:
@@ -48,6 +48,38 @@ about-author = (C) 2025 Михаил Краснов
 about-donate = Вы можете отправить мне донат на карту: 2202 2062 5233 5406 (Сбер; Россия). Спасибо!
 about-donate-lbl = Закиньте донат на мой Boosty!
 about-support = Поддержать меня!
+
+# BATTERY PAGE
+bat-header = Аккумулятор {$name}
+bat-unknown-name = <неизвестное имя>
+bat-status = Статус
+bat-status-ful = Заряжен полностью
+bat-status-dis = Разряжается
+bat-status-cha = Заряжается
+bat-status-noc = Не заряжается
+bat-status-non = None
+bat-status-unknown = Неизвестно ({$status})
+bat-status-isnpresent = Статус не указан!
+bat-capacity = Процент заряда
+bat-lvl-ful = Заряжен полностью
+bat-lvl-nor = Нормальный заряд
+bat-lvl-hig = Высокий заряд
+bat-lvl-low = Низкий заряд
+bat-lvl-cri = Критический заряд!
+bat-lvl-non = None
+bat-lvl-unk = Неизвестно ({$lbl})
+bat-health = Уровень здоровья, %
+bat-tech = Технология
+bat-cycle-cnt = Количество циклов
+bat-volt-min-des = Минимальное проектное напряжение, В
+bat-volt-now = Текущее напряжение
+bat-power-now = Текущая мощность
+bat-energy-full-des = Полная проектная энергия, Вт/ч
+bat-energy-full = Полная энергия, Вт/ч
+bat-energy-now = Текущая энергия, Вт/ч
+bat-model = Модель аккумулятора
+bat-manufact = Производитель
+bat-serial = Серийный номер
 
 # TABLE HEADERS
 hdr-param = Параметр
