@@ -19,7 +19,7 @@ Ferrix System Monitor is a Rust-crate and program for obtaining information abou
     - [X] RAM;
     - [ ] Storage;
     - [X] BIOS and PC Motherboard;
-    - [ ] Laptop battery;
+    - [X] Laptop battery;
     - [X] Installed Linux distribution;
     - [ ] Desktop environment;
     - [X] systemd services;

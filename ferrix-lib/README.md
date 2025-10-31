@@ -18,8 +18,8 @@ TODO:
 
 - [ ] Get more info from EDID;
 - [ ] Get information about installed software (`flatpak`, `deb`, `rpm`);
-- [ ] Get information about notebook battery;
-- [ ] Get information about autio;
+- [X] Get information about notebook battery;
+- [ ] Get information about audio;
 - [ ] Get information about GUI (desktop environment, session type (Wayland or X.org), etc.);
 - [ ] Backup and reset `gsettings` settins;
 

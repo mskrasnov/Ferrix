@@ -31,6 +31,7 @@ For Linux, there are a bunch of different console programs for getting informati
 
 - Processor details;
 - Memory specifications;
+- Notebook's battery;
 - [TODO] Data from DMI tables;
 
 ### Software Information
