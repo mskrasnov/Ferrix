@@ -124,8 +124,10 @@ pub fn dashboard<'a>(
                 widget_card(
                     fl!("dash-mem"),
                     column![
-                        text(fl!("dash-mem-used", used = used_ram.to_string())),
-                        text(fl!("dash-mem-total", total = total_ram.to_string())),
+                        column![
+                            text(fl!("dash-mem-used", used = used_ram.to_string())),
+                            text(fl!("dash-mem-total", total = total_ram.to_string())),
+                        ],
                         progress_bar(0.0..=total_ram_bytes, used_ram_bytes),
                     ]
                     .spacing(5),
