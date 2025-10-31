@@ -41,6 +41,6 @@ pub fn main() -> iced::Result {
         .antialiasing(true)
         .subscription(Ferrix::subscription)
         .theme(Ferrix::theme)
-        .title("Ferrix")
+        .title("Ferrix System Monitor")
         .run()
 }
