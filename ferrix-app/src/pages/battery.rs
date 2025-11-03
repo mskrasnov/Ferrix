@@ -94,10 +94,7 @@ fn bat_table<'a>(bat: &'a Battery) -> container::Container<'a, Message> {
         InfoRow::new(fl!("bat-health"), fmt_val(bat.health)),
         InfoRow::new(fl!("bat-tech"), bat.technology.clone()),
         InfoRow::new(fl!("bat-cycle-cnt"), fmt_val(bat.cycle_count)),
-        InfoRow::new(
-            fl!("bat-volt-min-des"),
-            fmt_val(bat.voltage_min_design),
-        ),
+        InfoRow::new(fl!("bat-volt-min-des"), fmt_val(bat.voltage_min_design)),
         InfoRow::new(fl!("bat-volt-now"), fmt_val(bat.voltage_now)),
         InfoRow::new(fl!("bat-power-now"), fmt_val(bat.power_now)),
         InfoRow::new(fl!("bat-energy-full-des"), fmt_val(bat.energy_full_design)),
@@ -106,6 +103,8 @@ fn bat_table<'a>(bat: &'a Battery) -> container::Container<'a, Message> {
         InfoRow::new(fl!("bat-model"), bat.model_name.clone()),
         InfoRow::new(fl!("bat-manufact"), bat.manufacturer.clone()),
         InfoRow::new(fl!("bat-serial"), bat.serial_number.clone()),
+        // InfoRow::new("Discharge time, hours", fmt_val(bat.discharge_time)),
+        // InfoRow::new("Charge time, hours", fmt_val(bat.charge_time)),
     ];
     container(kv_info_table(rows)).style(container::rounded_box)
 }

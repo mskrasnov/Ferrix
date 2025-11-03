@@ -56,7 +56,7 @@ pub struct Battery {
     pub cycle_count: Option<usize>,
     pub voltage_min_design: Option<f32>,
     pub voltage_now: Option<f32>,
-    pub power_now: Option<usize>,
+    pub power_now: Option<f32>,
     pub energy_full_design: Option<f32>,
     pub energy_full: Option<f32>,
     pub energy_now: Option<f32>,
@@ -66,6 +66,8 @@ pub struct Battery {
     pub manufacturer: Option<String>,
     pub serial_number: Option<String>,
     pub health: Option<u32>,
+    pub discharge_time: Option<f32>,
+    pub charge_time: Option<f32>,
 }
 
 impl ToJson for Battery {}
@@ -85,6 +87,7 @@ impl Battery {
         }
         polish_values(&mut bat);
         calculate_health(&mut bat);
+        calculate_time(&mut bat);
 
         Ok(bat)
     }
@@ -116,6 +119,9 @@ fn polish_values(bat: &mut Battery) {
     if let Some(vmd) = bat.voltage_min_design {
         bat.voltage_min_design = Some(vmd / 1_000_000.);
     }
+    if let Some(pn) = bat.power_now {
+        bat.power_now = Some(pn / 1_000_000.);
+    }
     if let Some(vn) = bat.voltage_now {
         bat.voltage_now = Some(vn / 1_000_000.);
     }
@@ -135,6 +141,26 @@ fn calculate_health(bat: &mut Battery) {
         let (energy_full, energy_full_design) =
             (bat.energy_full.unwrap(), bat.energy_full_design.unwrap());
         bat.health = Some(energy_full as u32 / energy_full_design as u32 * 100);
+    }
+}
+
+fn calculate_time(bat: &mut Battery) {
+    if let (Some(energy_now), Some(power)) = (bat.energy_now, bat.power_now) {
+        if power > 0.001 {
+            bat.discharge_time = Some((energy_now / power).max(0.).min(999.))
+        }
+    }
+
+    if let (Some(energy_now), Some(energy_full), Some(power)) =
+        (bat.energy_now, bat.energy_full, bat.power_now)
+    {
+        if power > 0.001 && energy_full > energy_now {
+            let delta = energy_full - energy_now;
+            let efficiency = 0.85;
+            let eff_power = power * efficiency;
+
+            bat.charge_time = Some((delta / eff_power).max(0.).min(999.));
+        }
     }
 }
 
