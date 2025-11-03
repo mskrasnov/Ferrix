@@ -135,7 +135,7 @@ impl<'a> Page {
             .into(),
             Self::Processors => cpu::proc_page(&state.proc_data).into(),
             Self::Memory => ram::ram_page(&state.ram_data).into(),
-            Self::DMI => dmi::chassis_page(&state.dmi_data).into(),
+            Self::DMI => dmi::dmi_page(&state.dmi_data).into(),
             Self::Battery => battery::bat_page(&state.bat_data).into(),
             Self::Screen => drm::drm_page(&state.drm_data).into(),
             Self::Distro => distro::distro_page(&state.osrel_data).into(),
