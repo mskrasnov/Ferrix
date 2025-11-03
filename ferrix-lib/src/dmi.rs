@@ -1449,7 +1449,249 @@ impl Chassis {
 
 impl ToJson for Chassis {}
 
-///////////////////////////////////////////////////////////////////////////////////
+/// Information about processor
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Processor {
+    /// Socket reference designation
+    pub socked_designation: Option<String>,
+
+    /// Processor type
+    pub processor_type: Option<ProcessorTypeData>,
+
+    /// Processor family
+    pub processor_family: Option<ProcessorFamilyData>,
+
+    /// Processor manufacturer
+    pub processor_manufacturer: Option<String>,
+
+    /// Raw processor identification data
+    pub processor_id: Option<[u8; 8]>,
+
+    /// Processor version
+    pub processor_version: Option<String>,
+
+    /// Processor voltage
+    pub voltage: Option<ProcessorVoltage>,
+
+    /// External clock frequency, MHz. If the value is unknown,
+    /// the field is set to 0
+    pub external_clock: Option<ProcessorExternalClock>,
+
+    /// Maximum CPU speed (in MHz) supported *by the system* for this
+    /// processor socket
+    pub max_speed: Option<ProcessorSpeed>,
+
+    /// Current speed
+    ///
+    /// This field identifies the processor's speed at system boot;
+    /// the processor may support more than one speed
+    pub current_speed: Option<ProcessorSpeed>,
+
+    /// Status bit field
+    pub status: Option<ProcessorStatus>,
+
+    /// Processor upgrade
+    pub processor_upgrade: Option<ProcessorUpgradeData>,
+
+    /// Attributes of the primary (Level 1) cache for this processor
+    pub l1cache_handle: Option<Handle>,
+
+    /// Attributes of the primary (Level 2) cache for this processor
+    pub l2cache_handle: Option<Handle>,
+
+    /// Attributes of the primary (Level 3) cache for this processor
+    pub l3cache_handle: Option<Handle>,
+
+    /// Serial number of this processor
+    pub serial_number: Option<String>,
+
+    /// Asset tag of this proc
+    pub asset_tag: Option<String>,
+
+    /// Part number of this processor
+    pub part_number: Option<String>,
+
+    /// Number of cores per processor socket
+    pub core_count: Option<CoreCount>,
+
+    /// Number of enabled cores per processor socket
+    pub cores_enabled: Option<CoresEnabled>,
+
+    /// Number of threads per processor socket
+    pub thread_count: Option<ThreadCount>,
+
+    /// Function that processor supports
+    pub processors_characteristics: Option<ProcessorCharacteristics>,
+
+    /// Processor family 2
+    pub processor_family_2: Option<ProcessorFamilyData2>,
+
+    /// Number of cores per proc socket (if cores > 255)
+    pub core_count_2: Option<CoreCount2>,
+
+    /// Number of enabled cores per proc socket (if ecores > 255)
+    pub cores_enabled_2: Option<CoresEnabled2>,
+
+    /// Number of threads per proc socket (if threads > 255)
+    pub thread_count_2: Option<ThreadCount2>,
+
+    /// Number of threads the BIOS has enabled and available for
+    /// OS use
+    pub thread_enabled: Option<ThreadEnabled>,
+}
+
+impl Processor {
+    /// Creates a new instance of `Self`
+    ///
+    /// It is usually not required, since an instance of this
+    /// structure will be created using the method
+    /// `Self::new_from_table(table: &SMBiosData)` in the constructor
+    /// [`DMITable::new()`].
+    pub fn new() -> Result<Self> {
+        let table = smbioslib::table_load_from_device()?;
+        Self::new_from_table(&table)
+    }
+
+    pub fn new_from_table(table: &SMBiosData) -> Result<Self> {
+        let t = table
+            .find_map(|f: smbioslib::SMBiosProcessorInformation| Some(f))
+            .ok_or(anyhow!("Failed to get information about CPU (type 4)!"))?;
+
+        Ok(Self {
+            socked_designation: t.socket_designation().ok(),
+            processor_type: match t.processor_type() {
+                Some(pt) => Some(ProcessorTypeData::from(pt)),
+                None => None,
+            },
+            processor_family: match t.processor_family() {
+                Some(pf) => Some(ProcessorFamilyData::from(pf)),
+                None => None,
+            },
+            processor_manufacturer: t.processor_manufacturer().ok(),
+            processor_id: match t.processor_id() {
+                Some(p_id) => Some(*p_id),
+                None => None,
+            },
+            processor_version: t.processor_version().ok(),
+            voltage: match t.voltage() {
+                Some(v) => Some(ProcessorVoltage::from(v)),
+                None => None,
+            },
+            external_clock: match t.external_clock() {
+                Some(ec) => Some(ProcessorExternalClock::from(ec)),
+                None => None,
+            },
+            max_speed: match t.max_speed() {
+                Some(ms) => Some(ProcessorSpeed::from(ms)),
+                None => None,
+            },
+            current_speed: match t.current_speed() {
+                Some(cs) => Some(ProcessorSpeed::from(cs)),
+                None => None,
+            },
+            status: match t.status() {
+                Some(s) => Some(ProcessorStatus::from(s)),
+                None => None,
+            },
+            processor_upgrade: match t.processor_upgrade() {
+                Some(pu) => Some(ProcessorUpgradeData::from(pu)),
+                None => None,
+            },
+            l1cache_handle: Handle::from_opt(t.l1cache_handle()),
+            l2cache_handle: Handle::from_opt(t.l2cache_handle()),
+            l3cache_handle: Handle::from_opt(t.l3cache_handle()),
+            serial_number: t.serial_number().ok(),
+            asset_tag: t.asset_tag().ok(),
+            part_number: t.part_number().ok(),
+            core_count: match t.core_count() {
+                Some(cc) => Some(CoreCount::from(cc)),
+                None => None,
+            },
+            cores_enabled: match t.cores_enabled() {
+                Some(ce) => Some(CoresEnabled::from(ce)),
+                None => None,
+            },
+            thread_count: match t.thread_count() {
+                Some(tc) => Some(ThreadCount::from(tc)),
+                None => None,
+            },
+            processors_characteristics: match t.processor_characteristics() {
+                Some(pc) => Some(ProcessorCharacteristics::from(pc)),
+                None => None,
+            },
+            processor_family_2: match t.processor_family_2() {
+                Some(pf2) => Some(ProcessorFamilyData2::from(pf2)),
+                None => None,
+            },
+            core_count_2: match t.core_count_2() {
+                Some(cc2) => Some(CoreCount2::from(cc2)),
+                None => None,
+            },
+            cores_enabled_2: match t.cores_enabled_2() {
+                Some(ce2) => Some(CoresEnabled2::from(ce2)),
+                None => None,
+            },
+            thread_count_2: match t.thread_count_2() {
+                Some(tc2) => Some(ThreadCount2::from(tc2)),
+                None => None,
+            },
+            thread_enabled: match t.thread_enabled() {
+                Some(te) => Some(ThreadEnabled::from(te)),
+                None => None,
+            },
+        })
+    }
+}
+
+impl ToJson for Processor {}
+
+/// Defines which functions the processor supports
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ProcessorCharacteristics {
+    /// Bit 1 unknown
+    pub unknown: bool,
+
+    /// 64-bit capable
+    pub bit_64capable: bool,
+
+    /// Multi-core
+    pub multi_core: bool,
+
+    /// Hardware thread
+    pub hardware_thread: bool,
+
+    /// Execute protection
+    pub execute_protection: bool,
+
+    /// Enhanced Virtualization
+    pub enhanced_virtualization: bool,
+
+    /// Power/perfomance control
+    pub power_perfomance_control: bool,
+
+    /// 128-bit capable
+    pub bit_128capable: bool,
+
+    /// Arm64 SoC ID
+    pub arm_64soc_id: bool,
+}
+
+impl From<smbioslib::ProcessorCharacteristics> for ProcessorCharacteristics {
+    fn from(value: smbioslib::ProcessorCharacteristics) -> Self {
+        Self {
+            unknown: value.unknown(),
+            bit_64capable: value.bit_64capable(),
+            multi_core: value.multi_core(),
+            hardware_thread: value.hardware_thread(),
+            execute_protection: value.execute_protection(),
+            enhanced_virtualization: value.enhanced_virtualization(),
+            power_perfomance_control: value.power_performance_control(),
+            bit_128capable: value.bit_128capable(),
+            arm_64soc_id: value.arm_64soc_id(),
+        }
+    }
+}
+impl ToJson for ProcessorCharacteristics {}
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ProcessorTypeData {
     pub raw: u8,
@@ -2773,250 +3015,6 @@ impl From<smbioslib::ThreadEnabled> for ThreadEnabled {
         }
     }
 }
-
-/// Information about processor
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Processor {
-    /// Socket reference designation
-    pub socked_designation: Option<String>,
-
-    /// Processor type
-    pub processor_type: Option<ProcessorTypeData>,
-
-    /// Processor family
-    pub processor_family: Option<ProcessorFamilyData>,
-
-    /// Processor manufacturer
-    pub processor_manufacturer: Option<String>,
-
-    /// Raw processor identification data
-    pub processor_id: Option<[u8; 8]>,
-
-    /// Processor version
-    pub processor_version: Option<String>,
-
-    /// Processor voltage
-    pub voltage: Option<ProcessorVoltage>,
-
-    /// External clock frequency, MHz. If the value is unknown,
-    /// the field is set to 0
-    pub external_clock: Option<ProcessorExternalClock>,
-
-    /// Maximum CPU speed (in MHz) supported *by the system* for this
-    /// processor socket
-    pub max_speed: Option<ProcessorSpeed>,
-
-    /// Current speed
-    ///
-    /// This field identifies the processor's speed at system boot;
-    /// the processor may support more than one speed
-    pub current_speed: Option<ProcessorSpeed>,
-
-    /// Status bit field
-    pub status: Option<ProcessorStatus>,
-
-    /// Processor upgrade
-    pub processor_upgrade: Option<ProcessorUpgradeData>,
-
-    /// Attributes of the primary (Level 1) cache for this processor
-    pub l1cache_handle: Option<Handle>,
-
-    /// Attributes of the primary (Level 2) cache for this processor
-    pub l2cache_handle: Option<Handle>,
-
-    /// Attributes of the primary (Level 3) cache for this processor
-    pub l3cache_handle: Option<Handle>,
-
-    /// Serial number of this processor
-    pub serial_number: Option<String>,
-
-    /// Asset tag of this proc
-    pub asset_tag: Option<String>,
-
-    /// Part number of this processor
-    pub part_number: Option<String>,
-
-    /// Number of cores per processor socket
-    pub core_count: Option<CoreCount>,
-
-    /// Number of enabled cores per processor socket
-    pub cores_enabled: Option<CoresEnabled>,
-
-    /// Number of threads per processor socket
-    pub thread_count: Option<ThreadCount>,
-
-    /// Function that processor supports
-    pub processors_characteristics: Option<ProcessorCharacteristics>,
-
-    /// Processor family 2
-    pub processor_family_2: Option<ProcessorFamilyData2>,
-
-    /// Number of cores per proc socket (if cores > 255)
-    pub core_count_2: Option<CoreCount2>,
-
-    /// Number of enabled cores per proc socket (if ecores > 255)
-    pub cores_enabled_2: Option<CoresEnabled2>,
-
-    /// Number of threads per proc socket (if threads > 255)
-    pub thread_count_2: Option<ThreadCount2>,
-
-    /// Number of threads the BIOS has enabled and available for
-    /// OS use
-    pub thread_enabled: Option<ThreadEnabled>,
-}
-
-impl Processor {
-    /// Creates a new instance of `Self`
-    ///
-    /// It is usually not required, since an instance of this
-    /// structure will be created using the method
-    /// `Self::new_from_table(table: &SMBiosData)` in the constructor
-    /// [`DMITable::new()`].
-    pub fn new() -> Result<Self> {
-        let table = smbioslib::table_load_from_device()?;
-        Self::new_from_table(&table)
-    }
-
-    pub fn new_from_table(table: &SMBiosData) -> Result<Self> {
-        let t = table
-            .find_map(|f: smbioslib::SMBiosProcessorInformation| Some(f))
-            .ok_or(anyhow!("Failed to get information about CPU (type 4)!"))?;
-
-        Ok(Self {
-            socked_designation: t.socket_designation().ok(),
-            processor_type: match t.processor_type() {
-                Some(pt) => Some(ProcessorTypeData::from(pt)),
-                None => None,
-            },
-            processor_family: match t.processor_family() {
-                Some(pf) => Some(ProcessorFamilyData::from(pf)),
-                None => None,
-            },
-            processor_manufacturer: t.processor_manufacturer().ok(),
-            processor_id: match t.processor_id() {
-                Some(p_id) => Some(*p_id),
-                None => None,
-            },
-            processor_version: t.processor_version().ok(),
-            voltage: match t.voltage() {
-                Some(v) => Some(ProcessorVoltage::from(v)),
-                None => None,
-            },
-            external_clock: match t.external_clock() {
-                Some(ec) => Some(ProcessorExternalClock::from(ec)),
-                None => None,
-            },
-            max_speed: match t.max_speed() {
-                Some(ms) => Some(ProcessorSpeed::from(ms)),
-                None => None,
-            },
-            current_speed: match t.current_speed() {
-                Some(cs) => Some(ProcessorSpeed::from(cs)),
-                None => None,
-            },
-            status: match t.status() {
-                Some(s) => Some(ProcessorStatus::from(s)),
-                None => None,
-            },
-            processor_upgrade: match t.processor_upgrade() {
-                Some(pu) => Some(ProcessorUpgradeData::from(pu)),
-                None => None,
-            },
-            l1cache_handle: Handle::from_opt(t.l1cache_handle()),
-            l2cache_handle: Handle::from_opt(t.l2cache_handle()),
-            l3cache_handle: Handle::from_opt(t.l3cache_handle()),
-            serial_number: t.serial_number().ok(),
-            asset_tag: t.asset_tag().ok(),
-            part_number: t.part_number().ok(),
-            core_count: match t.core_count() {
-                Some(cc) => Some(CoreCount::from(cc)),
-                None => None,
-            },
-            cores_enabled: match t.cores_enabled() {
-                Some(ce) => Some(CoresEnabled::from(ce)),
-                None => None,
-            },
-            thread_count: match t.thread_count() {
-                Some(tc) => Some(ThreadCount::from(tc)),
-                None => None,
-            },
-            processors_characteristics: match t.processor_characteristics() {
-                Some(pc) => Some(ProcessorCharacteristics::from(pc)),
-                None => None,
-            },
-            processor_family_2: match t.processor_family_2() {
-                Some(pf2) => Some(ProcessorFamilyData2::from(pf2)),
-                None => None,
-            },
-            core_count_2: match t.core_count_2() {
-                Some(cc2) => Some(CoreCount2::from(cc2)),
-                None => None,
-            },
-            cores_enabled_2: match t.cores_enabled_2() {
-                Some(ce2) => Some(CoresEnabled2::from(ce2)),
-                None => None,
-            },
-            thread_count_2: match t.thread_count_2() {
-                Some(tc2) => Some(ThreadCount2::from(tc2)),
-                None => None,
-            },
-            thread_enabled: match t.thread_enabled() {
-                Some(te) => Some(ThreadEnabled::from(te)),
-                None => None,
-            },
-        })
-    }
-}
-
-impl ToJson for Processor {}
-
-/// Defines which functions the processor supports
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ProcessorCharacteristics {
-    /// Bit 1 unknown
-    pub unknown: bool,
-
-    /// 64-bit capable
-    pub bit_64capable: bool,
-
-    /// Multi-core
-    pub multi_core: bool,
-
-    /// Hardware thread
-    pub hardware_thread: bool,
-
-    /// Execute protection
-    pub execute_protection: bool,
-
-    /// Enhanced Virtualization
-    pub enhanced_virtualization: bool,
-
-    /// Power/perfomance control
-    pub power_perfomance_control: bool,
-
-    /// 128-bit capable
-    pub bit_128capable: bool,
-
-    /// Arm64 SoC ID
-    pub arm_64soc_id: bool,
-}
-
-impl From<smbioslib::ProcessorCharacteristics> for ProcessorCharacteristics {
-    fn from(value: smbioslib::ProcessorCharacteristics) -> Self {
-        Self {
-            unknown: value.unknown(),
-            bit_64capable: value.bit_64capable(),
-            multi_core: value.multi_core(),
-            hardware_thread: value.hardware_thread(),
-            execute_protection: value.execute_protection(),
-            enhanced_virtualization: value.enhanced_virtualization(),
-            power_perfomance_control: value.power_performance_control(),
-            bit_128capable: value.bit_128capable(),
-            arm_64soc_id: value.arm_64soc_id(),
-        }
-    }
-}
-impl ToJson for ProcessorCharacteristics {}
 
 /// Attributes of each CPU cache device in the system
 #[derive(Debug, Serialize)]
