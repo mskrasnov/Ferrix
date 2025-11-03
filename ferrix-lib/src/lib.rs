@@ -51,6 +51,8 @@ pub mod init;
 pub mod parts;
 pub mod ram;
 pub mod sys;
+pub mod vulnerabilities;
+pub mod cpu_freq;
 
 pub mod traits;
 pub mod utils;
