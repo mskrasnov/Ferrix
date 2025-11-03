@@ -26,7 +26,7 @@ use crate::{
     fl,
     pages::{InfoRow, fmt_bool, fmt_val, fmt_vec, hdr_name, text_fmt_val},
 };
-use ferrix_lib::dmi::{Baseboard, Chassis, ChassisStateData, Processor};
+use ferrix_lib::dmi::{Baseboard, Bios, Chassis, ChassisStateData, Processor};
 
 use iced::{
     Element, Length,
@@ -37,12 +37,15 @@ pub fn dmi_page<'a>(dmi: &'a DataLoadingState<DMIResult>) -> container::Containe
     match dmi {
         DataLoadingState::Loaded(dmi) => match dmi {
             DMIResult::Ok { data } => {
+                let bios = bios_table(&data.bios);
                 let baseboard = baseboard_table(&data.baseboard);
                 let chassis = chassis_table(&data.chassis);
                 let proc = processor_table(&data.processor);
 
                 container(scrollable(
                     column![
+                        bios,
+                        rule::horizontal(1.),
                         baseboard,
                         rule::horizontal(1.),
                         chassis,
@@ -56,6 +59,255 @@ pub fn dmi_page<'a>(dmi: &'a DataLoadingState<DMIResult>) -> container::Containe
         },
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),
+    }
+}
+
+fn bios_table<'a>(bios: &'a Bios) -> container::Container<'a, Message> {
+    let rows = vec![
+        InfoRow::new("BIOS Vendor", bios.vendor.clone()),
+        InfoRow::new("Version", bios.version.clone()),
+        InfoRow::new(
+            "Starting address segment",
+            match bios.starting_address_segment {
+                Some(sas) => Some(format!("0x{sas:05X}")),
+                None => None,
+            },
+        ),
+        InfoRow::new("Release date", bios.release_date.clone()),
+        InfoRow::new(
+            "ROM Size",
+            match &bios.rom_size {
+                Some(rs) => Some(rs.to_string()),
+                None => None,
+            },
+        ),
+        InfoRow::new(
+            "System BIOS Revision",
+            Some(format!(
+                "{}.{}",
+                bios.system_bios_major_release.unwrap_or(0),
+                bios.system_bios_minor_release.unwrap_or(0)
+            )),
+        ),
+        InfoRow::new(
+            "Embedded controller firmware Revision",
+            Some(format!(
+                "{}.{}",
+                bios.e_c_firmware_major_release.unwrap_or(0),
+                bios.e_c_firmware_minor_release.unwrap_or(0)
+            )),
+        ),
+        InfoRow::new(
+            "Extended BIOS ROM Size",
+            match &bios.extended_rom_size {
+                Some(ers) => Some(ers.to_string()),
+                None => None,
+            },
+        ),
+    ];
+
+    container(
+        column![
+            text("BIOS").style(text::warning),
+            container(kv_info_table(rows)).style(container::rounded_box),
+            bios_characteristics_table(bios),
+            bios_ext0_table(bios),
+            bios_ext1_table(bios),
+        ]
+        .spacing(5),
+    )
+}
+
+fn bios_characteristics_table<'a>(bios: &'a Bios) -> container::Container<'a, Message> {
+    match &bios.characteristics {
+        None => container(text("BIOS Characteristics Table is empty!").style(text::danger)),
+        Some(c) => {
+            let rows = vec![
+                InfoRow::new(
+                    "BIOS Characteristics aren’t supported",
+                    fmt_bool(Some(c.bios_characteristics_not_supported)),
+                ),
+                InfoRow::new("ISA is supported", fmt_bool(Some(c.isa_supported))),
+                InfoRow::new("MCA is supported", fmt_bool(Some(c.mca_supported))),
+                InfoRow::new("EISA is supported", fmt_bool(Some(c.eisa_supported))),
+                InfoRow::new("PCI is supported", fmt_bool(Some(c.pci_supported))),
+                InfoRow::new("PCMCIA is supported", fmt_bool(Some(c.pcmcia_supported))),
+                InfoRow::new(
+                    "Plug-n-Play is supported",
+                    fmt_bool(Some(c.plug_and_play_supported)),
+                ),
+                InfoRow::new("APM is supported", fmt_bool(Some(c.apm_supported))),
+                InfoRow::new(
+                    "BIOS is upgadeable (flash)",
+                    fmt_bool(Some(c.bios_upgradeable)),
+                ),
+                InfoRow::new(
+                    "BIOS shadowing is allowed",
+                    fmt_bool(Some(c.bios_shadowing_allowed)),
+                ),
+                InfoRow::new("VL-VESA is supported", fmt_bool(Some(c.vlvesa_supported))),
+                InfoRow::new(
+                    "ESCD support is available",
+                    fmt_bool(Some(c.escd_support_available)),
+                ),
+                InfoRow::new(
+                    "Boot from CD is supported",
+                    fmt_bool(Some(c.boot_from_cdsupported)),
+                ),
+                InfoRow::new(
+                    "Boot from PCMCIA is supported",
+                    fmt_bool(Some(c.boot_from_pcmcia_supported)),
+                ),
+                InfoRow::new(
+                    "BIOS ROM is socketed (e.g. PLCC/SOP socket)",
+                    fmt_bool(Some(c.bios_rom_socketed)),
+                ),
+                InfoRow::new(
+                    "EDD specification is supported",
+                    fmt_bool(Some(c.edd_specification_supported)),
+                ),
+                InfoRow::new(
+                    "Japanese floppy for NEX 9800 1.2 MB is supported",
+                    fmt_bool(Some(c.floppy_nec_japanese_supported)),
+                ),
+                InfoRow::new(
+                    "Japanese floppy for Toshiba 1.2 MB is supported",
+                    fmt_bool(Some(c.floppy_toshiba_japanese_supported)),
+                ),
+                InfoRow::new(
+                    "5.25\"/360 KB floppy services are supported",
+                    fmt_bool(Some(c.floppy_525_360_supported)),
+                ),
+                InfoRow::new(
+                    "5.25\"/1.2 MB floppy services are supported",
+                    fmt_bool(Some(c.floppy_525_12_supported)),
+                ),
+                InfoRow::new(
+                    "3.5\"/720 KB floppy services are supported",
+                    fmt_bool(Some(c.floppy_35_720_supported)),
+                ),
+                InfoRow::new(
+                    "3.5\"/2.88 MB floppy services are supported",
+                    fmt_bool(Some(c.floppy_35_288_supported)),
+                ),
+                InfoRow::new(
+                    "PrintScreen service are supported",
+                    fmt_bool(Some(c.print_screen_service_supported)),
+                ),
+                InfoRow::new(
+                    "8042 keyboard services are supported",
+                    fmt_bool(Some(c.keyboard_8042services_supported)),
+                ),
+                InfoRow::new(
+                    "Serial services are supported",
+                    fmt_bool(Some(c.serial_services_supported)),
+                ),
+                InfoRow::new(
+                    "Printer services are supported",
+                    fmt_bool(Some(c.printer_services_supported)),
+                ),
+                InfoRow::new(
+                    "CGA/Mono Video Services are supported",
+                    fmt_bool(Some(c.cga_mono_video_services_supported)),
+                ),
+                InfoRow::new("NEC PC-98 supported", fmt_bool(Some(c.nec_pc_98supported))),
+            ];
+            container(
+                column![
+                    text("BIOS Characteristics").style(text::warning),
+                    container(kv_info_table(rows)).style(container::rounded_box),
+                ]
+                .spacing(5),
+            )
+        }
+    }
+}
+
+fn bios_ext0_table<'a>(b: &'a Bios) -> container::Container<'a, Message> {
+    match &b.characteristics_extension0 {
+        None => container(text("Characteristics extension byte 0 not found!").style(text::danger)),
+        Some(b) => {
+            let rows = vec![
+                InfoRow::new("ACPI is supported", fmt_bool(Some(b.acpi_is_supported))),
+                InfoRow::new(
+                    "USB Legacy is supported",
+                    fmt_bool(Some(b.usb_legacy_is_supported)),
+                ),
+                InfoRow::new("AGP is supported", fmt_bool(Some(b.agp_is_supported))),
+                InfoRow::new(
+                    "I20 boot is supported",
+                    fmt_bool(Some(b.i2oboot_is_supported)),
+                ),
+                InfoRow::new(
+                    "LS-120 SuperDisk boot is supported",
+                    fmt_bool(Some(b.ls120super_disk_boot_is_supported)),
+                ),
+                InfoRow::new(
+                    "ATAPI ZIP drive boot is supported",
+                    fmt_bool(Some(b.atapi_zip_drive_boot_is_supported)),
+                ),
+                InfoRow::new(
+                    "1394 boot is supported",
+                    fmt_bool(Some(b.boot_1394is_supported)),
+                ),
+                InfoRow::new(
+                    "Smart battery is supported",
+                    fmt_bool(Some(b.smart_battery_is_supported)),
+                ),
+            ];
+            container(
+                column![
+                    text("BIOS Characteristics Extension byte 0").style(text::warning),
+                    container(kv_info_table(rows)).style(container::rounded_box),
+                ]
+                .spacing(5),
+            )
+        }
+    }
+}
+
+fn bios_ext1_table<'a>(b: &'a Bios) -> container::Container<'a, Message> {
+    match &b.characteristics_extension1 {
+        None => container(text("Characteristics extension byte 1 not found!").style(text::danger)),
+        Some(b) => {
+            let rows = vec![
+                InfoRow::new(
+                    "BIOS Boot Specification is supported",
+                    fmt_bool(Some(b.bios_boot_specification_is_supported)),
+                ),
+                InfoRow::new(
+                    "Function key-initiated network service boot is supported",
+                    fmt_bool(Some(b.fkey_initiated_network_boot_is_supported)),
+                ),
+                InfoRow::new(
+                    "Targeted content distribution is supported",
+                    fmt_bool(Some(b.targeted_content_distribution_is_supported)),
+                ),
+                InfoRow::new(
+                    "UEFI Specification is supported",
+                    fmt_bool(Some(b.uefi_specification_is_supported)),
+                ),
+                InfoRow::new(
+                    "SMBIOS table describes a virtual machine",
+                    fmt_bool(Some(b.smbios_table_describes_avirtual_machine)),
+                ),
+                InfoRow::new(
+                    "Manufacturing mode is supported",
+                    fmt_bool(Some(b.manufacturing_mode_is_supported)),
+                ),
+                InfoRow::new(
+                    "Manufacturing mode is enabled",
+                    fmt_bool(Some(b.manufacturing_mode_is_enabled)),
+                ),
+            ];
+            container(
+                column![
+                    text("BIOS Characteristics Extension byte 1").style(text::warning),
+                    container(kv_info_table(rows)).style(container::rounded_box),
+                ]
+                .spacing(5),
+            )
+        }
     }
 }
 
@@ -435,11 +687,11 @@ where
         table::column(hdr_name(fl!("hdr-param")), |row: InfoRow<V>| {
             text(row.param_header).wrapping(text::Wrapping::WordOrGlyph)
         })
-        .width(Length::FillPortion(1)),
+        .width(Length::FillPortion(2)),
         table::column(hdr_name(fl!("hdr-value")), |row: InfoRow<V>| {
             text_fmt_val(row.value)
         })
-        .width(Length::FillPortion(4)),
+        .width(Length::FillPortion(5)),
     ];
 
     table(columns, rows).padding(2).width(Length::Fill).into()

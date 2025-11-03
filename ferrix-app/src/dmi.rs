@@ -22,7 +22,7 @@
 
 use anyhow::Result;
 use async_std::task;
-use ferrix_lib::dmi::{Baseboard, Chassis, Processor};
+use ferrix_lib::dmi::{Baseboard, Chassis, Processor, Bios};
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 
@@ -86,6 +86,7 @@ impl DMIResult {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DMIData {
+    pub bios: Bios,
     pub baseboard: Baseboard,
     pub chassis: Chassis,
     pub processor: Processor,
@@ -94,6 +95,7 @@ pub struct DMIData {
 impl DMIData {
     pub fn new() -> Result<Self> {
         Ok(Self {
+            bios: Bios::new()?,
             baseboard: Baseboard::new()?,
             chassis: Chassis::new()?,
             processor: Processor::new()?,
