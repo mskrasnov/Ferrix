@@ -63,6 +63,25 @@ make install # to install Ferrix.
 make uninstall # to uninstall Ferrix from your system.
 ```
 
+### Cross compilation (Debian x86_64 glibc -> AArch64 glibc)
+
+Install the cross-compilator:
+
+```bash
+sudo dpkg --add-architecture arm64
+sudo apt update
+
+sudo apt install gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu libc6-dev-arm64-cross
+
+rustup target add aarch64-unknown-linux-gnu
+```
+
+Build Ferrix:
+
+```bash
+cargo build [--release] --target=aarch64-unknown-linux-gnu
+```
+
 ## Technology stack
 
 - **OS:** Linux with `glibc`, `dbus` and `systemd`;
