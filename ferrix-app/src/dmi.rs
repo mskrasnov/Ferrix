@@ -22,7 +22,7 @@
 
 use anyhow::Result;
 use async_std::task;
-use ferrix_lib::dmi::{Baseboard, Chassis};
+use ferrix_lib::dmi::{Baseboard, Chassis, Processor};
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 
@@ -88,6 +88,7 @@ impl DMIResult {
 pub struct DMIData {
     pub baseboard: Baseboard,
     pub chassis: Chassis,
+    pub processor: Processor,
 }
 
 impl DMIData {
@@ -95,6 +96,7 @@ impl DMIData {
         Ok(Self {
             baseboard: Baseboard::new()?,
             chassis: Chassis::new()?,
+            processor: Processor::new()?,
         })
     }
 }

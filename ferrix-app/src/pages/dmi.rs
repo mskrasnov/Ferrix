@@ -24,24 +24,32 @@ use crate::{
     DataLoadingState, Message,
     dmi::DMIResult,
     fl,
-    pages::{InfoRow, fmt_bool, fmt_val, hdr_name, text_fmt_val},
+    pages::{InfoRow, fmt_bool, fmt_val, fmt_vec, hdr_name, text_fmt_val},
 };
-use ferrix_lib::dmi::{Baseboard, Chassis, ChassisStateData};
+use ferrix_lib::dmi::{Baseboard, Chassis, ChassisStateData, Processor};
 
 use iced::{
     Element, Length,
     widget::{column, container, rule, scrollable, table, text},
 };
 
-pub fn chassis_page<'a>(dmi: &'a DataLoadingState<DMIResult>) -> container::Container<'a, Message> {
+pub fn dmi_page<'a>(dmi: &'a DataLoadingState<DMIResult>) -> container::Container<'a, Message> {
     match dmi {
         DataLoadingState::Loaded(dmi) => match dmi {
             DMIResult::Ok { data } => {
                 let baseboard = baseboard_table(&data.baseboard);
                 let chassis = chassis_table(&data.chassis);
+                let proc = processor_table(&data.processor);
 
                 container(scrollable(
-                    column![baseboard, rule::horizontal(1.), chassis,].spacing(5),
+                    column![
+                        baseboard,
+                        rule::horizontal(1.),
+                        chassis,
+                        rule::horizontal(1.),
+                        proc,
+                    ]
+                    .spacing(5),
                 ))
             }
             DMIResult::Error { error } => super::error_page(error),
@@ -207,6 +215,213 @@ fn chassis_state<'a>(
         ]
         .spacing(5),
     )
+}
+
+fn processor_table<'a>(p: &'a Processor) -> container::Container<'a, Message> {
+    let rows = vec![
+        InfoRow::new(
+            "Raw Processor ID",
+            match p.processor_id {
+                Some(pid) => fmt_vec(&Some(pid.to_vec())),
+                None => None,
+            },
+        ),
+        InfoRow::new("Socket reference designation", p.socked_designation.clone()),
+        InfoRow::new(
+            "Processor type",
+            match &p.processor_type {
+                Some(pt) => Some(pt.value.to_string()),
+                None => None,
+            },
+        ),
+        InfoRow::new(
+            "Processor family",
+            match &p.processor_family {
+                Some(pf) => Some(pf.value.to_string()),
+                None => None,
+            },
+        ),
+        InfoRow::new(
+            "Processor family #2",
+            match &p.processor_family_2 {
+                Some(pf) => Some(pf.value.to_string()),
+                None => None,
+            },
+        ),
+        InfoRow::new("Processor manufacturer", p.processor_manufacturer.clone()),
+        InfoRow::new("Processor version", p.processor_version.clone()),
+        InfoRow::new(
+            "External clock",
+            match &p.external_clock {
+                Some(ec) => Some(ec.to_string()),
+                None => None,
+            },
+        ),
+        InfoRow::new(
+            "Max speed",
+            match &p.max_speed {
+                Some(ms) => Some(ms.to_string()),
+                None => None,
+            },
+        ),
+        InfoRow::new(
+            "Current speed",
+            match &p.current_speed {
+                Some(cs) => Some(cs.to_string()),
+                None => None,
+            },
+        ),
+        InfoRow::new(
+            "Socket populated",
+            match &p.status {
+                Some(ps) => fmt_bool(Some(ps.socket_populated)),
+                None => None,
+            },
+        ),
+        InfoRow::new(
+            "CPU Status",
+            match &p.status {
+                Some(ps) => Some(ps.cpu_status.to_string()),
+                None => None,
+            },
+        ),
+        InfoRow::new(
+            "Processor Upgrade",
+            match &p.processor_upgrade {
+                Some(pu) => Some(pu.value.to_string()),
+                None => None,
+            },
+        ),
+        InfoRow::new("Serial number", p.serial_number.clone()),
+        InfoRow::new("Asset tag", p.asset_tag.clone()),
+        InfoRow::new("Part number", p.part_number.clone()),
+        InfoRow::new(
+            "Core count",
+            match &p.core_count {
+                Some(cc) => Some(cc.to_string()),
+                None => None,
+            },
+        ),
+        InfoRow::new(
+            "Cores enabled",
+            match &p.cores_enabled {
+                Some(ce) => Some(ce.to_string()),
+                None => None,
+            },
+        ),
+        InfoRow::new(
+            "Thread count",
+            match &p.thread_count {
+                Some(tc) => Some(tc.to_string()),
+                None => None,
+            },
+        ),
+        InfoRow::new(
+            "Core count #2",
+            match &p.core_count_2 {
+                Some(cc) => Some(cc.to_string()),
+                None => None,
+            },
+        ),
+        InfoRow::new(
+            "Cores enabled #2",
+            match &p.cores_enabled_2 {
+                Some(ce) => Some(ce.to_string()),
+                None => None,
+            },
+        ),
+        InfoRow::new(
+            "Thread count #2",
+            match &p.thread_count_2 {
+                Some(tc) => Some(tc.to_string()),
+                None => None,
+            },
+        ),
+    ];
+
+    container(
+        column![
+            text("Processor").style(text::warning),
+            container(kv_info_table(rows)).style(container::rounded_box),
+            processor_characteristics_table(p),
+            processor_voltage_table(p),
+        ]
+        .spacing(5),
+    )
+}
+
+fn processor_voltage_table<'a>(p: &'a Processor) -> container::Container<'a, Message> {
+    let voltage = &p.voltage;
+    match voltage {
+        None => container(text("Unknown processor voltage!").style(text::danger)),
+        Some(v) => {
+            let mut rows = vec![];
+            match v {
+                ferrix_lib::dmi::ProcessorVoltage::CurrentVolts(volts) => {
+                    rows.push(InfoRow::new("Current voltage", fmt_val(Some(volts))))
+                }
+                ferrix_lib::dmi::ProcessorVoltage::SupportedVolts(volts) => {
+                    rows.push(InfoRow::new(
+                        "5.0V Supported",
+                        fmt_bool(Some(volts.volts_5_0)),
+                    ));
+                    rows.push(InfoRow::new(
+                        "3.3V Supported",
+                        fmt_bool(Some(volts.volts_3_3)),
+                    ));
+                    rows.push(InfoRow::new(
+                        "2.9V Supported",
+                        fmt_bool(Some(volts.volts_2_9)),
+                    ));
+                    rows.push(InfoRow::new(
+                        "Other supported voltages",
+                        fmt_vec(&Some(volts.voltages.clone())),
+                    ));
+                }
+            }
+
+            container(
+                column![
+                    text("Processor voltage").style(text::warning),
+                    container(kv_info_table(rows)).style(container::rounded_box),
+                ]
+                .spacing(5),
+            )
+        }
+    }
+}
+
+fn processor_characteristics_table<'a>(p: &'a Processor) -> container::Container<'a, Message> {
+    let chars = &p.processors_characteristics;
+    match chars {
+        None => container(text("Processor characteristics is not present!").style(text::danger)),
+        Some(c) => {
+            let rows = vec![
+                InfoRow::new("64-bit capable", fmt_bool(Some(c.bit_64capable))),
+                InfoRow::new("128-bit capable", fmt_bool(Some(c.bit_128capable))),
+                InfoRow::new("Multi core", fmt_bool(Some(c.multi_core))),
+                InfoRow::new("Hardware thread", fmt_bool(Some(c.hardware_thread))),
+                InfoRow::new("Execute protection", fmt_bool(Some(c.execute_protection))),
+                InfoRow::new(
+                    "Enhanced Virtualization",
+                    fmt_bool(Some(c.enhanced_virtualization)),
+                ),
+                InfoRow::new(
+                    "Power/performance control",
+                    fmt_bool(Some(c.power_perfomance_control)),
+                ),
+                InfoRow::new("ARM64 SoC ID", fmt_bool(Some(c.arm_64soc_id))),
+            ];
+
+            container(
+                column![
+                    text("Processor characteristics").style(text::warning),
+                    container(kv_info_table(rows)).style(container::rounded_box),
+                ]
+                .spacing(5),
+            )
+        }
+    }
 }
 
 /*******************************************************

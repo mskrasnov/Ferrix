@@ -179,6 +179,15 @@ impl From<smbioslib::Handle> for Handle {
     }
 }
 
+impl Handle {
+    pub fn from_opt(opt: Option<smbioslib::Handle>) -> Option<Self> {
+        match opt {
+            Some(handle) => Some(Handle::from(handle)),
+            None => None,
+        }
+    }
+}
+
 impl Display for Handle {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
@@ -1440,17 +1449,1342 @@ impl Chassis {
 
 impl ToJson for Chassis {}
 
+///////////////////////////////////////////////////////////////////////////////////
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ProcessorTypeData {
+    pub raw: u8,
+    pub value: ProcessorType,
+}
+
+impl From<smbioslib::ProcessorTypeData> for ProcessorTypeData {
+    fn from(value: smbioslib::ProcessorTypeData) -> Self {
+        Self {
+            raw: value.raw,
+            value: ProcessorType::from(value.value),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub enum ProcessorType {
+    Other,
+    Unknown,
+    CentralProcessor,
+    MathProcessor,
+    DspProcessor,
+    VideoProcessor,
+    None,
+}
+
+impl Display for ProcessorType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Other => "Other",
+                Self::Unknown => "Unknown",
+                Self::CentralProcessor => "Central Processor",
+                Self::MathProcessor => "Math Processor",
+                Self::DspProcessor => "DSP Processor",
+                Self::VideoProcessor => "Video Processor",
+                Self::None => "A value unknown for this standard, check the raw value",
+            }
+        )
+    }
+}
+
+impl From<smbioslib::ProcessorType> for ProcessorType {
+    fn from(value: smbioslib::ProcessorType) -> Self {
+        match value {
+            smbioslib::ProcessorType::Other => Self::Other,
+            smbioslib::ProcessorType::Unknown => Self::Unknown,
+            smbioslib::ProcessorType::CentralProcessor => Self::CentralProcessor,
+            smbioslib::ProcessorType::MathProcessor => Self::MathProcessor,
+            smbioslib::ProcessorType::DspProcessor => Self::DspProcessor,
+            smbioslib::ProcessorType::VideoProcessor => Self::VideoProcessor,
+            smbioslib::ProcessorType::None => Self::None,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ProcessorFamilyData {
+    pub raw: u8,
+    pub value: ProcessorFamily,
+}
+
+impl From<smbioslib::ProcessorFamilyData> for ProcessorFamilyData {
+    fn from(value: smbioslib::ProcessorFamilyData) -> Self {
+        Self {
+            raw: value.raw,
+            value: ProcessorFamily::from(value.value),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub enum ProcessorFamily {
+    Other,
+    Unknown,
+    IntelPentiumProcessor,
+    PentiumProProcessor,
+    PentiumIIProcessor,
+    PentiumprocessorwithMMXtechnology,
+    IntelCeleronProcessor,
+    PentiumIIXeonProcessor,
+    PentiumIIIProcessor,
+    M1Family,
+    M2Family,
+    IntelCeleronMProcessor,
+    IntelPentium4HTProcessor,
+    AMDDuronProcessorFamily,
+    K5Family,
+    K6Family,
+    K62,
+    K63,
+    AMDAthlonProcessorFamily,
+    AMD29000Family,
+    K62Plus,
+    IntelCoreDuoProcessor,
+    IntelCoreDuomobileProcessor,
+    IntelCoreSolomobileProcessor,
+    IntelAtomProcessor,
+    IntelCoreMProcessor,
+    IntelCorem3Processor,
+    IntelCorem5Processor,
+    IntelCorem7Processor,
+    AMDTurionIIUltraDualCoreMobileMProcessorFamily,
+    AMDTurionIIDualCoreMobileMProcessorFamily,
+    AMDAthlonIIDualCoreMProcessorFamily,
+    AMDOpteron6100SeriesProcessor,
+    AMDOpteron4100SeriesProcessor,
+    AMDOpteron6200SeriesProcessor,
+    AMDOpteron4200SeriesProcessor,
+    AMDFXSeriesProcessor,
+    AMDCSeriesProcessor,
+    AMDESeriesProcessor,
+    AMDASeriesProcessor,
+    AMDGSeriesProcessor,
+    AMDZSeriesProcessor,
+    AMDRSeriesProcessor,
+    AMDOpteron4300SeriesProcessor,
+    AMDOpteron6300SeriesProcessor,
+    AMDOpteron3300SeriesProcessor,
+    AMDFireProSeriesProcessor,
+    AMDAthlonX4QuadCoreProcessorFamily,
+    AMDOpteronX1000SeriesProcessor,
+    AMDOpteronX2000SeriesAPU,
+    AMDOpteronASeriesProcessor,
+    AMDOpteronX3000SeriesAPU,
+    AMDZenProcessorFamily,
+    Itaniumprocessor,
+    AMDAthlon64ProcessorFamily,
+    AMDOpteronProcessorFamily,
+    AMDSempronProcessorFamily,
+    AMDTurion64MobileTechnology,
+    DualCoreAMDOpteronProcessorFamily,
+    AMDAthlon64X2DualCoreProcessorFamily,
+    AMDTurion64X2MobileTechnology,
+    QuadCoreAMDOpteronProcessorFamily,
+    ThirdGenerationAMDOpteronProcessorFamily,
+    AMDPhenomFXQuadCoreProcessorFamily,
+    AMDPhenomX4QuadCoreProcessorFamily,
+    AMDPhenomX2DualCoreProcessorFamily,
+    AMDAthlonX2DualCoreProcessorFamily,
+    QuadCoreIntelXeonProcessor3200Series,
+    DualCoreIntelXeonProcessor3000Series,
+    QuadCoreIntelXeonProcessor5300Series,
+    DualCoreIntelXeonProcessor5100Series,
+    DualCoreIntelXeonProcessor5000Series,
+    DualCoreIntelXeonProcessorLV,
+    DualCoreIntelXeonProcessorULV,
+    DualCoreIntelXeonProcessor7100Series,
+    QuadCoreIntelXeonProcessor5400Series,
+    QuadCoreIntelXeonProcessor,
+    DualCoreIntelXeonProcessor5200Series,
+    DualCoreIntelXeonProcessor7200Series,
+    QuadCoreIntelXeonProcessor7300Series,
+    QuadCoreIntelXeonProcessor7400Series,
+    MultiCoreIntelXeonProcessor7400Series,
+    PentiumIIIXeonProcessor,
+    PentiumIIIProcessorwithIntelSpeedStepTechnology,
+    Pentium4Processor,
+    IntelXeonProcessor,
+    IntelXeonProcessorMP,
+    AMDAthlonXPProcessorFamily,
+    AMDAthlonMPProcessorFamily,
+    IntelItanium2Processor,
+    IntelPentiumMProcessor,
+    IntelCeleronDProcessor,
+    IntelPentiumDProcessor,
+    IntelPentiumProcessorExtremeEdition,
+    IntelCoreSoloProcessor,
+    IntelCore2DuoProcessor,
+    IntelCore2SoloProcessor,
+    IntelCore2ExtremeProcessor,
+    IntelCore2QuadProcessor,
+    IntelCore2ExtremeMobileProcessor,
+    IntelCore2DuoMobileProcessor,
+    IntelCore2SoloMobileProcessor,
+    IntelCorei7Processor,
+    DualCoreIntelCeleronProcessor,
+    IntelCorei5processor,
+    IntelCorei3processor,
+    IntelCorei9processor,
+    MultiCoreIntelXeonProcessor,
+    DualCoreIntelXeonProcessor3xxxSeries,
+    QuadCoreIntelXeonProcessor3xxxSeries,
+    DualCoreIntelXeonProcessor5xxxSeries,
+    QuadCoreIntelXeonProcessor5xxxSeries,
+    DualCoreIntelXeonProcessor7xxxSeries,
+    QuadCoreIntelXeonProcessor7xxxSeries,
+    MultiCoreIntelXeonProcessor7xxxSeries,
+    MultiCoreIntelXeonProcessor3400Series,
+    AMDOpteron3000SeriesProcessor,
+    AMDSempronIIProcessor,
+    EmbeddedAMDOpteronQuadCoreProcessorFamily,
+    AMDPhenomTripleCoreProcessorFamily,
+    AMDTurionUltraDualCoreMobileProcessorFamily,
+    AMDTurionDualCoreMobileProcessorFamily,
+    AMDAthlonDualCoreProcessorFamily,
+    AMDSempronSIProcessorFamily,
+    AMDPhenomIIProcessorFamily,
+    AMDAthlonIIProcessorFamily,
+    SixCoreAMDOpteronProcessorFamily,
+    AMDSempronMProcessorFamily,
+    SeeProcessorFamily2,
+    ARMv7,
+    ARMv8,
+    ARMv9,
+    ARM,
+    StrongARM,
+    VideoProcessor,
+    None,
+}
+
+impl Display for ProcessorFamily {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Other => "Other",
+                Self::Unknown => "Unknown",
+                Self::IntelPentiumProcessor => "Intel® Pentium® processor",
+                Self::PentiumProProcessor => "Intel® Pentium® Pro processor",
+                Self::PentiumIIProcessor => "Pentium® II processor",
+                Self::PentiumprocessorwithMMXtechnology =>
+                    "Pentium® processor with MMX™ technology",
+                Self::IntelCeleronProcessor => "Intel® Celeron® processor",
+                Self::PentiumIIXeonProcessor => "Pentium® II Xeon™ processor",
+                Self::PentiumIIIProcessor => "Pentium® III processor",
+                Self::M1Family => "M1 Family",
+                Self::M2Family => "M2 Family",
+                Self::IntelCeleronMProcessor => "Intel® Celeron® M processor",
+                Self::IntelPentium4HTProcessor => "Intel® Pentium® 4 HT processor",
+                Self::AMDDuronProcessorFamily => "AMD Duron™ Processor Family",
+                Self::K5Family => "K5 Family",
+                Self::K6Family => "K6 Family",
+                Self::K62 => "K6-2",
+                Self::K63 => "K6-3",
+                Self::AMDAthlonProcessorFamily => "AMD Athlon™ Processor Family",
+                Self::AMD29000Family => "AMD29000 Family",
+                Self::K62Plus => "K6-2+",
+                Self::IntelCoreDuoProcessor => "Intel® Core™ Duo processor",
+                Self::IntelCoreDuomobileProcessor => "Intel® Core™ Duo mobile processor",
+                Self::IntelCoreSolomobileProcessor => "Intel® Core™ Solo mobile processor",
+                Self::IntelAtomProcessor => "Intel® Atom™ processor",
+                Self::IntelCoreMProcessor => "Intel® Core™ M processor",
+                Self::IntelCorem3Processor => "Intel® Core™ m3 processor",
+                Self::IntelCorem5Processor => "Intel® Core™ m5 processor",
+                Self::IntelCorem7Processor => "Intel® Core™ m7 processor",
+                Self::AMDTurionIIUltraDualCoreMobileMProcessorFamily =>
+                    "AMD Turion™ II Ultra Dual-Core Mobile M Processor Family",
+                Self::AMDTurionIIDualCoreMobileMProcessorFamily =>
+                    "AMD Turion™ II Dual-Core Mobile M Processor Family",
+                Self::AMDAthlonIIDualCoreMProcessorFamily =>
+                    "AMD Athlon™ II Dual-Core M Processor Family",
+                Self::AMDOpteron6100SeriesProcessor => "AMD Opteron™ 6100 Series Processor",
+                Self::AMDOpteron4100SeriesProcessor => "AMD Opteron™ 4100 Series Processor",
+                Self::AMDOpteron6200SeriesProcessor => "AMD Opteron™ 6200 Series Processor",
+                Self::AMDOpteron4200SeriesProcessor => "AMD Opteron™ 4200 Series Processor",
+                Self::AMDFXSeriesProcessor => "AMD FX™ Series Processor",
+                Self::AMDCSeriesProcessor => "AMD C-Series Processor",
+                Self::AMDESeriesProcessor => "AMD E-Series Processor",
+                Self::AMDASeriesProcessor => "AMD A-Series Processor",
+                Self::AMDGSeriesProcessor => "AMD G-Series Processor",
+                Self::AMDZSeriesProcessor => "AMD Z-Series Processor",
+                Self::AMDRSeriesProcessor => "AMD R-Series Processor",
+                Self::AMDOpteron4300SeriesProcessor => "AMD Opteron™ 4300 Series Processor",
+                Self::AMDOpteron6300SeriesProcessor => "AMD Opteron™ 6300 Series Processor",
+                Self::AMDOpteron3300SeriesProcessor => "AMD Opteron™ 3300 Series Processor",
+                Self::AMDFireProSeriesProcessor => "AMD FirePro™ Series Processor",
+                Self::AMDAthlonX4QuadCoreProcessorFamily =>
+                    "AMD Athlon(TM) X4 Quad-Core Processor Family",
+                Self::AMDOpteronX1000SeriesProcessor => "AMD Opteron(TM) X1000 Series Processor",
+                Self::AMDOpteronX2000SeriesAPU => "AMD Opteron(TM) X2000 Series APU",
+                Self::AMDOpteronASeriesProcessor => "AMD Opteron(TM) A-Series Processor",
+                Self::AMDOpteronX3000SeriesAPU => "AMD Opteron(TM) X3000 Series APU",
+                Self::AMDZenProcessorFamily => "AMD Zen Processor Family",
+                Self::Itaniumprocessor => "Itanium™ processor",
+                Self::AMDAthlon64ProcessorFamily => "AMD Athlon™ 64 Processor Family",
+                Self::AMDOpteronProcessorFamily => "AMD Opteron™ Processor Family",
+                Self::AMDSempronProcessorFamily => "AMD Sempron™ Processor Family",
+                Self::AMDTurion64MobileTechnology => "AMD Turion™ 64 Mobile Technology",
+                Self::DualCoreAMDOpteronProcessorFamily =>
+                    "Dual-Core AMD Opteron™ Processor Family",
+                Self::AMDAthlon64X2DualCoreProcessorFamily =>
+                    "AMD Athlon™ 64 X2 Dual-Core Processor Family",
+                Self::AMDTurion64X2MobileTechnology => "AMD Turion™ 64 X2 Mobile Technology",
+                Self::QuadCoreAMDOpteronProcessorFamily =>
+                    "Quad-Core AMD Opteron™ Processor Family",
+                Self::ThirdGenerationAMDOpteronProcessorFamily =>
+                    "Third-Generation AMD Opteron™ Processor Family",
+                Self::AMDPhenomFXQuadCoreProcessorFamily =>
+                    "AMD Phenom™ FX Quad-Core Processor Family",
+                Self::AMDPhenomX4QuadCoreProcessorFamily =>
+                    "AMD Phenom™ X4 Quad-Core Processor Family",
+                Self::AMDPhenomX2DualCoreProcessorFamily =>
+                    "AMD Phenom™ X2 Dual-Core Processor Family",
+                Self::AMDAthlonX2DualCoreProcessorFamily =>
+                    "AMD Athlon™ X2 Dual-Core Processor Family",
+                Self::QuadCoreIntelXeonProcessor3200Series =>
+                    "Quad-Core Intel® Xeon® processor 3200 Series",
+                Self::DualCoreIntelXeonProcessor3000Series =>
+                    "Dual-Core Intel® Xeon® processor 3000 Series",
+                Self::QuadCoreIntelXeonProcessor5300Series =>
+                    "Quad-Core Intel® Xeon® processor 5300 Series",
+                Self::DualCoreIntelXeonProcessor5100Series =>
+                    "Dual-Core Intel® Xeon® processor 5100 Series",
+                Self::DualCoreIntelXeonProcessor5000Series =>
+                    "Dual-Core Intel® Xeon® processor 5000 Series",
+                Self::DualCoreIntelXeonProcessorLV => "Dual-Core Intel® Xeon® processor LV",
+                Self::DualCoreIntelXeonProcessorULV => "Dual-Core Intel® Xeon® processor ULV",
+                Self::DualCoreIntelXeonProcessor7100Series =>
+                    "Dual-Core Intel® Xeon® processor 7100 Series",
+                Self::QuadCoreIntelXeonProcessor5400Series =>
+                    "Quad-Core Intel® Xeon® processor 5400 Series",
+                Self::QuadCoreIntelXeonProcessor => "Quad-Core Intel® Xeon® processor",
+                Self::DualCoreIntelXeonProcessor5200Series =>
+                    "Dual-Core Intel® Xeon® processor 5200 Series",
+                Self::DualCoreIntelXeonProcessor7200Series =>
+                    "Dual-Core Intel® Xeon® processor 7200 Series",
+                Self::QuadCoreIntelXeonProcessor7300Series =>
+                    "Quad-Core Intel® Xeon® processor 7300 Series",
+                Self::QuadCoreIntelXeonProcessor7400Series =>
+                    "Quad-Core Intel® Xeon® processor 7400 Series",
+                Self::MultiCoreIntelXeonProcessor7400Series =>
+                    "Multi-Core Intel® Xeon® processor 7400 Series",
+                Self::PentiumIIIXeonProcessor => "Pentium® III Xeon™ processor",
+                Self::PentiumIIIProcessorwithIntelSpeedStepTechnology =>
+                    "Pentium® III Processor with Intel® SpeedStep™ Technology",
+                Self::Pentium4Processor => "Pentium® 4 Processor",
+                Self::IntelXeonProcessor => "Intel® Xeon® processor",
+                Self::IntelXeonProcessorMP => "Intel® Xeon™ processor MP",
+                Self::AMDAthlonXPProcessorFamily => "AMD Athlon™ XP Processor Family",
+                Self::AMDAthlonMPProcessorFamily => "AMD Athlon™ MP Processor Family",
+                Self::IntelItanium2Processor => "Intel® Itanium® 2 processor",
+                Self::IntelPentiumMProcessor => "Intel® Pentium® M processor",
+                Self::IntelCeleronDProcessor => "Intel® Celeron® D processor",
+                Self::IntelPentiumDProcessor => "Intel® Pentium® D processor",
+                Self::IntelPentiumProcessorExtremeEdition =>
+                    "Intel® Pentium® Processor Extreme Edition",
+                Self::IntelCoreSoloProcessor => "Intel® Core™ Solo Processor",
+                Self::IntelCore2DuoProcessor => "Intel® Core™ 2 Duo Processor",
+                Self::IntelCore2SoloProcessor => "Intel® Core™ 2 Solo processor",
+                Self::IntelCore2ExtremeProcessor => "Intel® Core™ 2 Extreme processor",
+                Self::IntelCore2QuadProcessor => "Intel® Core™ 2 Quad processor",
+                Self::IntelCore2ExtremeMobileProcessor => "Intel® Core™ 2 Extreme mobile processor",
+                Self::IntelCore2DuoMobileProcessor => "Intel® Core™ 2 Duo mobile processor",
+                Self::IntelCore2SoloMobileProcessor => "Intel® Core™ 2 Solo mobile processor",
+                Self::IntelCorei7Processor => "Intel® Core™ i7 processor",
+                Self::DualCoreIntelCeleronProcessor => "Dual-Core Intel® Celeron® processor",
+                Self::IntelCorei5processor => "Intel® Core™ i5 processor",
+                Self::IntelCorei3processor => "Intel® Core™ i3 processor",
+                Self::IntelCorei9processor => "Intel® Core™ i9 processor",
+                Self::MultiCoreIntelXeonProcessor => "Multi-Core Intel® Xeon® processor",
+                Self::DualCoreIntelXeonProcessor3xxxSeries =>
+                    "Dual-Core Intel® Xeon® processor 3xxx Series",
+                Self::QuadCoreIntelXeonProcessor3xxxSeries =>
+                    "Quad-Core Intel® Xeon® processor 3xxx Series",
+                Self::DualCoreIntelXeonProcessor5xxxSeries =>
+                    "Dual-Core Intel® Xeon® processor 5xxx Series",
+                Self::QuadCoreIntelXeonProcessor5xxxSeries =>
+                    "Quad-Core Intel® Xeon® processor 5xxx Series",
+                Self::DualCoreIntelXeonProcessor7xxxSeries =>
+                    "Dual-Core Intel® Xeon® processor 7xxx Series",
+                Self::QuadCoreIntelXeonProcessor7xxxSeries =>
+                    "Quad-Core Intel® Xeon® processor 7xxx Series",
+                Self::MultiCoreIntelXeonProcessor7xxxSeries =>
+                    "Multi-Core Intel® Xeon® processor 7xxx Series",
+                Self::MultiCoreIntelXeonProcessor3400Series =>
+                    "Multi-Core Intel® Xeon® processor 3400 Series",
+                Self::AMDOpteron3000SeriesProcessor => "AMD Opteron™ 3000 Series Processor",
+                Self::AMDSempronIIProcessor => "AMD Sempron™ II Processor",
+                Self::EmbeddedAMDOpteronQuadCoreProcessorFamily =>
+                    "Embedded AMD Opteron™ Quad-Core Processor Family",
+                Self::AMDPhenomTripleCoreProcessorFamily =>
+                    "AMD Phenom™ Triple-Core Processor Family",
+                Self::AMDTurionUltraDualCoreMobileProcessorFamily =>
+                    "AMD Turion™ Ultra Dual-Core Mobile Processor Family",
+                Self::AMDTurionDualCoreMobileProcessorFamily =>
+                    "AMD Turion™ Dual-Core Mobile Processor Family",
+                Self::AMDAthlonDualCoreProcessorFamily => "AMD Athlon™ Dual-Core Processor Family",
+                Self::AMDSempronSIProcessorFamily => "AMD Sempron™ SI Processor Family",
+                Self::AMDPhenomIIProcessorFamily => "AMD Phenom™ II Processor Family",
+                Self::AMDAthlonIIProcessorFamily => "AMD Athlon™ II Processor Family",
+                Self::SixCoreAMDOpteronProcessorFamily => "Six-Core AMD Opteron™ Processor Family",
+                Self::AMDSempronMProcessorFamily => "AMD Sempron™ M Processor Family",
+                Self::SeeProcessorFamily2 => "See the next processor family field",
+                Self::ARMv7 => "ARMv7",
+                Self::ARMv8 => "ARMv8",
+                Self::ARMv9 => "ARMv9",
+                Self::ARM => "ARM",
+                Self::StrongARM => "StrongARM",
+                Self::VideoProcessor => "Video Processor",
+                Self::None => "A value unknown to this standard, check the raw value",
+            }
+        )
+    }
+}
+
+impl From<smbioslib::ProcessorFamily> for ProcessorFamily {
+    fn from(value: smbioslib::ProcessorFamily) -> Self {
+        match value {
+            smbioslib::ProcessorFamily::Other => Self::Other,
+            smbioslib::ProcessorFamily::Unknown => Self::Unknown,
+            smbioslib::ProcessorFamily::IntelPentiumProcessor => Self::IntelPentiumProcessor,
+            smbioslib::ProcessorFamily::PentiumProProcessor => Self::PentiumProProcessor,
+            smbioslib::ProcessorFamily::PentiumIIProcessor => Self::PentiumIIProcessor,
+            smbioslib::ProcessorFamily::PentiumprocessorwithMMXtechnology => {
+                Self::PentiumprocessorwithMMXtechnology
+            }
+            smbioslib::ProcessorFamily::IntelCeleronProcessor => Self::IntelCeleronProcessor,
+            smbioslib::ProcessorFamily::PentiumIIXeonProcessor => Self::PentiumIIXeonProcessor,
+            smbioslib::ProcessorFamily::PentiumIIIProcessor => Self::PentiumIIIProcessor,
+            smbioslib::ProcessorFamily::M1Family => Self::M1Family,
+            smbioslib::ProcessorFamily::M2Family => Self::M2Family,
+            smbioslib::ProcessorFamily::IntelCeleronMProcessor => Self::IntelCeleronMProcessor,
+            smbioslib::ProcessorFamily::IntelPentium4HTProcessor => Self::IntelPentium4HTProcessor,
+            smbioslib::ProcessorFamily::AMDDuronProcessorFamily => Self::AMDDuronProcessorFamily,
+            smbioslib::ProcessorFamily::K5Family => Self::K5Family,
+            smbioslib::ProcessorFamily::K6Family => Self::K6Family,
+            smbioslib::ProcessorFamily::K62 => Self::K62,
+            smbioslib::ProcessorFamily::K63 => Self::K63,
+            smbioslib::ProcessorFamily::AMDAthlonProcessorFamily => Self::AMDAthlonProcessorFamily,
+            smbioslib::ProcessorFamily::AMD29000Family => Self::AMD29000Family,
+            smbioslib::ProcessorFamily::K62Plus => Self::K62Plus,
+            smbioslib::ProcessorFamily::IntelCoreDuoProcessor => Self::IntelCoreDuoProcessor,
+            smbioslib::ProcessorFamily::IntelCoreDuomobileProcessor => {
+                Self::IntelCoreDuomobileProcessor
+            }
+            smbioslib::ProcessorFamily::IntelCoreSolomobileProcessor => {
+                Self::IntelCoreSolomobileProcessor
+            }
+            smbioslib::ProcessorFamily::IntelAtomProcessor => Self::IntelAtomProcessor,
+            smbioslib::ProcessorFamily::IntelCoreMProcessor => Self::IntelCoreMProcessor,
+            smbioslib::ProcessorFamily::IntelCorem3Processor => Self::IntelCorem3Processor,
+            smbioslib::ProcessorFamily::IntelCorem5Processor => Self::IntelCorem5Processor,
+            smbioslib::ProcessorFamily::IntelCorem7Processor => Self::IntelCorem7Processor,
+            smbioslib::ProcessorFamily::AMDTurionIIUltraDualCoreMobileMProcessorFamily => {
+                Self::AMDTurionIIUltraDualCoreMobileMProcessorFamily
+            }
+            smbioslib::ProcessorFamily::AMDTurionIIDualCoreMobileMProcessorFamily => {
+                Self::AMDTurionIIDualCoreMobileMProcessorFamily
+            }
+            smbioslib::ProcessorFamily::AMDAthlonIIDualCoreMProcessorFamily => {
+                Self::AMDAthlonIIDualCoreMProcessorFamily
+            }
+            smbioslib::ProcessorFamily::AMDOpteron6100SeriesProcessor => {
+                Self::AMDOpteron6100SeriesProcessor
+            }
+            smbioslib::ProcessorFamily::AMDOpteron4100SeriesProcessor => {
+                Self::AMDOpteron4100SeriesProcessor
+            }
+            smbioslib::ProcessorFamily::AMDOpteron6200SeriesProcessor => {
+                Self::AMDOpteron6200SeriesProcessor
+            }
+            smbioslib::ProcessorFamily::AMDOpteron4200SeriesProcessor => {
+                Self::AMDOpteron4200SeriesProcessor
+            }
+            smbioslib::ProcessorFamily::AMDFXSeriesProcessor => Self::AMDFXSeriesProcessor,
+            smbioslib::ProcessorFamily::AMDCSeriesProcessor => Self::AMDCSeriesProcessor,
+            smbioslib::ProcessorFamily::AMDESeriesProcessor => Self::AMDESeriesProcessor,
+            smbioslib::ProcessorFamily::AMDASeriesProcessor => Self::AMDASeriesProcessor,
+            smbioslib::ProcessorFamily::AMDGSeriesProcessor => Self::AMDGSeriesProcessor,
+            smbioslib::ProcessorFamily::AMDZSeriesProcessor => Self::AMDZSeriesProcessor,
+            smbioslib::ProcessorFamily::AMDRSeriesProcessor => Self::AMDRSeriesProcessor,
+            smbioslib::ProcessorFamily::AMDOpteron4300SeriesProcessor => {
+                Self::AMDOpteron4300SeriesProcessor
+            }
+            smbioslib::ProcessorFamily::AMDOpteron6300SeriesProcessor => {
+                Self::AMDOpteron6300SeriesProcessor
+            }
+            smbioslib::ProcessorFamily::AMDOpteron3300SeriesProcessor => {
+                Self::AMDOpteron3300SeriesProcessor
+            }
+            smbioslib::ProcessorFamily::AMDFireProSeriesProcessor => {
+                Self::AMDFireProSeriesProcessor
+            }
+            smbioslib::ProcessorFamily::AMDAthlonX4QuadCoreProcessorFamily => {
+                Self::AMDAthlonX4QuadCoreProcessorFamily
+            }
+            smbioslib::ProcessorFamily::AMDOpteronX1000SeriesProcessor => {
+                Self::AMDOpteronX1000SeriesProcessor
+            }
+            smbioslib::ProcessorFamily::AMDOpteronX2000SeriesAPU => Self::AMDOpteronX2000SeriesAPU,
+            smbioslib::ProcessorFamily::AMDOpteronASeriesProcessor => {
+                Self::AMDOpteronASeriesProcessor
+            }
+            smbioslib::ProcessorFamily::AMDOpteronX3000SeriesAPU => Self::AMDOpteronX3000SeriesAPU,
+            smbioslib::ProcessorFamily::AMDZenProcessorFamily => Self::AMDZenProcessorFamily,
+            smbioslib::ProcessorFamily::Itaniumprocessor => Self::Itaniumprocessor,
+            smbioslib::ProcessorFamily::AMDAthlon64ProcessorFamily => {
+                Self::AMDAthlon64ProcessorFamily
+            }
+            smbioslib::ProcessorFamily::AMDOpteronProcessorFamily => {
+                Self::AMDOpteronProcessorFamily
+            }
+            smbioslib::ProcessorFamily::AMDSempronProcessorFamily => {
+                Self::AMDSempronProcessorFamily
+            }
+            smbioslib::ProcessorFamily::AMDTurion64MobileTechnology => {
+                Self::AMDTurion64MobileTechnology
+            }
+            smbioslib::ProcessorFamily::DualCoreAMDOpteronProcessorFamily => {
+                Self::DualCoreAMDOpteronProcessorFamily
+            }
+            smbioslib::ProcessorFamily::AMDAthlon64X2DualCoreProcessorFamily => {
+                Self::AMDAthlon64X2DualCoreProcessorFamily
+            }
+            smbioslib::ProcessorFamily::AMDTurion64X2MobileTechnology => {
+                Self::AMDTurion64X2MobileTechnology
+            }
+            smbioslib::ProcessorFamily::QuadCoreAMDOpteronProcessorFamily => {
+                Self::QuadCoreAMDOpteronProcessorFamily
+            }
+            smbioslib::ProcessorFamily::ThirdGenerationAMDOpteronProcessorFamily => {
+                Self::ThirdGenerationAMDOpteronProcessorFamily
+            }
+            smbioslib::ProcessorFamily::AMDPhenomFXQuadCoreProcessorFamily => {
+                Self::AMDPhenomFXQuadCoreProcessorFamily
+            }
+            smbioslib::ProcessorFamily::AMDPhenomX4QuadCoreProcessorFamily => {
+                Self::AMDPhenomX4QuadCoreProcessorFamily
+            }
+            smbioslib::ProcessorFamily::AMDPhenomX2DualCoreProcessorFamily => {
+                Self::AMDPhenomX2DualCoreProcessorFamily
+            }
+            smbioslib::ProcessorFamily::AMDAthlonX2DualCoreProcessorFamily => {
+                Self::AMDAthlonX2DualCoreProcessorFamily
+            }
+            smbioslib::ProcessorFamily::QuadCoreIntelXeonProcessor3200Series => {
+                Self::QuadCoreIntelXeonProcessor3200Series
+            }
+            smbioslib::ProcessorFamily::DualCoreIntelXeonProcessor3000Series => {
+                Self::DualCoreIntelXeonProcessor3000Series
+            }
+            smbioslib::ProcessorFamily::QuadCoreIntelXeonProcessor5300Series => {
+                Self::QuadCoreIntelXeonProcessor5300Series
+            }
+            smbioslib::ProcessorFamily::DualCoreIntelXeonProcessor5100Series => {
+                Self::DualCoreIntelXeonProcessor5100Series
+            }
+            smbioslib::ProcessorFamily::DualCoreIntelXeonProcessor5000Series => {
+                Self::DualCoreIntelXeonProcessor5000Series
+            }
+            smbioslib::ProcessorFamily::DualCoreIntelXeonProcessorLV => {
+                Self::DualCoreIntelXeonProcessorLV
+            }
+            smbioslib::ProcessorFamily::DualCoreIntelXeonProcessorULV => {
+                Self::DualCoreIntelXeonProcessorULV
+            }
+            smbioslib::ProcessorFamily::DualCoreIntelXeonProcessor7100Series => {
+                Self::DualCoreIntelXeonProcessor7100Series
+            }
+            smbioslib::ProcessorFamily::QuadCoreIntelXeonProcessor5400Series => {
+                Self::QuadCoreIntelXeonProcessor5400Series
+            }
+            smbioslib::ProcessorFamily::QuadCoreIntelXeonProcessor => {
+                Self::QuadCoreIntelXeonProcessor
+            }
+            smbioslib::ProcessorFamily::DualCoreIntelXeonProcessor5200Series => {
+                Self::DualCoreIntelXeonProcessor5200Series
+            }
+            smbioslib::ProcessorFamily::DualCoreIntelXeonProcessor7200Series => {
+                Self::DualCoreIntelXeonProcessor7200Series
+            }
+            smbioslib::ProcessorFamily::QuadCoreIntelXeonProcessor7300Series => {
+                Self::QuadCoreIntelXeonProcessor7300Series
+            }
+            smbioslib::ProcessorFamily::QuadCoreIntelXeonProcessor7400Series => {
+                Self::QuadCoreIntelXeonProcessor7400Series
+            }
+            smbioslib::ProcessorFamily::MultiCoreIntelXeonProcessor7400Series => {
+                Self::MultiCoreIntelXeonProcessor7400Series
+            }
+            smbioslib::ProcessorFamily::PentiumIIIXeonProcessor => Self::PentiumIIIXeonProcessor,
+            smbioslib::ProcessorFamily::PentiumIIIProcessorwithIntelSpeedStepTechnology => {
+                Self::PentiumIIIProcessorwithIntelSpeedStepTechnology
+            }
+            smbioslib::ProcessorFamily::Pentium4Processor => Self::Pentium4Processor,
+            smbioslib::ProcessorFamily::IntelXeonProcessor => Self::IntelXeonProcessor,
+            smbioslib::ProcessorFamily::IntelXeonProcessorMP => Self::IntelXeonProcessorMP,
+            smbioslib::ProcessorFamily::AMDAthlonXPProcessorFamily => {
+                Self::AMDAthlonXPProcessorFamily
+            }
+            smbioslib::ProcessorFamily::AMDAthlonMPProcessorFamily => {
+                Self::AMDAthlonMPProcessorFamily
+            }
+            smbioslib::ProcessorFamily::IntelItanium2Processor => Self::IntelItanium2Processor,
+            smbioslib::ProcessorFamily::IntelPentiumMProcessor => Self::IntelPentiumMProcessor,
+            smbioslib::ProcessorFamily::IntelCeleronDProcessor => Self::IntelCeleronDProcessor,
+            smbioslib::ProcessorFamily::IntelPentiumDProcessor => Self::IntelPentiumDProcessor,
+            smbioslib::ProcessorFamily::IntelPentiumProcessorExtremeEdition => {
+                Self::IntelPentiumProcessorExtremeEdition
+            }
+            smbioslib::ProcessorFamily::IntelCoreSoloProcessor => Self::IntelCoreSoloProcessor,
+            smbioslib::ProcessorFamily::IntelCore2DuoProcessor => Self::IntelCore2DuoProcessor,
+            smbioslib::ProcessorFamily::IntelCore2SoloProcessor => Self::IntelCore2SoloProcessor,
+            smbioslib::ProcessorFamily::IntelCore2ExtremeProcessor => {
+                Self::IntelCore2ExtremeProcessor
+            }
+            smbioslib::ProcessorFamily::IntelCore2QuadProcessor => Self::IntelCore2QuadProcessor,
+            smbioslib::ProcessorFamily::IntelCore2ExtremeMobileProcessor => {
+                Self::IntelCore2ExtremeMobileProcessor
+            }
+            smbioslib::ProcessorFamily::IntelCore2DuoMobileProcessor => {
+                Self::IntelCore2DuoMobileProcessor
+            }
+            smbioslib::ProcessorFamily::IntelCore2SoloMobileProcessor => {
+                Self::IntelCore2SoloMobileProcessor
+            }
+            smbioslib::ProcessorFamily::IntelCorei7Processor => Self::IntelCorei7Processor,
+            smbioslib::ProcessorFamily::DualCoreIntelCeleronProcessor => {
+                Self::DualCoreIntelCeleronProcessor
+            }
+            smbioslib::ProcessorFamily::IntelCorei5processor => Self::IntelCorei5processor,
+            smbioslib::ProcessorFamily::IntelCorei3processor => Self::IntelCorei3processor,
+            smbioslib::ProcessorFamily::IntelCorei9processor => Self::IntelCorei9processor,
+            smbioslib::ProcessorFamily::MultiCoreIntelXeonProcessor => {
+                Self::MultiCoreIntelXeonProcessor
+            }
+            smbioslib::ProcessorFamily::DualCoreIntelXeonProcessor3xxxSeries => {
+                Self::DualCoreIntelXeonProcessor3xxxSeries
+            }
+            smbioslib::ProcessorFamily::QuadCoreIntelXeonProcessor3xxxSeries => {
+                Self::QuadCoreIntelXeonProcessor3xxxSeries
+            }
+            smbioslib::ProcessorFamily::DualCoreIntelXeonProcessor5xxxSeries => {
+                Self::DualCoreIntelXeonProcessor5xxxSeries
+            }
+            smbioslib::ProcessorFamily::QuadCoreIntelXeonProcessor5xxxSeries => {
+                Self::QuadCoreIntelXeonProcessor5xxxSeries
+            }
+            smbioslib::ProcessorFamily::DualCoreIntelXeonProcessor7xxxSeries => {
+                Self::DualCoreIntelXeonProcessor7xxxSeries
+            }
+            smbioslib::ProcessorFamily::QuadCoreIntelXeonProcessor7xxxSeries => {
+                Self::QuadCoreIntelXeonProcessor7xxxSeries
+            }
+            smbioslib::ProcessorFamily::MultiCoreIntelXeonProcessor7xxxSeries => {
+                Self::MultiCoreIntelXeonProcessor7xxxSeries
+            }
+            smbioslib::ProcessorFamily::MultiCoreIntelXeonProcessor3400Series => {
+                Self::MultiCoreIntelXeonProcessor3400Series
+            }
+            smbioslib::ProcessorFamily::AMDOpteron3000SeriesProcessor => {
+                Self::AMDOpteron3000SeriesProcessor
+            }
+            smbioslib::ProcessorFamily::AMDSempronIIProcessor => Self::AMDSempronIIProcessor,
+            smbioslib::ProcessorFamily::EmbeddedAMDOpteronQuadCoreProcessorFamily => {
+                Self::EmbeddedAMDOpteronQuadCoreProcessorFamily
+            }
+            smbioslib::ProcessorFamily::AMDPhenomTripleCoreProcessorFamily => {
+                Self::AMDPhenomTripleCoreProcessorFamily
+            }
+            smbioslib::ProcessorFamily::AMDTurionUltraDualCoreMobileProcessorFamily => {
+                Self::AMDTurionUltraDualCoreMobileProcessorFamily
+            }
+            smbioslib::ProcessorFamily::AMDTurionDualCoreMobileProcessorFamily => {
+                Self::AMDTurionDualCoreMobileProcessorFamily
+            }
+            smbioslib::ProcessorFamily::AMDAthlonDualCoreProcessorFamily => {
+                Self::AMDAthlonDualCoreProcessorFamily
+            }
+            smbioslib::ProcessorFamily::AMDSempronSIProcessorFamily => {
+                Self::AMDSempronSIProcessorFamily
+            }
+            smbioslib::ProcessorFamily::AMDPhenomIIProcessorFamily => {
+                Self::AMDPhenomIIProcessorFamily
+            }
+            smbioslib::ProcessorFamily::AMDAthlonIIProcessorFamily => {
+                Self::AMDAthlonIIProcessorFamily
+            }
+            smbioslib::ProcessorFamily::SixCoreAMDOpteronProcessorFamily => {
+                Self::SixCoreAMDOpteronProcessorFamily
+            }
+            smbioslib::ProcessorFamily::AMDSempronMProcessorFamily => {
+                Self::AMDSempronMProcessorFamily
+            }
+            smbioslib::ProcessorFamily::SeeProcessorFamily2 => Self::SeeProcessorFamily2,
+            smbioslib::ProcessorFamily::ARMv7 => Self::ARMv7,
+            smbioslib::ProcessorFamily::ARMv8 => Self::ARMv8,
+            smbioslib::ProcessorFamily::ARMv9 => Self::ARMv9,
+            smbioslib::ProcessorFamily::ARM => Self::ARM,
+            smbioslib::ProcessorFamily::StrongARM => Self::StrongARM,
+            smbioslib::ProcessorFamily::VideoProcessor => Self::VideoProcessor,
+            smbioslib::ProcessorFamily::None => Self::None,
+            _ => Self::Unknown,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ProcessorFamilyData2 {
+    pub raw: u16,
+    pub value: ProcessorFamily,
+}
+
+impl From<smbioslib::ProcessorFamilyData2> for ProcessorFamilyData2 {
+    fn from(value: smbioslib::ProcessorFamilyData2) -> Self {
+        Self {
+            raw: value.raw,
+            value: ProcessorFamily::from(value.value),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub enum ProcessorVoltage {
+    CurrentVolts(f32),
+    SupportedVolts(ProcessorSupportedVoltages),
+}
+
+impl From<smbioslib::ProcessorVoltage> for ProcessorVoltage {
+    fn from(value: smbioslib::ProcessorVoltage) -> Self {
+        match value {
+            smbioslib::ProcessorVoltage::CurrentVolts(volts) => Self::CurrentVolts(volts),
+            smbioslib::ProcessorVoltage::SupportedVolts(volts) => {
+                Self::SupportedVolts(ProcessorSupportedVoltages::from(volts))
+            }
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ProcessorSupportedVoltages {
+    pub volts_5_0: bool,
+    pub volts_3_3: bool,
+    pub volts_2_9: bool,
+    pub voltages: Vec<f32>,
+}
+
+impl From<smbioslib::ProcessorSupportedVoltages> for ProcessorSupportedVoltages {
+    fn from(value: smbioslib::ProcessorSupportedVoltages) -> Self {
+        Self {
+            volts_5_0: value.volts_5_0(),
+            volts_3_3: value.volts_3_3(),
+            volts_2_9: value.volts_2_9(),
+            voltages: value.voltages(),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub enum ProcessorExternalClock {
+    Unknown,
+    MHz(u16),
+}
+
+impl Display for ProcessorExternalClock {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Unknown => write!(f, "Unknown"),
+            Self::MHz(mhz) => write!(f, "{} MHz", mhz),
+        }
+    }
+}
+
+impl From<smbioslib::ProcessorExternalClock> for ProcessorExternalClock {
+    fn from(value: smbioslib::ProcessorExternalClock) -> Self {
+        match value {
+            smbioslib::ProcessorExternalClock::Unknown => Self::Unknown,
+            smbioslib::ProcessorExternalClock::MHz(mhz) => Self::MHz(mhz),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub enum ProcessorSpeed {
+    Unknown,
+    MHz(u16),
+}
+
+impl Display for ProcessorSpeed {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Unknown => write!(f, "Unknown"),
+            Self::MHz(mhz) => write!(f, "{} MHz", mhz),
+        }
+    }
+}
+
+impl From<smbioslib::ProcessorSpeed> for ProcessorSpeed {
+    fn from(value: smbioslib::ProcessorSpeed) -> Self {
+        match value {
+            smbioslib::ProcessorSpeed::Unknown => Self::Unknown,
+            smbioslib::ProcessorSpeed::MHz(mhz) => Self::MHz(mhz),
+        }
+    }
+}
+
+/// Processor Socket and CPU Status
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ProcessorStatus {
+    pub raw: u8,
+
+    /// CPU Socket Populated
+    pub socket_populated: bool,
+
+    /// CPU Status
+    pub cpu_status: CpuStatus,
+}
+
+impl From<smbioslib::ProcessorStatus> for ProcessorStatus {
+    fn from(value: smbioslib::ProcessorStatus) -> Self {
+        Self {
+            raw: value.raw,
+            socket_populated: value.socket_populated(),
+            cpu_status: CpuStatus::from(value.cpu_status()),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub enum CpuStatus {
+    Unknown,
+    Enabled,
+    UserDisabled,
+    BiosDisabled,
+    Idle,
+    Other,
+    None,
+}
+
+impl Display for CpuStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Unknown => "Unknown",
+                Self::Enabled => "CPU Enabled",
+                Self::UserDisabled => "CPU disabled by user through BIOS Setup",
+                Self::BiosDisabled => "CPU disabled by BIOS (POST Error)",
+                Self::Idle => "CPU is Idle, waiting to be enabled",
+                Self::Other => "Other",
+                Self::None => "A value unknown to this standard, check the raw value",
+            }
+        )
+    }
+}
+
+impl From<smbioslib::CpuStatus> for CpuStatus {
+    fn from(value: smbioslib::CpuStatus) -> Self {
+        match value {
+            smbioslib::CpuStatus::Unknown => Self::Unknown,
+            smbioslib::CpuStatus::Enabled => Self::Enabled,
+            smbioslib::CpuStatus::UserDisabled => Self::UserDisabled,
+            smbioslib::CpuStatus::BiosDisabled => Self::BiosDisabled,
+            smbioslib::CpuStatus::Idle => Self::Idle,
+            smbioslib::CpuStatus::Other => Self::Other,
+            smbioslib::CpuStatus::None => Self::None,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ProcessorUpgradeData {
+    pub raw: u8,
+    pub value: ProcessorUpgrade,
+}
+
+impl From<smbioslib::ProcessorUpgradeData> for ProcessorUpgradeData {
+    fn from(value: smbioslib::ProcessorUpgradeData) -> Self {
+        Self {
+            raw: value.raw,
+            value: ProcessorUpgrade::from(value.value),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub enum ProcessorUpgrade {
+    Other,
+    Unknown,
+    DaughterBoard,
+    ZIFSocket,
+    ReplaceablePiggyBack,
+    NoUpgrade,
+    LIFSocket,
+    Slot1,
+    Slot2,
+    PinSocket370,
+    SlotA,
+    SlotM,
+    Socket423,
+    SocketASocket462,
+    Socket478,
+    Socket754,
+    Socket940,
+    Socket939,
+    SocketmPGA604,
+    SocketLGA771,
+    SocketLGA775,
+    SocketS1,
+    SocketAM2,
+    SocketF1207,
+    SocketLGA1366,
+    SocketG34,
+    SocketAM3,
+    SocketC32,
+    SocketLGA1156,
+    SocketLGA1567,
+    SocketPGA988A,
+    SocketBGA1288,
+    SocketrPGA988B,
+    SocketBGA1023,
+    SocketBGA1224,
+    SocketLGA1155,
+    SocketLGA1356,
+    SocketLGA2011,
+    SocketFS1,
+    SocketFS2,
+    SocketFM1,
+    SocketFM2,
+    SocketLGA2011_3,
+    SocketLGA1356_3,
+    SocketLGA1150,
+    SocketBGA1168,
+    SocketBGA1234,
+    SocketBGA1364,
+    SocketAM4,
+    SocketLGA1151,
+    SocketBGA1356,
+    SocketBGA1440,
+    SocketBGA1515,
+    SocketLGA3647_1,
+    SocketSP3,
+    SocketSP3r23,
+    SocketLGA2066,
+    SocketBGA1392,
+    SocketBGA1510,
+    SocketBGA1528,
+    SocketLGA4189,
+    SocketLGA1200,
+    SocketLGA4677,
+    SocketLGA1700,
+    SocketBGA1744,
+    SocketBGA1781,
+    SocketBGA1211,
+    SocketBGA2422,
+    SocketLGA1211,
+    SocketLGA2422,
+    SocketLGA5773,
+    SocketBGA5773,
+    SocketAM5,
+    SocketSP5,
+    SocketSP6,
+    SocketBGA883,
+    SocketBGA1190,
+    SocketBGA4129,
+    SocketLGA4710,
+    SocketLGA7529,
+    None,
+}
+
+impl Display for ProcessorUpgrade {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Other => "Other",
+                Self::Unknown => "Unknown",
+                Self::DaughterBoard => "Daughter Board",
+                Self::ZIFSocket => "ZIF Socket",
+                Self::ReplaceablePiggyBack => "Replaceable Piggy Back",
+                Self::NoUpgrade => "No Upgrade",
+                Self::LIFSocket => "LIF Socket",
+                Self::Slot1 => "Slot #1",
+                Self::Slot2 => "Slot #2",
+                Self::SlotA => "Slot A",
+                Self::SlotM => "Slot M",
+                Self::PinSocket370 => "370-pin socket",
+                Self::Socket423 => "Socket 423",
+                Self::SocketASocket462 => "Socket A (Socket 462)",
+                Self::Socket478 => "Socket 478",
+                Self::Socket754 => "Socket 754",
+                Self::Socket940 => "Socket 940",
+                Self::Socket939 => "Socket 939",
+                Self::SocketmPGA604 => "Socket mPGA604",
+                Self::SocketLGA771 => "Socket LGA771",
+                Self::SocketLGA775 => "Socket LGA775",
+                Self::SocketS1 => "Socket S1",
+                Self::SocketAM2 => "Socket AM2",
+                Self::SocketF1207 => "Socket F (1207)",
+                Self::SocketLGA1366 => "Socket LGA1366",
+                Self::SocketG34 => "Socket G34",
+                Self::SocketAM3 => "Socket AM3",
+                Self::SocketC32 => "Socket C32",
+                Self::SocketLGA1156 => "Socket LGA1156",
+                Self::SocketLGA1567 => "Socket LGA1567",
+                Self::SocketPGA988A => "Socket PGA988A",
+                Self::SocketBGA1288 => "Socket BGA1288",
+                Self::SocketrPGA988B => "Socket rPGA988B",
+                Self::SocketBGA1023 => "Socket BGA1023",
+                Self::SocketBGA1224 => "Socket BGA1224",
+                Self::SocketLGA1155 => "Socket LGA1155",
+                Self::SocketLGA1356 => "Socket LGA1356",
+                Self::SocketLGA2011 => "Socket LGA2011",
+                Self::SocketFS1 => "Socket FS1",
+                Self::SocketFS2 => "Socket FS2",
+                Self::SocketFM1 => "Socket FM1",
+                Self::SocketFM2 => "Socket FM2",
+                Self::SocketLGA2011_3 => "Socket LGA2011-3",
+                Self::SocketLGA1356_3 => "Socket LGA1356-3",
+                Self::SocketLGA1150 => "Socket LGA1150",
+                Self::SocketBGA1168 => "Socket BGA1168",
+                Self::SocketBGA1234 => "Socket BGA1234",
+                Self::SocketBGA1364 => "Socket BGA1364",
+                Self::SocketAM4 => "Socket AM4",
+                Self::SocketLGA1151 => "Socket LGA1151",
+                Self::SocketBGA1356 => "Socket BGA1356",
+                Self::SocketBGA1440 => "Socket BGA1440",
+                Self::SocketBGA1515 => "Socket BGA1515",
+                Self::SocketLGA3647_1 => "Socket LGA3647-1",
+                Self::SocketSP3 => "Socket SP3",
+                Self::SocketSP3r23 => "Socket SP3r2",
+                Self::SocketLGA2066 => "Socket LGA2066",
+                Self::SocketBGA1392 => "Socket BGA1392",
+                Self::SocketBGA1510 => "Socket BGA1510",
+                Self::SocketBGA1528 => "Socket BGA1528",
+                Self::SocketLGA4189 => "Socket LGA4189",
+                Self::SocketLGA1200 => "Socket LGA1200",
+                Self::SocketLGA4677 => "Socket LGA4677",
+                Self::SocketLGA1700 => "Socket LGA1700",
+                Self::SocketBGA1744 => "Socket BGA1744",
+                Self::SocketBGA1781 => "Socket BGA1781",
+                Self::SocketBGA1211 => "Socket BGA1211",
+                Self::SocketBGA2422 => "Socket BGA2422",
+                Self::SocketLGA1211 => "Socket LGA1211",
+                Self::SocketLGA2422 => "Socket LGA2422",
+                Self::SocketLGA5773 => "Socket LGA5773",
+                Self::SocketBGA5773 => "Socket BGA5773",
+                Self::SocketAM5 => "Socket AM5",
+                Self::SocketSP5 => "Socket SP5",
+                Self::SocketSP6 => "Socket SP6",
+                Self::SocketBGA883 => "Socket BGA883",
+                Self::SocketBGA1190 => "Socket BGA1190",
+                Self::SocketBGA4129 => "Socket BGA4129",
+                Self::SocketLGA4710 => "Socket LGA4710",
+                Self::SocketLGA7529 => "Socket LGA7529",
+                Self::None => "A value unknown to this standard, check the raw value",
+            }
+        )
+    }
+}
+
+impl From<smbioslib::ProcessorUpgrade> for ProcessorUpgrade {
+    fn from(value: smbioslib::ProcessorUpgrade) -> Self {
+        match value {
+            smbioslib::ProcessorUpgrade::Other => Self::Other,
+            smbioslib::ProcessorUpgrade::Unknown => Self::Unknown,
+            smbioslib::ProcessorUpgrade::DaughterBoard => Self::DaughterBoard,
+            smbioslib::ProcessorUpgrade::ZIFSocket => Self::ZIFSocket,
+            smbioslib::ProcessorUpgrade::ReplaceablePiggyBack => Self::ReplaceablePiggyBack,
+            smbioslib::ProcessorUpgrade::NoUpgrade => Self::NoUpgrade,
+            smbioslib::ProcessorUpgrade::LIFSocket => Self::LIFSocket,
+            smbioslib::ProcessorUpgrade::Slot1 => Self::Slot1,
+            smbioslib::ProcessorUpgrade::Slot2 => Self::Slot2,
+            smbioslib::ProcessorUpgrade::PinSocket370 => Self::PinSocket370,
+            smbioslib::ProcessorUpgrade::SlotA => Self::SlotA,
+            smbioslib::ProcessorUpgrade::SlotM => Self::SlotM,
+            smbioslib::ProcessorUpgrade::Socket423 => Self::Socket423,
+            smbioslib::ProcessorUpgrade::SocketASocket462 => Self::SocketASocket462,
+            smbioslib::ProcessorUpgrade::Socket478 => Self::Socket478,
+            smbioslib::ProcessorUpgrade::Socket754 => Self::Socket754,
+            smbioslib::ProcessorUpgrade::Socket940 => Self::Socket940,
+            smbioslib::ProcessorUpgrade::Socket939 => Self::Socket939,
+            smbioslib::ProcessorUpgrade::SocketmPGA604 => Self::SocketmPGA604,
+            smbioslib::ProcessorUpgrade::SocketLGA771 => Self::SocketLGA771,
+            smbioslib::ProcessorUpgrade::SocketLGA775 => Self::SocketLGA775,
+            smbioslib::ProcessorUpgrade::SocketS1 => Self::SocketS1,
+            smbioslib::ProcessorUpgrade::SocketAM2 => Self::SocketAM2,
+            smbioslib::ProcessorUpgrade::SocketF1207 => Self::SocketF1207,
+            smbioslib::ProcessorUpgrade::SocketLGA1366 => Self::SocketLGA1366,
+            smbioslib::ProcessorUpgrade::SocketG34 => Self::SocketG34,
+            smbioslib::ProcessorUpgrade::SocketAM3 => Self::SocketAM3,
+            smbioslib::ProcessorUpgrade::SocketC32 => Self::SocketC32,
+            smbioslib::ProcessorUpgrade::SocketLGA1156 => Self::SocketLGA1156,
+            smbioslib::ProcessorUpgrade::SocketLGA1567 => Self::SocketLGA1567,
+            smbioslib::ProcessorUpgrade::SocketPGA988A => Self::SocketPGA988A,
+            smbioslib::ProcessorUpgrade::SocketBGA1288 => Self::SocketBGA1288,
+            smbioslib::ProcessorUpgrade::SocketrPGA988B => Self::SocketrPGA988B,
+            smbioslib::ProcessorUpgrade::SocketBGA1023 => Self::SocketBGA1023,
+            smbioslib::ProcessorUpgrade::SocketBGA1224 => Self::SocketBGA1224,
+            smbioslib::ProcessorUpgrade::SocketLGA1155 => Self::SocketLGA1155,
+            smbioslib::ProcessorUpgrade::SocketLGA1356 => Self::SocketLGA1356,
+            smbioslib::ProcessorUpgrade::SocketLGA2011 => Self::SocketLGA2011,
+            smbioslib::ProcessorUpgrade::SocketFS1 => Self::SocketFS1,
+            smbioslib::ProcessorUpgrade::SocketFS2 => Self::SocketFS2,
+            smbioslib::ProcessorUpgrade::SocketFM1 => Self::SocketFM1,
+            smbioslib::ProcessorUpgrade::SocketFM2 => Self::SocketFM2,
+            smbioslib::ProcessorUpgrade::SocketLGA2011_3 => Self::SocketLGA2011_3,
+            smbioslib::ProcessorUpgrade::SocketLGA1356_3 => Self::SocketLGA1356_3,
+            smbioslib::ProcessorUpgrade::SocketLGA1150 => Self::SocketLGA1150,
+            smbioslib::ProcessorUpgrade::SocketBGA1168 => Self::SocketBGA1168,
+            smbioslib::ProcessorUpgrade::SocketBGA1234 => Self::SocketBGA1234,
+            smbioslib::ProcessorUpgrade::SocketBGA1364 => Self::SocketBGA1364,
+            smbioslib::ProcessorUpgrade::SocketAM4 => Self::SocketAM4,
+            smbioslib::ProcessorUpgrade::SocketLGA1151 => Self::SocketLGA1151,
+            smbioslib::ProcessorUpgrade::SocketBGA1356 => Self::SocketBGA1356,
+            smbioslib::ProcessorUpgrade::SocketBGA1440 => Self::SocketBGA1440,
+            smbioslib::ProcessorUpgrade::SocketBGA1515 => Self::SocketBGA1515,
+            smbioslib::ProcessorUpgrade::SocketLGA3647_1 => Self::SocketLGA3647_1,
+            smbioslib::ProcessorUpgrade::SocketSP3 => Self::SocketSP3,
+            smbioslib::ProcessorUpgrade::SocketSP3r23 => Self::SocketSP3r23,
+            smbioslib::ProcessorUpgrade::SocketLGA2066 => Self::SocketLGA2066,
+            smbioslib::ProcessorUpgrade::SocketBGA1392 => Self::SocketBGA1392,
+            smbioslib::ProcessorUpgrade::SocketBGA1510 => Self::SocketBGA1510,
+            smbioslib::ProcessorUpgrade::SocketBGA1528 => Self::SocketBGA1528,
+            smbioslib::ProcessorUpgrade::SocketLGA4189 => Self::SocketLGA4189,
+            smbioslib::ProcessorUpgrade::SocketLGA1200 => Self::SocketLGA1200,
+            smbioslib::ProcessorUpgrade::SocketLGA4677 => Self::SocketLGA4677,
+            smbioslib::ProcessorUpgrade::SocketLGA1700 => Self::SocketLGA1700,
+            smbioslib::ProcessorUpgrade::SocketBGA1744 => Self::SocketBGA1744,
+            smbioslib::ProcessorUpgrade::SocketBGA1781 => Self::SocketBGA1781,
+            smbioslib::ProcessorUpgrade::SocketBGA1211 => Self::SocketBGA1211,
+            smbioslib::ProcessorUpgrade::SocketBGA2422 => Self::SocketBGA2422,
+            smbioslib::ProcessorUpgrade::SocketLGA1211 => Self::SocketLGA1211,
+            smbioslib::ProcessorUpgrade::SocketLGA2422 => Self::SocketLGA2422,
+            smbioslib::ProcessorUpgrade::SocketLGA5773 => Self::SocketLGA5773,
+            smbioslib::ProcessorUpgrade::SocketBGA5773 => Self::SocketBGA5773,
+            smbioslib::ProcessorUpgrade::SocketAM5 => Self::SocketAM5,
+            smbioslib::ProcessorUpgrade::SocketSP5 => Self::SocketSP5,
+            smbioslib::ProcessorUpgrade::SocketSP6 => Self::SocketSP6,
+            smbioslib::ProcessorUpgrade::SocketBGA883 => Self::SocketBGA883,
+            smbioslib::ProcessorUpgrade::SocketBGA1190 => Self::SocketBGA1190,
+            smbioslib::ProcessorUpgrade::SocketBGA4129 => Self::SocketBGA4129,
+            smbioslib::ProcessorUpgrade::SocketLGA4710 => Self::SocketLGA4710,
+            smbioslib::ProcessorUpgrade::SocketLGA7529 => Self::SocketLGA7529,
+            smbioslib::ProcessorUpgrade::None => Self::None,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub enum CoreCount {
+    Unknown,
+    Count(u8),
+    SeeCoreCount2,
+}
+
+impl Display for CoreCount {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Unknown => write!(f, "Unknown"),
+            Self::SeeCoreCount2 => write!(f, "See next core count entry"),
+            Self::Count(cnt) => write!(f, "{}", cnt),
+        }
+    }
+}
+
+impl From<smbioslib::CoreCount> for CoreCount {
+    fn from(value: smbioslib::CoreCount) -> Self {
+        match value {
+            smbioslib::CoreCount::Unknown => Self::Unknown,
+            smbioslib::CoreCount::SeeCoreCount2 => Self::SeeCoreCount2,
+            smbioslib::CoreCount::Count(cnt) => Self::Count(cnt),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub enum CoreCount2 {
+    Unknown,
+    Count(u16),
+    Reserved,
+}
+
+impl Display for CoreCount2 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Unknown => write!(f, "Unknown"),
+            Self::Reserved => write!(f, "Reserved"),
+            Self::Count(cnt) => write!(f, "{}", cnt),
+        }
+    }
+}
+
+impl From<smbioslib::CoreCount2> for CoreCount2 {
+    fn from(value: smbioslib::CoreCount2) -> Self {
+        match value {
+            smbioslib::CoreCount2::Unknown => Self::Unknown,
+            smbioslib::CoreCount2::Reserved => Self::Reserved,
+            smbioslib::CoreCount2::Count(cnt) => Self::Count(cnt),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub enum CoresEnabled {
+    Unknown,
+    Count(u8),
+    SeeCoresEnabled2,
+}
+
+impl Display for CoresEnabled {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Unknown => write!(f, "Unknown"),
+            Self::SeeCoresEnabled2 => write!(f, "See next cores enabled entry"),
+            Self::Count(cnt) => write!(f, "{}", cnt),
+        }
+    }
+}
+
+impl From<smbioslib::CoresEnabled> for CoresEnabled {
+    fn from(value: smbioslib::CoresEnabled) -> Self {
+        match value {
+            smbioslib::CoresEnabled::Unknown => Self::Unknown,
+            smbioslib::CoresEnabled::SeeCoresEnabled2 => Self::SeeCoresEnabled2,
+            smbioslib::CoresEnabled::Count(cnt) => Self::Count(cnt),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub enum CoresEnabled2 {
+    Unknown,
+    Count(u16),
+    Reserved,
+}
+
+impl Display for CoresEnabled2 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Unknown => write!(f, "Unknown"),
+            Self::Reserved => write!(f, "Reserved"),
+            Self::Count(cnt) => write!(f, "{}", cnt),
+        }
+    }
+}
+
+impl From<smbioslib::CoresEnabled2> for CoresEnabled2 {
+    fn from(value: smbioslib::CoresEnabled2) -> Self {
+        match value {
+            smbioslib::CoresEnabled2::Unknown => Self::Unknown,
+            smbioslib::CoresEnabled2::Reserved => Self::Reserved,
+            smbioslib::CoresEnabled2::Count(cnt) => Self::Count(cnt),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub enum ThreadCount {
+    Unknown,
+    Count(u8),
+    SeeThreadCount2,
+}
+
+impl Display for ThreadCount {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Unknown => write!(f, "Unknown"),
+            Self::SeeThreadCount2 => write!(f, "See next thread enabled entry"),
+            Self::Count(cnt) => write!(f, "{}", cnt),
+        }
+    }
+}
+
+impl From<smbioslib::ThreadCount> for ThreadCount {
+    fn from(value: smbioslib::ThreadCount) -> Self {
+        match value {
+            smbioslib::ThreadCount::SeeThreadCount2 => Self::SeeThreadCount2,
+            smbioslib::ThreadCount::Unknown => Self::Unknown,
+            smbioslib::ThreadCount::Count(cnt) => Self::Count(cnt),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub enum ThreadCount2 {
+    Unknown,
+    Count(u16),
+    Reserved,
+}
+
+impl Display for ThreadCount2 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Unknown => write!(f, "Unknown"),
+            Self::Reserved => write!(f, "Reserved"),
+            Self::Count(cnt) => write!(f, "{}", cnt),
+        }
+    }
+}
+
+impl From<smbioslib::ThreadCount2> for ThreadCount2 {
+    fn from(value: smbioslib::ThreadCount2) -> Self {
+        match value {
+            smbioslib::ThreadCount2::Reserved => Self::Reserved,
+            smbioslib::ThreadCount2::Unknown => Self::Unknown,
+            smbioslib::ThreadCount2::Count(cnt) => Self::Count(cnt),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub enum ThreadEnabled {
+    Unknown,
+    Count(u16),
+    Reserved,
+}
+
+impl Display for ThreadEnabled {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Unknown => write!(f, "Unknown"),
+            Self::Reserved => write!(f, "Reserved"),
+            Self::Count(cnt) => write!(f, "{}", cnt),
+        }
+    }
+}
+
+impl From<smbioslib::ThreadEnabled> for ThreadEnabled {
+    fn from(value: smbioslib::ThreadEnabled) -> Self {
+        match value {
+            smbioslib::ThreadEnabled::Reserved => Self::Reserved,
+            smbioslib::ThreadEnabled::Unknown => Self::Unknown,
+            smbioslib::ThreadEnabled::Count(cnt) => Self::Count(cnt),
+        }
+    }
+}
+
 /// Information about processor
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Processor {
     /// Socket reference designation
     pub socked_designation: Option<String>,
 
     /// Processor type
-    pub processor_type: Option<smbioslib::ProcessorTypeData>,
+    pub processor_type: Option<ProcessorTypeData>,
 
     /// Processor family
-    pub processor_family: Option<smbioslib::ProcessorFamilyData>,
+    pub processor_family: Option<ProcessorFamilyData>,
 
     /// Processor manufacturer
     pub processor_manufacturer: Option<String>,
@@ -1462,36 +2796,36 @@ pub struct Processor {
     pub processor_version: Option<String>,
 
     /// Processor voltage
-    pub voltage: Option<smbioslib::ProcessorVoltage>,
+    pub voltage: Option<ProcessorVoltage>,
 
     /// External clock frequency, MHz. If the value is unknown,
     /// the field is set to 0
-    pub external_clock: Option<smbioslib::ProcessorExternalClock>,
+    pub external_clock: Option<ProcessorExternalClock>,
 
     /// Maximum CPU speed (in MHz) supported *by the system* for this
     /// processor socket
-    pub max_speed: Option<smbioslib::ProcessorSpeed>,
+    pub max_speed: Option<ProcessorSpeed>,
 
     /// Current speed
     ///
     /// This field identifies the processor's speed at system boot;
     /// the processor may support more than one speed
-    pub current_speed: Option<smbioslib::ProcessorSpeed>,
+    pub current_speed: Option<ProcessorSpeed>,
 
     /// Status bit field
-    pub status: Option<smbioslib::ProcessorStatus>,
+    pub status: Option<ProcessorStatus>,
 
     /// Processor upgrade
-    pub processor_upgrade: Option<smbioslib::ProcessorUpgradeData>,
+    pub processor_upgrade: Option<ProcessorUpgradeData>,
 
     /// Attributes of the primary (Level 1) cache for this processor
-    pub l1cache_handle: Option<smbioslib::Handle>,
+    pub l1cache_handle: Option<Handle>,
 
     /// Attributes of the primary (Level 2) cache for this processor
-    pub l2cache_handle: Option<smbioslib::Handle>,
+    pub l2cache_handle: Option<Handle>,
 
     /// Attributes of the primary (Level 3) cache for this processor
-    pub l3cache_handle: Option<smbioslib::Handle>,
+    pub l3cache_handle: Option<Handle>,
 
     /// Serial number of this processor
     pub serial_number: Option<String>,
@@ -1503,32 +2837,32 @@ pub struct Processor {
     pub part_number: Option<String>,
 
     /// Number of cores per processor socket
-    pub core_count: Option<smbioslib::CoreCount>,
+    pub core_count: Option<CoreCount>,
 
     /// Number of enabled cores per processor socket
-    pub cores_enabled: Option<smbioslib::CoresEnabled>,
+    pub cores_enabled: Option<CoresEnabled>,
 
     /// Number of threads per processor socket
-    pub thread_count: Option<smbioslib::ThreadCount>,
+    pub thread_count: Option<ThreadCount>,
 
     /// Function that processor supports
     pub processors_characteristics: Option<ProcessorCharacteristics>,
 
     /// Processor family 2
-    pub processor_family_2: Option<smbioslib::ProcessorFamilyData2>,
+    pub processor_family_2: Option<ProcessorFamilyData2>,
 
     /// Number of cores per proc socket (if cores > 255)
-    pub core_count_2: Option<smbioslib::CoreCount2>,
+    pub core_count_2: Option<CoreCount2>,
 
     /// Number of enabled cores per proc socket (if ecores > 255)
-    pub cores_enabled_2: Option<smbioslib::CoresEnabled2>,
+    pub cores_enabled_2: Option<CoresEnabled2>,
 
     /// Number of threads per proc socket (if threads > 255)
-    pub thread_count_2: Option<smbioslib::ThreadCount2>,
+    pub thread_count_2: Option<ThreadCount2>,
 
     /// Number of threads the BIOS has enabled and available for
     /// OS use
-    pub thread_enabled: Option<smbioslib::ThreadEnabled>,
+    pub thread_enabled: Option<ThreadEnabled>,
 }
 
 impl Processor {
@@ -1550,38 +2884,86 @@ impl Processor {
 
         Ok(Self {
             socked_designation: t.socket_designation().ok(),
-            processor_type: t.processor_type(),
-            processor_family: t.processor_family(),
+            processor_type: match t.processor_type() {
+                Some(pt) => Some(ProcessorTypeData::from(pt)),
+                None => None,
+            },
+            processor_family: match t.processor_family() {
+                Some(pf) => Some(ProcessorFamilyData::from(pf)),
+                None => None,
+            },
             processor_manufacturer: t.processor_manufacturer().ok(),
             processor_id: match t.processor_id() {
                 Some(p_id) => Some(*p_id),
                 None => None,
             },
             processor_version: t.processor_version().ok(),
-            voltage: t.voltage(),
-            external_clock: t.external_clock(),
-            max_speed: t.max_speed(),
-            current_speed: t.current_speed(),
-            status: t.status(),
-            processor_upgrade: t.processor_upgrade(),
-            l1cache_handle: t.l1cache_handle(),
-            l2cache_handle: t.l2cache_handle(),
-            l3cache_handle: t.l3cache_handle(),
+            voltage: match t.voltage() {
+                Some(v) => Some(ProcessorVoltage::from(v)),
+                None => None,
+            },
+            external_clock: match t.external_clock() {
+                Some(ec) => Some(ProcessorExternalClock::from(ec)),
+                None => None,
+            },
+            max_speed: match t.max_speed() {
+                Some(ms) => Some(ProcessorSpeed::from(ms)),
+                None => None,
+            },
+            current_speed: match t.current_speed() {
+                Some(cs) => Some(ProcessorSpeed::from(cs)),
+                None => None,
+            },
+            status: match t.status() {
+                Some(s) => Some(ProcessorStatus::from(s)),
+                None => None,
+            },
+            processor_upgrade: match t.processor_upgrade() {
+                Some(pu) => Some(ProcessorUpgradeData::from(pu)),
+                None => None,
+            },
+            l1cache_handle: Handle::from_opt(t.l1cache_handle()),
+            l2cache_handle: Handle::from_opt(t.l2cache_handle()),
+            l3cache_handle: Handle::from_opt(t.l3cache_handle()),
             serial_number: t.serial_number().ok(),
             asset_tag: t.asset_tag().ok(),
             part_number: t.part_number().ok(),
-            core_count: t.core_count(),
-            cores_enabled: t.cores_enabled(),
-            thread_count: t.thread_count(),
+            core_count: match t.core_count() {
+                Some(cc) => Some(CoreCount::from(cc)),
+                None => None,
+            },
+            cores_enabled: match t.cores_enabled() {
+                Some(ce) => Some(CoresEnabled::from(ce)),
+                None => None,
+            },
+            thread_count: match t.thread_count() {
+                Some(tc) => Some(ThreadCount::from(tc)),
+                None => None,
+            },
             processors_characteristics: match t.processor_characteristics() {
                 Some(pc) => Some(ProcessorCharacteristics::from(pc)),
                 None => None,
             },
-            processor_family_2: t.processor_family_2(),
-            core_count_2: t.core_count_2(),
-            cores_enabled_2: t.cores_enabled_2(),
-            thread_count_2: t.thread_count_2(),
-            thread_enabled: t.thread_enabled(),
+            processor_family_2: match t.processor_family_2() {
+                Some(pf2) => Some(ProcessorFamilyData2::from(pf2)),
+                None => None,
+            },
+            core_count_2: match t.core_count_2() {
+                Some(cc2) => Some(CoreCount2::from(cc2)),
+                None => None,
+            },
+            cores_enabled_2: match t.cores_enabled_2() {
+                Some(ce2) => Some(CoresEnabled2::from(ce2)),
+                None => None,
+            },
+            thread_count_2: match t.thread_count_2() {
+                Some(tc2) => Some(ThreadCount2::from(tc2)),
+                None => None,
+            },
+            thread_enabled: match t.thread_enabled() {
+                Some(te) => Some(ThreadEnabled::from(te)),
+                None => None,
+            },
         })
     }
 }
