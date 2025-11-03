@@ -191,7 +191,7 @@ impl ToPlainText for CPU {
 
 #[cfg(target_arch = "aarch64")]
 impl ToPlainText for CPU {
-    fn convert(&self) -> String {
+    fn to_plain(&self) -> String {
         let mut s = match self.processor {
             Some(proc) => format!("Processor #{proc}\n"),
             None => format!("Processor #unknown\n"),
