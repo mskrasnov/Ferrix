@@ -29,8 +29,9 @@ use crate::{
 use ferrix_lib::dmi::{Baseboard, Bios, Chassis, ChassisStateData, Processor};
 
 use iced::{
+    Alignment::Center,
     Element, Length,
-    widget::{column, container, rule, scrollable, table, text},
+    widget::{column, container, row, rule, scrollable, table, text},
 };
 
 pub fn dmi_page<'a>(dmi: &'a DataLoadingState<DMIResult>) -> container::Container<'a, Message> {
@@ -43,16 +44,7 @@ pub fn dmi_page<'a>(dmi: &'a DataLoadingState<DMIResult>) -> container::Containe
                 let proc = processor_table(&data.processor);
 
                 container(scrollable(
-                    column![
-                        bios,
-                        rule::horizontal(1.),
-                        baseboard,
-                        rule::horizontal(1.),
-                        chassis,
-                        rule::horizontal(1.),
-                        proc,
-                    ]
-                    .spacing(5),
+                    column![bios, baseboard, chassis, proc,].spacing(5),
                 ))
             }
             DMIResult::Error { error } => super::error_page(error),
@@ -108,7 +100,10 @@ fn bios_table<'a>(bios: &'a Bios) -> container::Container<'a, Message> {
 
     container(
         column![
-            text("BIOS").style(text::warning),
+            row![text("BIOS (Type 0)").size(16), rule::horizontal(1.),]
+                .spacing(5)
+                .align_y(Center),
+            text("Summary").style(text::warning),
             container(kv_info_table(rows)).style(container::rounded_box),
             bios_characteristics_table(bios),
             bios_ext0_table(bios),
@@ -364,7 +359,10 @@ fn baseboard_table<'a>(bb: &'a Baseboard) -> container::Container<'a, Message> {
     };
 
     let bb_view = column![
-        text("Baseboard").style(text::warning),
+        row![text("Base Board (Type 2)").size(16), rule::horizontal(1.),]
+            .spacing(5)
+            .align_y(Center),
+        text("Summary").style(text::warning),
         container(kv_info_table(rows)).style(container::rounded_box),
         features,
         btype,
@@ -438,7 +436,10 @@ fn chassis_table<'a>(c: &'a Chassis) -> container::Container<'a, Message> {
     };
 
     let chassis_view = column![
-        text("Chassis").style(text::warning),
+        row![text("Chassis (Type 3)").size(16), rule::horizontal(1.),]
+            .spacing(5)
+            .align_y(Center),
+        text("Summary").style(text::warning),
         container(kv_info_table(rows)).style(container::rounded_box),
         chassis_type,
         bootup_state,
@@ -593,7 +594,10 @@ fn processor_table<'a>(p: &'a Processor) -> container::Container<'a, Message> {
 
     container(
         column![
-            text("Processor").style(text::warning),
+            row![text("Processor (Type 4)").size(16), rule::horizontal(1.),]
+                .spacing(5)
+                .align_y(Center),
+            text("Summary").style(text::warning),
             container(kv_info_table(rows)).style(container::rounded_box),
             processor_characteristics_table(p),
             processor_voltage_table(p),
