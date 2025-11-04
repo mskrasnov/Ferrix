@@ -36,6 +36,7 @@ mod distro;
 mod dmi;
 mod drm;
 mod env;
+mod export;
 mod groups;
 mod kernel;
 mod ram;
@@ -146,6 +147,7 @@ impl<'a> Page {
             Self::SystemManager => systemd::services_page(&state.sysd_services_list).into(),
             Self::Environment => env::env_page(&state.system).into(),
             Self::Settings => settings::settings_page(&state).into(),
+            Self::Export => export::export_page().into(),
             Self::About => self.about_page().into(),
             _ => self.todo_page(),
         };

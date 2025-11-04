@@ -31,8 +31,9 @@ use iced::{
     Length,
     widget::{column, container, scrollable, table, text},
 };
+use serde::Serialize;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct KernelData {
     pub kernel: Kernel,
     pub mods: KModules,

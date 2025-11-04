@@ -18,6 +18,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+pub mod export;
 pub mod i18n;
 pub mod icons;
 pub mod load_state;
@@ -48,6 +49,7 @@ use ferrix_lib::{
         Groups, LoadAVG, OsRelease, Uptime, Users, get_current_desktop, get_env_vars, get_hostname,
         get_lang,
     },
+    traits::ToJson,
 };
 use iced::{
     Alignment::Center,
@@ -56,7 +58,7 @@ use iced::{
 };
 use std::{fmt::Display, fs, path::Path, time::Duration};
 
-use crate::{dmi::get_dmi_data, utils::get_home};
+use crate::{dmi::get_dmi_data, export::{ExportData, ExportFormat, ExportMode}, utils::get_home};
 
 const SETTINGS_PATH: &str = "./ferrix.conf";
 
@@ -97,6 +99,10 @@ pub enum Message {
 
     GetSystemData,
     SystemDataReceived(DataLoadingState<System>),
+
+    ExportData(String),
+    ExportFormatSelected(ExportFormat),
+    ExportModeSelected(ExportMode),
 
     Dummy,
     ChangeTheme(Style),
@@ -150,7 +156,7 @@ impl Default for Ferrix {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct System {
     pub hostname: Option<String>,
     pub loadavg: Option<LoadAVG>,
@@ -240,6 +246,13 @@ impl Ferrix {
 
     pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
+            Message::ExportData(_) => {
+                let json = ExportData::from(self)
+                    .to_json()
+                    .unwrap_or("{error}".to_string());
+                let _ = std::fs::write("./example_export.json", json);
+                Task::none()
+            }
             Message::CPUDataReceived(state) => {
                 self.proc_data = state;
                 Task::none()
