@@ -24,7 +24,7 @@ use crate::{Message, fl, load_state::DataLoadingState, pages::hdr_name};
 use ferrix_lib::init::{ActiveState, LoadState, ServiceInfo, SystemdServices, WorkState};
 
 use iced::{
-    Length,
+    Length, Padding,
     widget::{column, container, row, scrollable, table, text},
 };
 
@@ -95,7 +95,9 @@ pub fn services_page<'a>(
             };
             let services_count = text(fl!("sysd-total", total = units.len()));
 
-            let layout = column![warn_txt, services_count, table,].spacing(5);
+            let layout = column![warn_txt, services_count, table,]
+                .spacing(5)
+                .padding(Padding::new(0.).right(15.));
             container(scrollable(layout))
         }
         DataLoadingState::Error(why) => super::error_page(why),

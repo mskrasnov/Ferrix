@@ -26,7 +26,10 @@ use crate::{
 };
 use ferrix_lib::cpu::Processors;
 
-use iced::widget::{column, container, scrollable, text};
+use iced::{
+    Padding,
+    widget::{column, container, scrollable, text},
+};
 
 pub fn proc_page<'a>(
     processors: &'a DataLoadingState<Processors>,
@@ -73,7 +76,7 @@ pub fn proc_page<'a>(
                 .spacing(5);
                 proc_list = proc_list.push(proc_view);
             }
-            container(scrollable(proc_list))
+            container(scrollable(proc_list.padding(Padding::new(0.).right(15.))))
         }
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),

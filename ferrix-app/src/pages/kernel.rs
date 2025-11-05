@@ -28,7 +28,7 @@ use crate::{
 use ferrix_lib::sys::{KModules, Kernel, Module};
 
 use iced::{
-    Length,
+    Length, Padding,
     widget::{column, container, scrollable, table, text},
 };
 use serde::Serialize;
@@ -113,7 +113,7 @@ pub fn kernel_page<'a>(
                 text(fl!("kernel-summary-hdr")).style(text::warning),
                 kern_summary_data,
                 text(fl!("kernel-mods-hdr")).style(text::warning),
-                kern_modules,
+                kern_modules.padding(Padding::new(0.).right(10.)),
             ]
             .spacing(5);
 

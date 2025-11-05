@@ -55,9 +55,7 @@ use ferrix_lib::{
     },
 };
 use iced::{
-    Alignment::Center,
-    Element, Length, Subscription, Task, Theme, time,
-    widget::{column, container, row, scrollable, text},
+    time, widget::{column, container, row, scrollable, text}, Alignment::Center, Element, Length, Padding, Subscription, Task, Theme
 };
 use std::{fmt::Display, fs, path::Path, time::Duration};
 
@@ -357,6 +355,7 @@ fn sidebar<'a>(cur_page: Page) -> container::Container<'a, Message> {
         sidebar_button(Page::Settings, cur_page),
         sidebar_button(Page::About, cur_page),
     ]
+    .padding(Padding::new(0.).right(5.))
     .spacing(5);
 
     container(column![buttons_bar, scrollable(pages_bar)].spacing(5))
