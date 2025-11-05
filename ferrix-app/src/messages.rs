@@ -1,0 +1,395 @@
+/* messages.rs
+ *
+ * Copyright 2025 Michail Krasnov <mskrasnov07@ya.ru>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+//! UI events handler & Data Updater
+
+use ferrix_lib::{
+    battery::BatInfo,
+    cpu::{Processors, Stat},
+    drm::Video,
+    init::{Connection, SystemdServices},
+    ram::RAM,
+    sys::{Groups, OsRelease, Users},
+    traits::ToJson,
+};
+use iced::Task;
+
+use crate::{
+    DataLoadingState, Ferrix, KernelData, Page, SETTINGS_PATH, Style, System,
+    dmi::DMIResult,
+    export::{ExportData, ExportFormat, ExportMode},
+    utils::get_home,
+};
+
+#[derive(Debug, Clone)]
+pub enum Message {
+    DataReceiver(DataReceiverMessage),
+    ExportManager(ExportManagerMessage),
+    Settings(SettingsMessage),
+    Buttons(ButtonsMessage),
+
+    SelectPage(Page),
+    Dummy,
+}
+
+impl Message {
+    pub fn update<'a>(self, state: &'a mut Ferrix) -> Task<Message> {
+        match self {
+            Self::DataReceiver(data) => data.update(state),
+            Self::ExportManager(export) => export.update(state),
+            Self::Settings(settings) => settings.update(state),
+            Self::Buttons(buttons) => buttons.update(state),
+
+            Self::SelectPage(page) => state.select_page(page),
+            Self::Dummy => Task::none(),
+        }
+    }
+}
+
+impl Ferrix {
+    fn select_page(&mut self, page: Page) -> Task<Message> {
+        self.current_page = page;
+        Task::none()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum DataReceiverMessage {
+    GetCPUData,
+    CPUDataReceived(DataLoadingState<Processors>),
+
+    GetProcStat,
+    ProcStatReceived(DataLoadingState<Stat>),
+
+    GetRAMData,
+    RAMDataReceived(DataLoadingState<RAM>),
+
+    GetDMIData,
+    DMIDataReceived(DataLoadingState<DMIResult>),
+
+    GetBatInfo,
+    BatInfoReceived(DataLoadingState<BatInfo>),
+
+    GetDRMData,
+    DRMDataReceived(DataLoadingState<Video>),
+
+    GetOsReleaseData,
+    OsReleaseDataReceived(DataLoadingState<OsRelease>),
+
+    GetKernelData,
+    KernelDataReceived(DataLoadingState<KernelData>),
+
+    GetUsersData,
+    UsersDataReceived(DataLoadingState<Users>),
+
+    GetGroupsData,
+    GroupsDataReceived(DataLoadingState<Groups>),
+
+    GetSystemdServices,
+    SystemdServicesReceived(DataLoadingState<SystemdServices>),
+
+    GetSystemData,
+    SystemDataReceived(DataLoadingState<System>),
+}
+
+impl DataReceiverMessage {
+    pub fn update<'a>(self, fx: &'a mut Ferrix) -> Task<Message> {
+        match self {
+            Self::CPUDataReceived(state) => {
+                fx.proc_data = state;
+                Task::none()
+            }
+            Self::GetCPUData => Task::perform(
+                async move {
+                    let proc = Processors::new();
+                    match proc {
+                        Ok(proc) => DataLoadingState::Loaded(proc),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
+                    }
+                },
+                |val| Message::DataReceiver(Self::CPUDataReceived(val)),
+            ),
+            Self::ProcStatReceived(state) => {
+                if fx.curr_proc_stat.is_some() {
+                    fx.prev_proc_stat = fx.curr_proc_stat.clone();
+                } else if fx.curr_proc_stat.is_none() && fx.prev_proc_stat.is_none() {
+                    fx.prev_proc_stat = state.clone();
+                }
+                fx.curr_proc_stat = state;
+                Task::none()
+            }
+            Self::GetProcStat => Task::perform(
+                async move {
+                    let stat = Stat::new();
+                    match stat {
+                        Ok(stat) => DataLoadingState::Loaded(stat),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
+                    }
+                },
+                |val| Message::DataReceiver(Self::ProcStatReceived(val)),
+            ),
+            Self::DMIDataReceived(state) => {
+                fx.is_polkit = true;
+                if state.is_some() && fx.is_polkit {
+                    fx.dmi_data = state;
+                } else if !fx.is_polkit {
+                    fx.dmi_data = state;
+                }
+                Task::none()
+            }
+            Self::GetDMIData => {
+                if fx.dmi_data.is_none() && fx.current_page == Page::DMI && !fx.is_polkit {
+                    Task::perform(async move { crate::dmi::get_dmi_data().await }, |val| {
+                        Message::DataReceiver(Self::DMIDataReceived(val))
+                    })
+                } else {
+                    Task::none()
+                }
+            }
+            Self::BatInfoReceived(state) => {
+                fx.bat_data = state;
+                Task::none()
+            }
+            Self::GetBatInfo => Task::perform(
+                async move {
+                    let bat = BatInfo::new();
+                    match bat {
+                        Ok(bat) => DataLoadingState::Loaded(bat),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
+                    }
+                },
+                |val| Message::DataReceiver(Self::BatInfoReceived(val)),
+            ),
+            Self::DRMDataReceived(state) => {
+                fx.drm_data = state;
+                Task::none()
+            }
+            Self::GetDRMData => Task::perform(
+                async move {
+                    let drm = Video::new();
+                    match drm {
+                        Ok(drm) => DataLoadingState::Loaded(drm),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
+                    }
+                },
+                |val| Message::DataReceiver(Self::DRMDataReceived(val)),
+            ),
+            Self::RAMDataReceived(state) => {
+                fx.ram_data = state;
+                Task::none()
+            }
+            Self::GetRAMData => Task::perform(
+                async move {
+                    let ram = RAM::new();
+                    match ram {
+                        Ok(ram) => DataLoadingState::Loaded(ram),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
+                    }
+                },
+                |val| Message::DataReceiver(Self::RAMDataReceived(val)),
+            ),
+            Self::OsReleaseDataReceived(state) => {
+                fx.osrel_data = state;
+                Task::none()
+            }
+            Self::GetOsReleaseData => Task::perform(
+                async move {
+                    let osrel = OsRelease::new();
+                    match osrel {
+                        Ok(osrel) => DataLoadingState::Loaded(osrel),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
+                    }
+                },
+                |val| Message::DataReceiver(Self::OsReleaseDataReceived(val)),
+            ),
+            Self::KernelDataReceived(state) => {
+                fx.info_kernel = state;
+                Task::none()
+            }
+            Self::GetKernelData => Task::perform(
+                async move {
+                    let kern = KernelData::new();
+                    match kern {
+                        Ok(mut kern) => {
+                            kern.mods.modules.sort_by_key(|md| md.name.clone());
+                            DataLoadingState::Loaded(kern)
+                        }
+                        Err(why) => DataLoadingState::Error(why.to_string()),
+                    }
+                },
+                |val| Message::DataReceiver(Self::KernelDataReceived(val)),
+            ),
+            Self::UsersDataReceived(state) => {
+                fx.users_list = state;
+                Task::none()
+            }
+            Self::GetUsersData => Task::perform(
+                async move {
+                    let users = Users::new();
+                    match users {
+                        Ok(mut users) => {
+                            users.users.sort_by_key(|usr| usr.uid);
+                            DataLoadingState::Loaded(users)
+                        }
+                        Err(why) => DataLoadingState::Error(why.to_string()),
+                    }
+                },
+                |val| Message::DataReceiver(Self::UsersDataReceived(val)),
+            ),
+            Self::GroupsDataReceived(state) => {
+                fx.groups_list = state;
+                Task::none()
+            }
+            Self::GetGroupsData => Task::perform(
+                async move {
+                    let groups = Groups::new();
+                    match groups {
+                        Ok(mut groups) => {
+                            groups.groups.sort_by_key(|grp| grp.gid);
+                            DataLoadingState::Loaded(groups)
+                        }
+                        Err(why) => DataLoadingState::Error(why.to_string()),
+                    }
+                },
+                |val| Message::DataReceiver(Self::GroupsDataReceived(val)),
+            ),
+            Self::SystemdServicesReceived(state) => {
+                fx.sysd_services_list = state;
+                Task::none()
+            }
+            Self::GetSystemdServices => Task::perform(
+                async move {
+                    let conn = Connection::session().await;
+                    if let Err(why) = conn {
+                        return DataLoadingState::Error(why.to_string());
+                    }
+                    let conn = conn.unwrap();
+
+                    let srv_list = SystemdServices::new_from_connection(&conn).await;
+                    match srv_list {
+                        Ok(srv_list) => DataLoadingState::Loaded(srv_list),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
+                    }
+                },
+                |val| Message::DataReceiver(Self::SystemdServicesReceived(val)),
+            ),
+            Self::SystemDataReceived(state) => {
+                fx.system = state;
+                Task::none()
+            }
+            Self::GetSystemData => Task::perform(
+                async move {
+                    let sys = System::new();
+                    match sys {
+                        Ok(sys) => DataLoadingState::Loaded(sys),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
+                    }
+                },
+                |val| Message::DataReceiver(Self::SystemDataReceived(val)),
+            ),
+        }
+    }
+}
+
+pub type ExportToFilePath = String;
+
+#[derive(Debug, Clone)]
+pub enum ExportManagerMessage {
+    ExportData(ExportToFilePath),
+    ExportFormatSelected(ExportFormat),
+    ExportModeSelected(ExportMode),
+}
+
+impl ExportManagerMessage {
+    pub fn update<'a>(self, fx: &'a mut Ferrix) -> Task<Message> {
+        match self {
+            Self::ExportData(path) => fx.export_data(&path),
+            _ => Task::none(),
+        }
+    }
+}
+
+impl Ferrix {
+    fn export_data(&mut self, path: &str) -> Task<Message> {
+        let json = ExportData::from(self)
+            .to_json()
+            .unwrap_or("{error}".to_string());
+        let _ = std::fs::write(path, json);
+        Task::none()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum SettingsMessage {
+    ChangeStyle(Style),
+    ChangeUpdatePeriod(u8),
+}
+
+impl SettingsMessage {
+    pub fn update<'a>(self, fx: &'a mut Ferrix) -> Task<Message> {
+        match self {
+            Self::ChangeStyle(style) => fx.change_style(style),
+            Self::ChangeUpdatePeriod(secs) => fx.change_update_period(secs),
+        }
+    }
+}
+
+impl Ferrix {
+    fn change_style(&mut self, style: Style) -> Task<Message> {
+        self.settings.style = style;
+        Task::none()
+    }
+
+    fn change_update_period(&mut self, per: u8) -> Task<Message> {
+        self.settings.update_period = per;
+        Task::none()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum ButtonsMessage {
+    LinkButtonPressed(String),
+    SaveSettingsButtonPressed,
+}
+
+impl ButtonsMessage {
+    pub fn update<'a>(self, fx: &'a mut Ferrix) -> Task<Message> {
+        match self {
+            Self::LinkButtonPressed(url) => fx.go_to_url(&url),
+            Self::SaveSettingsButtonPressed => fx.save_settings(),
+        }
+    }
+}
+
+impl Ferrix {
+    fn go_to_url(&self, url: &str) -> Task<Message> {
+        // TODO: add error handling
+        let _ = crate::utils::xdg_open(url);
+        Task::none()
+    }
+
+    fn save_settings(&mut self) -> Task<Message> {
+        // TODO: add error handling
+        let _ = self
+            .settings
+            .write(get_home().join(".config").join(SETTINGS_PATH));
+        Task::none()
+    }
+}

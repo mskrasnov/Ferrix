@@ -21,8 +21,8 @@
 //! Export Manager page
 
 use crate::{
-    Message,
     export::{ExportFormat, ExportMode},
+    messages::{ExportManagerMessage, Message},
 };
 use iced::widget::{button, column, container, pick_list, row, text};
 
@@ -36,20 +36,22 @@ pub fn export_page<'a>() -> container::Container<'a, Message> {
                     pick_list(
                         ExportFormat::ALL,
                         Some(ExportFormat::CompressedJson),
-                        Message::ExportFormatSelected,
+                        |fmt| Message::ExportManager(ExportManagerMessage::ExportFormatSelected(
+                            fmt
+                        )),
                     )
                     .padding(2),
-                    pick_list(
-                        ExportMode::ALL,
-                        Some(ExportMode::AllData),
-                        Message::ExportModeSelected,
-                    )
+                    pick_list(ExportMode::ALL, Some(ExportMode::AllData), |mode| {
+                        Message::ExportManager(ExportManagerMessage::ExportModeSelected(mode))
+                    },)
                     .padding(2),
                 ]
                 .spacing(5),
             ]
             .spacing(5),
-            button("Экспорт").on_press(Message::ExportData("".to_string())),
+            button("Экспорт").on_press(Message::ExportManager(ExportManagerMessage::ExportData(
+                "export.json".to_string()
+            ))),
         ]
         .spacing(5),
     )

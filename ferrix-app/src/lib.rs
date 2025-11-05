@@ -31,6 +31,10 @@ pub mod widgets;
 pub mod dmi;
 pub mod kernel;
 
+// REFACTORED MODULES
+pub mod messages;
+use messages::*;
+
 pub use load_state::DataLoadingState;
 pub use pages::*;
 
@@ -43,13 +47,12 @@ use ferrix_lib::{
     battery::BatInfo,
     cpu::{Processors, Stat},
     drm::Video,
-    init::{Connection, SystemdServices},
+    init::SystemdServices,
     ram::RAM,
     sys::{
         Groups, LoadAVG, OsRelease, Uptime, Users, get_current_desktop, get_env_vars, get_hostname,
         get_lang,
     },
-    traits::ToJson,
 };
 use iced::{
     Alignment::Center,
@@ -58,59 +61,9 @@ use iced::{
 };
 use std::{fmt::Display, fs, path::Path, time::Duration};
 
-use crate::{dmi::get_dmi_data, export::{ExportData, ExportFormat, ExportMode}, utils::get_home};
+use crate::utils::get_home;
 
 const SETTINGS_PATH: &str = "./ferrix.conf";
-
-#[derive(Debug, Clone)]
-pub enum Message {
-    GetCPUData,
-    CPUDataReceived(DataLoadingState<Processors>),
-
-    GetProcStat,
-    ProcStatReceived(DataLoadingState<Stat>),
-
-    GetRAMData,
-    RAMDataReceived(DataLoadingState<RAM>),
-
-    GetDMIData,
-    DMIDataReceived(DataLoadingState<DMIResult>),
-
-    GetBatInfo,
-    BatInfoReceived(DataLoadingState<BatInfo>),
-
-    GetDRMData,
-    DRMDataReceived(DataLoadingState<Video>),
-
-    GetOsReleaseData,
-    OsReleaseDataReceived(DataLoadingState<OsRelease>),
-
-    GetKernelData,
-    KernelDataReceived(DataLoadingState<KernelData>),
-
-    GetUsersData,
-    UsersDataReceived(DataLoadingState<Users>),
-
-    GetGroupsData,
-    GroupsDataReceived(DataLoadingState<Groups>),
-
-    GetSystemdServices,
-    SystemdServicesReceived(DataLoadingState<SystemdServices>),
-
-    GetSystemData,
-    SystemDataReceived(DataLoadingState<System>),
-
-    ExportData(String),
-    ExportFormatSelected(ExportFormat),
-    ExportModeSelected(ExportMode),
-
-    Dummy,
-    ChangeTheme(Style),
-    SelectPage(Page),
-    ChangeUpdatePeriod(u8),
-    LinkButtonPressed(String),
-    SaveSettingsButtonPressed,
-}
 
 #[derive(Debug)]
 pub struct Ferrix {
@@ -245,312 +198,116 @@ impl Ferrix {
     }
 
     pub fn update(&mut self, message: Message) -> Task<Message> {
-        match message {
-            Message::ExportData(_) => {
-                let json = ExportData::from(self)
-                    .to_json()
-                    .unwrap_or("{error}".to_string());
-                let _ = std::fs::write("./example_export.json", json);
-                Task::none()
-            }
-            Message::CPUDataReceived(state) => {
-                self.proc_data = state;
-                Task::none()
-            }
-            Message::GetCPUData => Task::perform(
-                async move {
-                    let proc = Processors::new();
-                    match proc {
-                        Ok(proc) => DataLoadingState::Loaded(proc),
-                        Err(why) => DataLoadingState::Error(why.to_string()),
-                    }
-                },
-                |val| Message::CPUDataReceived(val),
-            ),
-            Message::ProcStatReceived(state) => {
-                if self.curr_proc_stat.is_some() {
-                    self.prev_proc_stat = self.curr_proc_stat.clone();
-                } else if self.curr_proc_stat.is_none() && self.prev_proc_stat.is_none() {
-                    self.prev_proc_stat = state.clone();
-                }
-                self.curr_proc_stat = state;
-                Task::none()
-            }
-            Message::GetProcStat => Task::perform(
-                async move {
-                    let stat = Stat::new();
-                    match stat {
-                        Ok(stat) => DataLoadingState::Loaded(stat),
-                        Err(why) => DataLoadingState::Error(why.to_string()),
-                    }
-                },
-                |val| Message::ProcStatReceived(val),
-            ),
-            Message::DMIDataReceived(state) => {
-                self.is_polkit = true;
-                if state.is_some() && self.is_polkit {
-                    self.dmi_data = state;
-                } else if !self.is_polkit {
-                    self.dmi_data = state;
-                }
-                Task::none()
-            }
-            Message::GetDMIData => {
-                if self.dmi_data.is_none() && self.current_page == Page::DMI && !self.is_polkit {
-                    Task::perform(async move { get_dmi_data().await }, |val| {
-                        Message::DMIDataReceived(val)
-                    })
-                } else {
-                    Task::none()
-                }
-            }
-            Message::BatInfoReceived(state) => {
-                self.bat_data = state;
-                Task::none()
-            }
-            Message::GetBatInfo => Task::perform(
-                async move {
-                    let bat = BatInfo::new();
-                    match bat {
-                        Ok(bat) => DataLoadingState::Loaded(bat),
-                        Err(why) => DataLoadingState::Error(why.to_string()),
-                    }
-                },
-                |val| Message::BatInfoReceived(val),
-            ),
-            Message::DRMDataReceived(state) => {
-                self.drm_data = state;
-                Task::none()
-            }
-            Message::GetDRMData => Task::perform(
-                async move {
-                    let drm = Video::new();
-                    match drm {
-                        Ok(drm) => DataLoadingState::Loaded(drm),
-                        Err(why) => DataLoadingState::Error(why.to_string()),
-                    }
-                },
-                |val| Message::DRMDataReceived(val),
-            ),
-            Message::RAMDataReceived(state) => {
-                self.ram_data = state;
-                Task::none()
-            }
-            Message::GetRAMData => Task::perform(
-                async move {
-                    let ram = RAM::new();
-                    match ram {
-                        Ok(ram) => DataLoadingState::Loaded(ram),
-                        Err(why) => DataLoadingState::Error(why.to_string()),
-                    }
-                },
-                |val| Message::RAMDataReceived(val),
-            ),
-            Message::OsReleaseDataReceived(state) => {
-                self.osrel_data = state;
-                Task::none()
-            }
-            Message::GetOsReleaseData => Task::perform(
-                async move {
-                    let osrel = OsRelease::new();
-                    match osrel {
-                        Ok(osrel) => DataLoadingState::Loaded(osrel),
-                        Err(why) => DataLoadingState::Error(why.to_string()),
-                    }
-                },
-                |val| Message::OsReleaseDataReceived(val),
-            ),
-            Message::KernelDataReceived(state) => {
-                self.info_kernel = state;
-                Task::none()
-            }
-            Message::GetKernelData => Task::perform(
-                async move {
-                    let kern = KernelData::new();
-                    match kern {
-                        Ok(mut kern) => {
-                            kern.mods.modules.sort_by_key(|md| md.name.clone());
-                            DataLoadingState::Loaded(kern)
-                        }
-                        Err(why) => DataLoadingState::Error(why.to_string()),
-                    }
-                },
-                |val| Message::KernelDataReceived(val),
-            ),
-            Message::UsersDataReceived(state) => {
-                self.users_list = state;
-                Task::none()
-            }
-            Message::GetUsersData => Task::perform(
-                async move {
-                    let users = Users::new();
-                    match users {
-                        Ok(mut users) => {
-                            users.users.sort_by_key(|usr| usr.uid);
-                            DataLoadingState::Loaded(users)
-                        }
-                        Err(why) => DataLoadingState::Error(why.to_string()),
-                    }
-                },
-                |val| Message::UsersDataReceived(val),
-            ),
-            Message::GroupsDataReceived(state) => {
-                self.groups_list = state;
-                Task::none()
-            }
-            Message::GetGroupsData => Task::perform(
-                async move {
-                    let groups = Groups::new();
-                    match groups {
-                        Ok(mut groups) => {
-                            groups.groups.sort_by_key(|grp| grp.gid);
-                            DataLoadingState::Loaded(groups)
-                        }
-                        Err(why) => DataLoadingState::Error(why.to_string()),
-                    }
-                },
-                |val| Message::GroupsDataReceived(val),
-            ),
-            Message::SystemdServicesReceived(state) => {
-                self.sysd_services_list = state;
-                Task::none()
-            }
-            Message::GetSystemdServices => Task::perform(
-                async move {
-                    let conn = Connection::session().await;
-                    if let Err(why) = conn {
-                        return DataLoadingState::Error(why.to_string());
-                    }
-                    let conn = conn.unwrap();
-
-                    let srv_list = SystemdServices::new_from_connection(&conn).await;
-                    match srv_list {
-                        Ok(srv_list) => DataLoadingState::Loaded(srv_list),
-                        Err(why) => DataLoadingState::Error(why.to_string()),
-                    }
-                },
-                |val| Message::SystemdServicesReceived(val),
-            ),
-            Message::SystemDataReceived(state) => {
-                self.system = state;
-                Task::none()
-            }
-            Message::GetSystemData => Task::perform(
-                async move {
-                    let sys = System::new();
-                    match sys {
-                        Ok(sys) => DataLoadingState::Loaded(sys),
-                        Err(why) => DataLoadingState::Error(why.to_string()),
-                    }
-                },
-                |val| Message::SystemDataReceived(val),
-            ),
-            Message::SelectPage(page) => {
-                self.current_page = page;
-                Task::none()
-            }
-            Message::ChangeTheme(style) => {
-                self.settings.style = style;
-                Task::none()
-            }
-            Message::ChangeUpdatePeriod(period) => {
-                self.settings.update_period = period;
-                Task::none()
-            }
-            Message::LinkButtonPressed(url) => {
-                // TODO: add error handling
-                let _ = utils::xdg_open(url);
-                Task::none()
-            }
-            Message::SaveSettingsButtonPressed => {
-                // TODO: add error handling
-                let _ = self
-                    .settings
-                    .write(get_home().join(".config").join(SETTINGS_PATH));
-                Task::none()
-            }
-            _ => Task::none(),
-        }
+        message.update(self)
     }
 
     pub fn subscription(&self) -> Subscription<Message> {
         let mut scripts = vec![
             time::every(Duration::from_secs(self.settings.update_period as u64))
-                .map(|_| Message::GetCPUData),
+                .map(|_| Message::DataReceiver(DataReceiverMessage::GetCPUData)),
             time::every(Duration::from_secs(self.settings.update_period as u64))
-                .map(|_| Message::GetProcStat),
+                .map(|_| Message::DataReceiver(DataReceiverMessage::GetProcStat)),
         ];
 
         if self.current_page == Page::Dashboard {
             scripts.push(
                 time::every(Duration::from_secs(self.settings.update_period as u64))
-                    .map(|_| Message::GetRAMData),
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetRAMData)),
             );
         }
 
         if self.osrel_data.is_none()
             && (self.current_page == Page::Distro || self.current_page == Page::Dashboard)
         {
-            scripts.push(time::every(Duration::from_millis(10)).map(|_| Message::GetOsReleaseData));
+            scripts.push(
+                time::every(Duration::from_millis(10))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetOsReleaseData)),
+            );
         }
 
         if self.drm_data.is_none() && self.current_page == Page::Screen {
-            scripts.push(time::every(Duration::from_millis(10)).map(|_| Message::GetDRMData));
+            scripts.push(
+                time::every(Duration::from_millis(10))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetDRMData)),
+            );
         } else if self.drm_data.is_some() && self.current_page == Page::Screen {
             scripts.push(
                 time::every(Duration::from_secs(self.settings.update_period as u64))
-                    .map(|_| Message::GetDRMData),
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetDRMData)),
             );
         }
 
         if self.bat_data.is_none() && self.current_page == Page::Battery {
-            scripts.push(time::every(Duration::from_millis(10)).map(|_| Message::GetBatInfo));
+            scripts.push(
+                time::every(Duration::from_millis(10))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetBatInfo)),
+            );
         } else if self.bat_data.is_some() && self.current_page == Page::Battery {
             scripts.push(
                 time::every(Duration::from_secs(self.settings.update_period as u64))
-                    .map(|_| Message::GetBatInfo),
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetBatInfo)),
             );
         }
 
         if self.info_kernel.is_none() && self.current_page == Page::Kernel {
-            scripts.push(time::every(Duration::from_millis(10)).map(|_| Message::GetKernelData));
+            scripts.push(
+                time::every(Duration::from_millis(10))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetKernelData)),
+            );
         }
 
         if self.users_list.is_none() && self.current_page == Page::Users {
-            scripts.push(time::every(Duration::from_millis(10)).map(|_| Message::GetUsersData));
+            scripts.push(
+                time::every(Duration::from_millis(10))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetUsersData)),
+            );
         }
 
         if self.system.is_none() {
-            scripts.push(time::every(Duration::from_millis(10)).map(|_| Message::GetSystemData));
+            scripts.push(
+                time::every(Duration::from_millis(10))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetSystemData)),
+            );
         }
 
         if self.groups_list.is_none() && self.current_page == Page::Groups {
-            scripts.push(time::every(Duration::from_millis(10)).map(|_| Message::GetGroupsData));
+            scripts.push(
+                time::every(Duration::from_millis(10))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetGroupsData)),
+            );
         }
 
         if self.sysd_services_list.is_none() && self.current_page == Page::SystemManager {
-            scripts
-                .push(time::every(Duration::from_millis(10)).map(|_| Message::GetSystemdServices));
+            scripts.push(
+                time::every(Duration::from_millis(10))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetSystemdServices)),
+            );
         } else if self.sysd_services_list.is_some() && self.current_page == Page::SystemManager {
             scripts.push(
                 time::every(Duration::from_secs(
                     self.settings.update_period as u64 * 10u64,
                 ))
-                .map(|_| Message::GetSystemdServices),
+                .map(|_| Message::DataReceiver(DataReceiverMessage::GetSystemdServices)),
             );
         }
 
         if self.system.is_none() && self.current_page == Page::SystemMisc {
-            scripts.push(time::every(Duration::from_millis(10)).map(|_| Message::GetSystemData));
+            scripts.push(
+                time::every(Duration::from_millis(10))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetSystemData)),
+            );
         } else if self.system.is_some() && self.current_page == Page::SystemMisc {
             scripts.push(
                 time::every(Duration::from_secs(self.settings.update_period as u64))
-                    .map(|_| Message::GetSystemData),
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetSystemData)),
             );
         }
 
         if self.current_page == Page::DMI && !self.is_polkit && self.dmi_data.is_none() {
-            scripts.push(time::every(Duration::from_secs(1)).map(|_| Message::GetDMIData));
+            scripts.push(
+                time::every(Duration::from_secs(1))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetDMIData)),
+            );
         }
 
         Subscription::batch(scripts)

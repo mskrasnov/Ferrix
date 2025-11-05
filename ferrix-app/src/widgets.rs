@@ -29,8 +29,8 @@ use iced::{
 };
 
 use crate::{
-    Message,
     icons::{ABOUT_ICON, ERROR_ICON, EXPORT_ICON, SETTINGS_ICON},
+    messages::{ButtonsMessage, Message},
     pages::Page,
 };
 
@@ -130,7 +130,9 @@ where
         button(text(placeholder))
             .style(super::styles::link_button)
             .padding(0)
-            .on_press(Message::LinkButtonPressed(link.to_string())),
+            .on_press(Message::Buttons(ButtonsMessage::LinkButtonPressed(
+                link.to_string(),
+            ))),
         container(text(link).size(11).style(|s: &iced::Theme| text::Style {
             color: Some(if s.extended_palette().is_dark {
                 s.palette().text
