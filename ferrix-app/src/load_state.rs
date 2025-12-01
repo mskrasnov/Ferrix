@@ -62,3 +62,9 @@ impl<P> DataLoadingState<P> {
         }
     }
 }
+
+impl<T> Default for DataLoadingState<T> {
+    fn default() -> Self {
+        Self::Loading
+    }
+}
