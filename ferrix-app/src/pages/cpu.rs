@@ -24,14 +24,69 @@ use crate::{
     DataLoadingState, Message, fl,
     pages::{InfoRow, fmt_bool, fmt_val, fmt_vec, kv_info_table},
 };
-use ferrix_lib::cpu::Processors;
+use ferrix_lib::cpu::{Processors, Stat};
 
 use iced::{
+    Alignment::Center,
     Padding,
-    widget::{column, container, scrollable, text},
+    widget::{column, container, progress_bar, row, scrollable, text},
 };
 
 pub fn proc_page<'a>(
+    processors: &'a DataLoadingState<Processors>,
+    cur_stat: &'a DataLoadingState<Stat>,
+    prev_stat: &'a DataLoadingState<Stat>,
+) -> container::Container<'a, Message> {
+    container(scrollable(
+        column![
+            proc_usage_charts(cur_stat, prev_stat),
+            proc_info(processors),
+        ]
+        .padding(Padding::new(0.).right(15.))
+        .spacing(5),
+    ))
+}
+
+fn proc_usage_charts<'a>(
+    cur_stat: &'a DataLoadingState<Stat>,
+    prev_stat: &'a DataLoadingState<Stat>,
+) -> container::Container<'a, Message> {
+    if cur_stat.is_none() || prev_stat.is_none() {
+        return super::error_page("CPU usage statistics are unknown!");
+    }
+    let cur_stat = cur_stat.to_option().unwrap();
+    let prev_stat = prev_stat.to_option().unwrap();
+
+    if cur_stat.cpus.len() != prev_stat.cpus.len() {
+        return super::error_page("CPU usage statistics are broken!");
+    }
+    let i = cur_stat.cpus.len();
+    let mut j = 0;
+    let mut charts = column![].spacing(5);
+    while j < i {
+        let cur_usage = &cur_stat.cpus[j];
+        let cpu_usage = cur_usage.usage_percentage(Some(prev_stat.cpus[j]));
+        charts = charts.push(
+            row![
+                text(fl!("cpu-processor_no", proc_no = (j + 1))),
+                progress_bar(0.0..=100., cpu_usage),
+            ]
+            .align_y(Center)
+            .spacing(5),
+        );
+        j += 1;
+    }
+
+    container(
+        column![
+            text(fl!("dash-proc-usage")).style(text::warning),
+            container(charts).style(container::rounded_box).padding(5),
+        ]
+        .spacing(5),
+    )
+}
+
+fn proc_info<'a>(
     processors: &'a DataLoadingState<Processors>,
 ) -> container::Container<'a, Message> {
     match processors {
@@ -76,7 +131,7 @@ pub fn proc_page<'a>(
                 .spacing(5);
                 proc_list = proc_list.push(proc_view);
             }
-            container(scrollable(proc_list.padding(Padding::new(0.).right(15.))))
+            container(proc_list)
         }
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),

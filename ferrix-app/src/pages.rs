@@ -134,7 +134,12 @@ impl<'a> Page {
                 state.system.to_option(),
             )
             .into(),
-            Self::Processors => cpu::proc_page(&state.proc_data).into(),
+            Self::Processors => cpu::proc_page(
+                &state.proc_data,
+                &state.curr_proc_stat,
+                &state.prev_proc_stat,
+            )
+            .into(),
             Self::Memory => ram::ram_page(&state.ram_data).into(),
             Self::DMI => dmi::dmi_page(&state.dmi_data).into(),
             Self::Battery => battery::bat_page(&state.bat_data).into(),
