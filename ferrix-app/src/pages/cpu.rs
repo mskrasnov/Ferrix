@@ -52,13 +52,13 @@ fn proc_usage_charts<'a>(
     prev_stat: &'a DataLoadingState<Stat>,
 ) -> container::Container<'a, Message> {
     if cur_stat.is_none() || prev_stat.is_none() {
-        return super::error_page("CPU usage statistics are unknown!");
+        return container(text("CPU usage statistics are unknown!").style(text::danger));
     }
     let cur_stat = cur_stat.to_option().unwrap();
     let prev_stat = prev_stat.to_option().unwrap();
 
     if cur_stat.cpus.len() != prev_stat.cpus.len() {
-        return super::error_page("CPU usage statistics are broken!");
+        return container(text("CPU usage statistics are broken!"));
     }
     let i = cur_stat.cpus.len();
     let mut j = 0;
