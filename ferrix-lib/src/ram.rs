@@ -289,7 +289,7 @@ impl RAM {
 impl ToJson for RAM {}
 
 /// Information about swap files or partitions
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct Swaps {
     pub swaps: Vec<Swap>,
 }
@@ -311,7 +311,7 @@ impl Swaps {
 
 impl ToJson for Swaps {}
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct Swap {
     /// Path to the file or partition
     pub filename: String,

@@ -30,7 +30,7 @@ use std::{
 
 use crate::traits::ToJson;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct CpuFreq {
     pub policy: Vec<Policy>,
     pub boost: Option<bool>,
@@ -61,7 +61,7 @@ impl CpuFreq {
 
 impl ToJson for CpuFreq {}
 
-#[derive(Debug, Deserialize, Serialize, Default)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
 pub struct Policy {
     pub bios_limit: Option<u32>,
     pub boost: Option<bool>,

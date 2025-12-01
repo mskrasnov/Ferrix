@@ -29,7 +29,7 @@ use crate::traits::ToJson;
 pub type Name = String;
 pub type Description = String;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Vulnerabilities {
     pub list: Vec<(Name, Description)>,
 }
