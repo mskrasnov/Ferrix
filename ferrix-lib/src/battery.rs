@@ -22,7 +22,7 @@
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use std::{fs::read_to_string, path::Path};
+use std::{fs::{read_to_string, read_dir}, path::Path};
 
 use crate::traits::ToJson;
 
@@ -37,10 +37,18 @@ impl BatInfo {
         let mut bats = Vec::new();
         let base_path = Path::new("/sys/class/power_supply/");
 
-        for i in 0..=10 {
-            let uevent_path = base_path.join(format!("BAT{i}")).join("uevent");
-            if uevent_path.is_file() {
-                bats.push(Battery::new(uevent_path)?);
+        let dir_contents = read_dir(base_path)?;
+        for dir in dir_contents {
+            let dir = dir?.path();
+            let bat_path = dir.join("type");
+            let bat_type = read_to_string(&bat_path)?;
+            if bat_type.trim() == "Battery" {
+                let uevent_path = dir.join("uevent");
+                if uevent_path.is_file() {
+                    bats.push(Battery::new(uevent_path)?);
+                }
+            } else {
+                continue;
             }
         }
         Ok(Self { bats })
