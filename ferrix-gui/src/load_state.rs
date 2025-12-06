@@ -25,3 +25,43 @@ pub enum LoadState<T> {
     Error(String),
     Loaded(T),
 }
+
+impl<T> LoadState<T> {
+    pub fn to_option<'a>(&'a self) -> Option<&'a T> {
+        match self {
+            Self::Loaded(data) => Some(data),
+            _ => None,
+        }
+    }
+
+    pub fn is_some(&self) -> bool {
+        match self {
+            Self::Loaded(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_none(&self) -> bool {
+        !self.is_some()
+    }
+
+    pub fn is_error(&self) -> bool {
+        match self {
+            Self::Error(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_ok(&self) -> bool {
+        self.is_some() && !self.is_error()
+    }
+}
+
+impl<T: Clone> LoadState<T> {
+    pub fn unwrap(self) -> T {
+        match self {
+            Self::Loaded(data) => data,
+            _ => panic!("No data available"),
+        }
+    }
+}
