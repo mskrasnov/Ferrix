@@ -18,7 +18,17 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-use ferrix_lib::{battery::BatInfo, cpu::Processors, cpu_freq::CpuFreq, dmi::{Baseboard, Bios, Chassis, Processor}, drm::Video, init::SystemdServices, ram::{Swaps, RAM}, sys::{Groups, HostName, KModules, Kernel, LoadAVG, OsRelease, Shells, Uptime, Users}, vulnerabilities::Vulnerabilities};
+use ferrix_lib::{
+    battery::BatInfo,
+    cpu::Processors,
+    cpu_freq::CpuFreq,
+    dmi::{Baseboard, Bios, Chassis, Processor},
+    drm::Video,
+    init::SystemdServices,
+    ram::{RAM, Swaps},
+    sys::{Groups, HostName, KModules, Kernel, LoadAVG, OsRelease, Shells, Uptime, Users},
+    vulnerabilities::Vulnerabilities,
+};
 
 use crate::load_state::LoadState;
 
