@@ -30,9 +30,8 @@ use ferrix_lib::{
 
 use iced::{
     Element, Font, Length, never,
-    widget::text,
     widget::{
-        button, column, container, progress_bar, rich_text, row, space, span, text::IntoFragment,
+        button, column, container, grid, progress_bar, rich_text, scrollable, space, span, text,
     },
 };
 
@@ -113,59 +112,56 @@ pub fn dashboard<'a>(
         }
     };
 
-    container(
-        column![
-            row![
-                card(
-                    fl!("dash-proc"),
-                    fl!("dash-proc-info", name = proc_name, threads = proc_threads),
-                    Message::SelectPage(Page::Processors),
-                ),
-                widget_card(
-                    fl!("dash-mem"),
-                    column![
-                        column![
-                            text(fl!("dash-mem-used", used = used_ram.to_string())),
-                            text(fl!("dash-mem-total", total = total_ram.to_string())),
-                        ],
-                        progress_bar(0.0..=total_ram_bytes, used_ram_bytes),
-                    ]
-                    .spacing(5),
-                    Message::SelectPage(Page::Memory),
-                ),
-                card(fl!("dash-sys"), os_name, Message::SelectPage(Page::Distro)),
-                card(
-                    fl!("dash-host"),
-                    hostname,
-                    Message::SelectPage(Page::SystemMisc),
-                ),
+    let items = vec![
+        card(
+            fl!("dash-proc"),
+            fl!("dash-proc-info", name = proc_name, threads = proc_threads),
+            Message::SelectPage(Page::Processors),
+        ),
+        widget_card(
+            fl!("dash-mem"),
+            column![
+                column![
+                    text(fl!("dash-mem-used", used = used_ram.to_string())),
+                    text(fl!("dash-mem-total", total = total_ram.to_string())),
+                ],
+                progress_bar(0.0..=total_ram_bytes, used_ram_bytes),
             ]
             .spacing(5),
-            row![
-                widget_card(
-                    fl!("dash-proc-usage"),
-                    column![
-                        text(fl!(
-                            "dash-proc-usg_label",
-                            usage = format!("{cpu_usage:.2}")
-                        )),
-                        progress_bar(0.0..=100., cpu_usage),
-                    ]
-                    .spacing(5),
-                    Message::SelectPage(Page::Processors)
-                ),
-                card(fl!("misc-de"), de, Message::SelectPage(Page::SystemMisc)),
+            Message::SelectPage(Page::Memory),
+        ),
+        card(fl!("dash-sys"), os_name, Message::SelectPage(Page::Distro)),
+        card(
+            fl!("dash-host"),
+            hostname,
+            Message::SelectPage(Page::SystemMisc),
+        ),
+        widget_card(
+            fl!("dash-proc-usage"),
+            column![
+                text(fl!(
+                    "dash-proc-usg_label",
+                    usage = format!("{cpu_usage:.2}")
+                )),
+                progress_bar(0.0..=100., cpu_usage),
             ]
             .spacing(5),
-        ]
-        .spacing(5),
-    )
+            Message::SelectPage(Page::Processors),
+        ),
+        card(fl!("misc-de"), de, Message::SelectPage(Page::SystemMisc)),
+    ];
+
+    let mut gr = grid([]).spacing(5).columns(4).height(280.);
+    for item in items {
+        gr = gr.push(item);
+    }
+    container(scrollable(gr))
 }
 
 fn card<'a, H, C>(header: H, contents: C, on_press: Message) -> button::Button<'a, Message>
 where
-    H: IntoFragment<'a>,
-    C: IntoFragment<'a>,
+    H: text::IntoFragment<'a>,
+    C: text::IntoFragment<'a>,
 {
     button(
         container(
@@ -198,7 +194,7 @@ where
 
 fn widget_card<'a, H, C>(header: H, contents: C, on_press: Message) -> button::Button<'a, Message>
 where
-    H: IntoFragment<'a>,
+    H: text::IntoFragment<'a>,
     C: Into<Element<'a, Message>>,
 {
     button(
