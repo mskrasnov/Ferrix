@@ -1,8 +1,9 @@
 # (C) 2025 Michail Krasnov <mskrasnov07@ya.ru>
 
+TARGET := x86_64-unknown-linux-gnu
 BINARY_NAME := ferrix-app
 POLKIT_BINARY := ferrix-polkit
-RELEASE_DIR := ./target/release
+RELEASE_DIR := ./target/release/$(TARGET)/
 INSTALL_DIR := /usr/bin
 POLICY_DIR := /usr/share/polkit-1/actions
 DESKTOP_DIR := /usr/share/applications
@@ -21,11 +22,11 @@ all: build
 
 build:
 	@echo "$(YELLOW)Building Ferrix in release mode...$(NC)"
-	cargo build --release
+	cargo build --release --target=$(TARGET)
 	@echo "$(GREEN)Build completed successfully!$(NC)"
 
 deb: build
-	cargo deb
+	cargo deb --target=$(TARGET)
 
 install: build
 	@echo "$(YELLOW)Installing Ferrix...$(NC)"
@@ -87,11 +88,11 @@ run: build
 
 run_debug:
 	@echo "$(YELLOW)Running Ferrix in the $(GREEN)debug mode$(YELLOW)...$(NC)"
-	cargo run --bin=ferrix-app
+	cargo run --bin=ferrix-app --target=$(TARGET)
 
 debug:
 	@echo "$(YELLOW)Building in debug mode...$(NC)"
-	cargo build
+	cargo build --target=$(TARGET)
 	@echo "$(GREEN)Debug build completed$(NC)"
 
 help:
