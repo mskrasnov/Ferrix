@@ -122,9 +122,10 @@ pub fn sidebar_button<'a>(page: Page, cur_page: Page) -> button::Button<'a, Mess
         .on_press(Message::SelectPage(page))
 }
 
-pub fn link_button<'a, P>(placeholder: P, link: &'a str) -> tooltip::Tooltip<'a, Message>
+pub fn link_button<'a, P, L>(placeholder: P, link: L) -> tooltip::Tooltip<'a, Message>
 where
     P: IntoFragment<'a>,
+    L: ToString + IntoFragment<'a> + 'a,
 {
     tooltip(
         button(text(placeholder))

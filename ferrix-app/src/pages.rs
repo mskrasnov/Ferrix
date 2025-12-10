@@ -260,14 +260,19 @@ impl<V> InfoRow<V> {
     }
 }
 
-fn text_fmt_val<'a, V>(val: Option<V>) -> text::Text<'a>
+fn text_fmt_val<'a, V>(val: Option<V>) -> Element<'a, Message>
 where
     V: ToString + 'a,
 {
     match val {
-        Some(val) if !val.to_string().is_empty() => text(val.to_string()),
-        Some(_) => text("N/A"),
-        None => text(""),
+        Some(val) if !val.to_string().is_empty() && !val.to_string().contains("http") => {
+            text(val.to_string()).into()
+        }
+        Some(val) if !val.to_string().is_empty() && val.to_string().contains("http") => {
+            link_button(val.to_string(), val.to_string()).into()
+        }
+        Some(_) => text("N/A").into(),
+        None => text("").into(),
     }
 }
 
