@@ -71,12 +71,6 @@ fn bat_table<'a>(bat: &'a Battery) -> container::Container<'a, Message> {
             Some(format!(
                 "{} ({}%)",
                 match &bat.capacity_level {
-                    // Some(Level::Full) => "Full",
-                    // Some(Level::Normal) => "Normal",
-                    // Some(Level::High) => "High",
-                    // Some(Level::Low) => "Low",
-                    // Some(Level::Critical) => "Critical!",
-                    // _ => "Unknown",
                     Some(Level::Full) => fl!("bat-lvl-ful"),
                     Some(Level::Normal) => fl!("bat-lvl-nor"),
                     Some(Level::High) => fl!("bat-lvl-hig"),
@@ -103,8 +97,6 @@ fn bat_table<'a>(bat: &'a Battery) -> container::Container<'a, Message> {
         InfoRow::new(fl!("bat-model"), bat.model_name.clone()),
         InfoRow::new(fl!("bat-manufact"), bat.manufacturer.clone()),
         InfoRow::new(fl!("bat-serial"), bat.serial_number.clone()),
-        // InfoRow::new("Discharge time, hours", fmt_val(bat.discharge_time)),
-        // InfoRow::new("Charge time, hours", fmt_val(bat.charge_time)),
     ];
     container(kv_info_table(rows)).style(container::rounded_box)
 }
