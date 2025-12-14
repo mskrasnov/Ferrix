@@ -32,10 +32,7 @@ use ferrix_lib::{
 use iced::{Task, color, time::Instant};
 
 use crate::{
-    DataLoadingState, Ferrix, KernelData, LineSeries, Page, SETTINGS_PATH, Style, System,
-    dmi::DMIResult,
-    export::{ExportData, ExportFormat, ExportMode},
-    utils::get_home,
+    dmi::DMIResult, export::{ExportData, ExportFormat, ExportMode}, styles::CPU_CHARTS_COLORS, utils::get_home, DataLoadingState, Ferrix, KernelData, LineSeries, Page, Style, System, SETTINGS_PATH
 };
 
 #[derive(Debug, Clone)]
@@ -200,21 +197,11 @@ impl DataReceiverMessage {
                 }
                 let len = curr_proc.cpus.len();
 
-                let colors = vec![
-                    color!(0xe6194b),
-                    color!(0xF58231),
-                    color!(0xFFE119),
-                    color!(0xBFEF45),
-                    color!(0x3CB44B),
-                    color!(0x42D4F4),
-                    color!(0x4363D8),
-                    color!(0x911EB4),
-                ];
-
+                let colors = CPU_CHARTS_COLORS;
                 for id in 0..len {
                     if fx.show_cpus_chart.get(&id).is_none() {
                         let color = {
-                            if colors.len() - 1 > id {
+                            if colors.len() - 1 < id {
                                 color!(255, 255, 255)
                             } else {
                                 colors[id]

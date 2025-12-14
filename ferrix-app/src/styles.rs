@@ -18,7 +18,22 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-use iced::{Theme, widget::button};
+use iced::{Color, Theme, color, widget::button};
+
+pub const CPU_CHARTS_COLORS: &'static [Color] = &[
+    color!(0xe6194b),
+    color!(0xF58231),
+    color!(0xFFE119),
+    color!(0xBFEF45),
+    color!(0x3CB44B),
+    color!(0x42D4F4),
+    color!(0x4363D8),
+    color!(0x911EB4),
+    color!(0xff00e3),
+    color!(0xffb5ba),
+    color!(0x00a800),
+    color!(0xfdffc5),
+];
 
 /// A link button
 pub fn link_button(theme: &Theme, status: button::Status) -> button::Style {
