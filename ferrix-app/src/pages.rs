@@ -41,11 +41,13 @@ mod groups;
 mod kernel;
 mod ram;
 mod settings;
+mod sysmon;
 mod system;
 mod systemd;
 mod users;
 
 pub use kernel::KernelData;
+pub use sysmon::*;
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq)]
 pub enum Page {
@@ -55,6 +57,7 @@ pub enum Page {
     #[default]
     Dashboard,
     Processors,
+    SystemMonitor,
     Memory,
     Storage,
     DMI,
@@ -98,6 +101,7 @@ impl<'a> Page {
         match self {
             Self::Dashboard => fl!("page-dashboard"),
             Self::Processors => fl!("page-procs"),
+            Self::SystemMonitor => fl!("page-sysmon"),
             Self::Memory => fl!("page-memory"),
             Self::Storage => fl!("page-storage"),
             Self::DMI => fl!("page-dmi"),
@@ -134,12 +138,11 @@ impl<'a> Page {
                 state.system.to_option(),
             )
             .into(),
-            Self::Processors => cpu::proc_page(
-                &state.proc_data,
-                &state.curr_proc_stat,
-                &state.prev_proc_stat,
-            )
-            .into(),
+            Self::Processors => cpu::proc_page(&state.proc_data).into(),
+            Self::SystemMonitor => {
+                sysmon::usage_charts_page(&state, &state.curr_proc_stat, &state.prev_proc_stat)
+                    .into()
+            }
             Self::Memory => ram::ram_page(&state.ram_data).into(),
             Self::DMI => dmi::dmi_page(&state.dmi_data).into(),
             Self::Battery => battery::bat_page(&state.bat_data).into(),

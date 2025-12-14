@@ -5,6 +5,7 @@
 sidebar-export = Export
 sidebar-settings = Settings
 sidebar-about = About
+sidebar-basic = Basic
 sidebar-hardware = Hardware
 sidebar-admin = Administration
 sidebar-system = System
@@ -22,6 +23,7 @@ page-distro = Distro
 page-users = Users
 page-groups = Groups
 page-sysmgr = System Manager
+page-sysmon = System Monitor
 page-software = Installed software
 page-env = Environment
 page-sensors = Sensors
@@ -255,6 +257,14 @@ misc-uptime = Uptime
 misc-uptime-val = uptime: {$up}, downtime: {$down}
 misc-de = Desktop
 misc-lang = Language
+
+# SYSTEM MONITOR PAGE
+sysmon-x-axis = Number of counts on the X-axis:
+sysmon-toggle = Enable/Disable stacked charts
+sysmon-cpu-hdr = CPU Usage
+sysmon-ram-hdr = RAM Usage
+sysmon-cpu-unk = CPU usage statistics are unknown!
+sysmon-cpu-brk = CPU usage statistics are broken!
 
 # SYSTEMD PAGE
 sysd-hdr-name = Name

@@ -5,6 +5,7 @@
 sidebar-export = Экспорт
 sidebar-settings = Настройки
 sidebar-about = О программе
+sidebar-basic = Основное
 sidebar-hardware = Оборудование
 sidebar-admin = Администрирование
 sidebar-system = Система
@@ -22,6 +23,7 @@ page-distro = Дистрибутив
 page-users = Пользователи
 page-groups = Группы
 page-sysmgr = Системный менеджер
+page-sysmon = Системный монитор
 page-software = Установленное ПО
 page-env = Окружение
 page-sensors = Сенсоры
@@ -255,6 +257,14 @@ misc-uptime = Время работы
 misc-uptime-val = работы: {$up}, простоя: {$down}
 misc-de = Рабочее окружение
 misc-lang = Язык
+
+# SYSTEM MONITOR PAGE
+sysmon-x-axis = Число отсчётов по оси X:
+sysmon-toggle = Вкл/выкл сложенные графики
+sysmon-cpu-hdr = Использование ЦП
+sysmon-ram-hdr = Использование ОЗУ
+sysmon-cpu-unk = Статистика использования ЦП неизвестна!
+sysmon-cpu-brk = Статистика использования ЦП повреждена!
 
 # SYSTEMD PAGE
 sysd-hdr-name = Имя

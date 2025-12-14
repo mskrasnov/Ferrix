@@ -29,10 +29,10 @@ use ferrix_lib::{
     sys::{Groups, OsRelease, Users},
     traits::ToJson,
 };
-use iced::Task;
+use iced::{Task, color, time::Instant};
 
 use crate::{
-    DataLoadingState, Ferrix, KernelData, Page, SETTINGS_PATH, Style, System,
+    DataLoadingState, Ferrix, KernelData, LineSeries, Page, SETTINGS_PATH, Style, System,
     dmi::DMIResult,
     export::{ExportData, ExportFormat, ExportMode},
     utils::get_home,
@@ -75,11 +75,20 @@ pub enum DataReceiverMessage {
     GetCPUData,
     CPUDataReceived(DataLoadingState<Processors>),
 
+    AnimationTick(Instant),
+    ToggleStacked,
+
+    AddTotalCPUUsage,
+    AddCPUCoreLineSeries,
+    ChangeShowCPUChartElements(usize),
+
     GetProcStat,
     ProcStatReceived(DataLoadingState<Stat>),
 
     GetRAMData,
     RAMDataReceived(DataLoadingState<RAM>),
+
+    AddTotalRAMUsage,
 
     GetDMIData,
     DMIDataReceived(DataLoadingState<DMIResult>),
@@ -126,6 +135,27 @@ impl DataReceiverMessage {
                 },
                 |val| Message::DataReceiver(Self::CPUDataReceived(val)),
             ),
+            Self::AnimationTick(now) => {
+                if let Page::SystemMonitor = fx.current_page {
+                    fx.cpu_usage_chart.set_max_y(100.);
+                    fx.ram_usage_chart.set_max_y(match &fx.ram_data {
+                        DataLoadingState::Loaded(ram) => {
+                            ram.total.get_bytes2().unwrap_or(0) as f64 / 1024. / 1024. / 1024.
+                        }
+                        _ => 0.,
+                    });
+                }
+                fx.cpu_usage_chart.tick(now);
+                fx.ram_usage_chart.tick(now);
+
+                Task::none()
+            }
+            Self::ToggleStacked => {
+                fx.cpu_usage_chart.toggle_stacked();
+                fx.ram_usage_chart.toggle_stacked();
+
+                Task::none()
+            }
             Self::ProcStatReceived(state) => {
                 if fx.curr_proc_stat.is_some() {
                     fx.prev_proc_stat = fx.curr_proc_stat.clone();
@@ -145,6 +175,77 @@ impl DataReceiverMessage {
                 },
                 |val| Message::DataReceiver(Self::ProcStatReceived(val)),
             ),
+            Self::AddTotalCPUUsage => {
+                fx.cpu_usage_chart.push_value(match &fx.curr_proc_stat {
+                    DataLoadingState::Loaded(val) => val.cpu.unwrap().usage_percentage({
+                        let prev = fx.prev_proc_stat.clone().unwrap();
+                        prev.cpu
+                    }) as f64,
+                    _ => 0.,
+                });
+                Task::none()
+            }
+            Self::AddCPUCoreLineSeries => {
+                let curr_proc = &fx.curr_proc_stat;
+                let prev_proc = &fx.prev_proc_stat;
+
+                if curr_proc.is_none() || prev_proc.is_none() {
+                    return Task::none();
+                }
+                let curr_proc = curr_proc.to_option().unwrap();
+                let prev_proc = prev_proc.to_option().unwrap();
+
+                if curr_proc.cpus.len() != prev_proc.cpus.len() {
+                    return Task::none();
+                }
+                let len = curr_proc.cpus.len();
+
+                let colors = vec![
+                    color!(0xe6194b),
+                    color!(0xF58231),
+                    color!(0xFFE119),
+                    color!(0xBFEF45),
+                    color!(0x3CB44B),
+                    color!(0x42D4F4),
+                    color!(0x4363D8),
+                    color!(0x911EB4),
+                ];
+
+                for id in 0..len {
+                    if fx.show_cpus_chart.get(&id).is_none() {
+                        let color = {
+                            if colors.len() - 1 > id {
+                                color!(255, 255, 255)
+                            } else {
+                                colors[id]
+                            }
+                        };
+                        let mut line =
+                            LineSeries::new(format!("CPU #{id}"), color, fx.show_chart_elements);
+                        line.push(
+                            curr_proc.cpus[id].usage_percentage(Some(prev_proc.cpus[id])) as f64,
+                        );
+                        fx.cpu_usage_chart.push_series(line);
+                        fx.show_cpus_chart.insert(id);
+                    } else {
+                        fx.cpu_usage_chart.push_to(
+                            id,
+                            "",
+                            curr_proc.cpus[id].usage_percentage(Some(prev_proc.cpus[id])) as f64,
+                        );
+                    }
+                }
+
+                Task::none()
+            }
+            Self::ChangeShowCPUChartElements(elems) => {
+                fx.show_chart_elements = elems;
+
+                fx.cpu_usage_chart.set_max_values(elems);
+                fx.ram_usage_chart.set_max_values(elems);
+
+                Task::none()
+            }
             Self::DMIDataReceived(state) => {
                 fx.is_polkit = true;
                 if state.is_some() && fx.is_polkit {
@@ -205,6 +306,19 @@ impl DataReceiverMessage {
                 },
                 |val| Message::DataReceiver(Self::RAMDataReceived(val)),
             ),
+            Self::AddTotalRAMUsage => {
+                fx.ram_usage_chart.push_value(match &fx.ram_data {
+                    DataLoadingState::Loaded(ram) => {
+                        let total = ram.total.get_bytes2().unwrap_or(0) as f64;
+                        let avail = ram.available.get_bytes2().unwrap_or(0) as f64;
+
+                        (total - avail) / 1024. / 1024. / 1024.
+                    }
+                    _ => 0.,
+                });
+                fx.ram_usage_chart.set_max_values(fx.show_chart_elements);
+                Task::none()
+            }
             Self::OsReleaseDataReceived(state) => {
                 fx.osrel_data = state;
                 Task::none()

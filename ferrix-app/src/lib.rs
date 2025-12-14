@@ -56,9 +56,11 @@ use ferrix_lib::{
     },
 };
 use iced::{
-    time, widget::{column, container, row, scrollable, text}, Alignment::Center, Element, Length, Padding, Subscription, Task, Theme
+    Alignment::Center,
+    Element, Length, Padding, Subscription, Task, Theme, time,
+    widget::{column, container, row, scrollable, text},
 };
-use std::{fmt::Display, fs, path::Path, time::Duration};
+use std::{collections::HashSet, fmt::Display, fs, path::Path, time::Duration};
 
 use crate::utils::get_home;
 
@@ -70,7 +72,11 @@ pub struct Ferrix {
     pub proc_data: DataLoadingState<Processors>,
     pub prev_proc_stat: DataLoadingState<Stat>,
     pub curr_proc_stat: DataLoadingState<Stat>,
+    pub cpu_usage_chart: LineChart,
+    pub show_cpus_chart: HashSet<usize>,
+    pub show_chart_elements: usize,
     pub ram_data: DataLoadingState<RAM>,
+    pub ram_usage_chart: LineChart,
     pub dmi_data: DataLoadingState<DMIResult>,
     pub bat_data: DataLoadingState<BatInfo>,
     pub drm_data: DataLoadingState<Video>,
@@ -91,7 +97,14 @@ impl Default for Ferrix {
             proc_data: DataLoadingState::Loading,
             prev_proc_stat: DataLoadingState::Loading,
             curr_proc_stat: DataLoadingState::Loading,
+            cpu_usage_chart: LineChart::new().legend(true).fill_alpha(0.25).animated(0.7),
+            show_cpus_chart: HashSet::new(),
+            show_chart_elements: 10,
             ram_data: DataLoadingState::Loading,
+            ram_usage_chart: LineChart::new()
+                .legend(false)
+                .fill_alpha(0.25)
+                .animated(0.7),
             dmi_data: DataLoadingState::Loading,
             bat_data: DataLoadingState::Loading,
             drm_data: DataLoadingState::Loading,
@@ -206,9 +219,17 @@ impl Ferrix {
                 .map(|_| Message::DataReceiver(DataReceiverMessage::GetCPUData)),
             time::every(Duration::from_secs(self.settings.update_period as u64))
                 .map(|_| Message::DataReceiver(DataReceiverMessage::GetProcStat)),
+            // Charts
+            time::every(Duration::from_secs(self.settings.update_period as u64))
+                .map(|_| Message::DataReceiver(DataReceiverMessage::AddCPUCoreLineSeries)),
+            time::every(Duration::from_secs(self.settings.update_period as u64))
+                .map(|_| Message::DataReceiver(DataReceiverMessage::AddTotalRAMUsage)),
+            // Charts update
+            iced::window::frames()
+                .map(|inst| Message::DataReceiver(DataReceiverMessage::AnimationTick(inst))),
         ];
 
-        if self.current_page == Page::Dashboard {
+        if self.current_page == Page::Dashboard || self.current_page == Page::SystemMonitor {
             scripts.push(
                 time::every(Duration::from_secs(self.settings.update_period as u64))
                     .map(|_| Message::DataReceiver(DataReceiverMessage::GetRAMData)),
@@ -331,8 +352,10 @@ fn sidebar<'a>(cur_page: Page) -> container::Container<'a, Message> {
     .align_y(Center);
 
     let pages_bar = column![
-        text(fl!("sidebar-hardware")).style(text::secondary),
+        text(fl!("sidebar-basic")).style(text::secondary),
         sidebar_button(Page::Dashboard, cur_page),
+        sidebar_button(Page::SystemMonitor, cur_page),
+        text(fl!("sidebar-hardware")).style(text::secondary),
         sidebar_button(Page::Processors, cur_page),
         sidebar_button(Page::Memory, cur_page),
         sidebar_button(Page::Storage, cur_page),
