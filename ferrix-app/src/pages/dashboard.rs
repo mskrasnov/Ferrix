@@ -146,7 +146,7 @@ pub fn dashboard<'a>(
                 progress_bar(0.0..=100., cpu_usage),
             ]
             .spacing(5),
-            Message::SelectPage(Page::Processors),
+            Message::SelectPage(Page::SystemMonitor),
         ),
         card(fl!("misc-de"), de, Message::SelectPage(Page::SystemMisc)),
     ];
