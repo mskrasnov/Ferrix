@@ -238,6 +238,12 @@ ram-nfs-unstable = NFS Unstable
 ram-bounce = Bounce buffers
 ram-writeback-tmp = Temporary buffers (for FUSE)
 ram-commit-limit = Commit limit (max.)
+ram-swp = Swap {$name}
+ram-swp-size = Total size
+ram-swp-used = Used
+ram-swp-prior = Priority
+ram-hdr = RAM Info
+ram-swp-hdr = Swaps Info
 
 # SETTINGS PAGE
 settings-update-period = Update period

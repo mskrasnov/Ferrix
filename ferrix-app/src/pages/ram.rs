@@ -24,15 +24,24 @@ use crate::{
     Message, fl,
     load_state::DataLoadingState,
     pages::{InfoRow, fmt_val, kv_info_table},
+    widgets::header,
 };
-use ferrix_lib::ram::RAM;
+use ferrix_lib::ram::{RAM, Swaps};
+use iced::widget::{column, container, scrollable, text};
 
-use iced::widget::{column, container, scrollable};
+pub fn ram_page<'a>(
+    ram: &'a DataLoadingState<RAM>,
+    swaps: &'a DataLoadingState<Swaps>,
+) -> container::Container<'a, Message> {
+    container(scrollable(
+        column![ram_table(ram), swap_table(swaps),].spacing(5),
+    ))
+}
 
-pub fn ram_page<'a>(ram: &'a DataLoadingState<RAM>) -> container::Container<'a, Message> {
+fn ram_table<'a>(ram: &'a DataLoadingState<RAM>) -> container::Container<'a, Message> {
     match ram {
         DataLoadingState::Loaded(ram) => {
-            let mut ram_data = column![].spacing(5);
+            let mut ram_data = column![header(fl!("ram-hdr"))].spacing(5);
             let rows = vec![
                 InfoRow::new(fl!("ram-total"), fmt_val(ram.total.round(2))),
                 InfoRow::new(fl!("ram-free"), fmt_val(ram.free.round(2))),
@@ -83,9 +92,40 @@ pub fn ram_page<'a>(ram: &'a DataLoadingState<RAM>) -> container::Container<'a, 
             ];
 
             ram_data = ram_data.push(container(kv_info_table(rows)).style(container::rounded_box));
-            container(scrollable(ram_data))
+            container(ram_data)
         }
-        DataLoadingState::Error(why) => super::error_page(why),
-        DataLoadingState::Loading => super::loading_page(),
+        DataLoadingState::Error(why) => {
+            container(text(format!("Failed to get RAM data!\n{why}")).style(text::danger))
+        }
+        DataLoadingState::Loading => container(text("Loading data...").style(text::warning)),
+    }
+}
+
+fn swap_table<'a>(swaps: &'a DataLoadingState<Swaps>) -> container::Container<'a, Message> {
+    match swaps {
+        DataLoadingState::Loaded(swaps) => {
+            let mut swap_data = column![header(fl!("ram-swp-hdr"))].spacing(5);
+
+            for swap in &swaps.swaps {
+                let rows = vec![
+                    InfoRow::new(fl!("ram-swp-size"), fmt_val(swap.size.round(2))),
+                    InfoRow::new(fl!("ram-swp-used"), fmt_val(swap.used.round(2))),
+                    InfoRow::new(fl!("ram-swp-prior"), fmt_val(Some(swap.priority))),
+                ];
+                swap_data = swap_data.push(
+                    column![
+                        text(fl!("ram-swp", name = swap.filename.to_string())).style(text::warning),
+                        container(kv_info_table(rows)).style(container::rounded_box),
+                    ]
+                    .spacing(5),
+                );
+            }
+
+            container(swap_data)
+        }
+        DataLoadingState::Error(why) => {
+            container(text(format!("Failed to get RAM data!\n{why}")).style(text::danger))
+        }
+        DataLoadingState::Loading => container(text("Loading data...").style(text::warning)),
     }
 }

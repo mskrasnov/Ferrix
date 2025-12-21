@@ -144,7 +144,7 @@ impl<'a> Page {
                 sysmon::usage_charts_page(&state, &state.curr_proc_stat, &state.prev_proc_stat)
                     .into()
             }
-            Self::Memory => ram::ram_page(&state.ram_data).into(),
+            Self::Memory => ram::ram_page(&state.ram_data, &state.swap_data).into(),
             Self::DMI => dmi::dmi_page(&state.dmi_data).into(),
             Self::Battery => battery::bat_page(&state.bat_data).into(),
             Self::Screen => drm::drm_page(&state.drm_data).into(),

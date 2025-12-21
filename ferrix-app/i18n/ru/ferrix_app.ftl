@@ -238,6 +238,12 @@ ram-nfs-unstable = Нестабильный NFS
 ram-bounce = Bounce буферы
 ram-writeback-tmp = Временные буферы (для FUSE)
 ram-commit-limit = Можно выделить (max.)
+ram-swp = Подкачка {$name}
+ram-swp-size = Объём
+ram-swp-used = Занятый объём
+ram-swp-prior = Приоритет
+ram-hdr = Оперативная память
+ram-swp-hdr = Подкачка
 
 # SETTINGS PAGE
 settings-update-period = Период обновления
