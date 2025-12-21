@@ -366,8 +366,8 @@ impl TryFrom<&str> for Swap {
         Ok(Self {
             filename: data[0].to_string(),
             swap_type: data[1].to_string(),
-            size: Size::B(data[2].parse()?),
-            used: Size::B(data[3].parse()?),
+            size: Size::KB(data[2].parse()?),
+            used: Size::KB(data[3].parse()?),
             priority: data[4].parse()?,
         })
     }
