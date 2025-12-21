@@ -148,6 +148,18 @@ pub fn dashboard<'a>(
             Message::SelectPage(Page::Processors),
         ),
         widget_card(
+            fl!("dash-proc-usage"),
+            column![
+                text(fl!(
+                    "dash-proc-usg_label",
+                    usage = format!("{cpu_usage:.2}")
+                )),
+                progress_bar(0.0..=100., cpu_usage),
+            ]
+            .spacing(5),
+            Message::SelectPage(Page::SystemMonitor),
+        ),
+        widget_card(
             fl!("dash-mem"),
             column![
                 column![
@@ -165,23 +177,17 @@ pub fn dashboard<'a>(
             hostname,
             Message::SelectPage(Page::SystemMisc),
         ),
-        widget_card(
-            fl!("dash-proc-usage"),
-            column![
-                text(fl!(
-                    "dash-proc-usg_label",
-                    usage = format!("{cpu_usage:.2}")
-                )),
-                progress_bar(0.0..=100., cpu_usage),
-            ]
-            .spacing(5),
-            Message::SelectPage(Page::SystemMonitor),
-        ),
         card(fl!("misc-de"), de, Message::SelectPage(Page::SystemMisc)),
     ];
 
+    /* 0 - CPU,
+     * 1 - CPU Usage,
+     * 2 - RAM Usage,
+     * 3...n - Swap usage
+     */
+    let mut offset = 3;
     for swap in swaps_usage {
-        items.push(widget_card(
+        items.insert(offset, widget_card(
             fl!("dash-swap"),
             column![
                 column![
@@ -200,6 +206,7 @@ pub fn dashboard<'a>(
             .spacing(5),
             Message::SelectPage(Page::Memory),
         ));
+        offset += 1;
     }
 
     let mut gr = grid([]).spacing(5).fluid(185.);
