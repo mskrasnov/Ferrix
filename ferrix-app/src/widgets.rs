@@ -29,7 +29,7 @@ use iced::{
     widget::{button, column, container, svg, text, tooltip::Position},
 };
 
-// pub mod line_charts;
+pub mod line_charts;
 
 use crate::{
     icons::{ABOUT_ICON, ERROR_ICON, EXPORT_ICON, SETTINGS_ICON},

@@ -62,7 +62,7 @@ use iced::{
 };
 use std::{collections::HashSet, fmt::Display, fs, path::Path, time::Duration};
 
-use crate::utils::get_home;
+use crate::{utils::get_home, widgets::line_charts::LineChart};
 
 const SETTINGS_PATH: &str = "./ferrix.conf";
 
