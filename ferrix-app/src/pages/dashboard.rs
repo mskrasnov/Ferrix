@@ -23,7 +23,7 @@
 use crate::{Message, Page, fl};
 use ferrix_lib::{
     cpu::{Processors, Stat},
-    ram::RAM,
+    ram::{RAM, Swaps},
     sys::OsRelease,
     utils::Size,
 };
@@ -35,10 +35,20 @@ use iced::{
     },
 };
 
+#[derive(Debug, Clone, Copy)]
+struct SwapUsage<'a> {
+    name: &'a str,
+    size: Size,
+    used: Size,
+    size_b: f32,
+    used_b: f32,
+}
+
 pub fn dashboard<'a>(
     proc: Option<&'a Processors>,
     stat: (Option<&'a Stat>, Option<&'a Stat>),
     ram: Option<&'a RAM>,
+    swaps: Option<&'a Swaps>,
     osr: Option<&'a OsRelease>,
     system: Option<&'a crate::System>,
 ) -> container::Container<'a, Message> {
@@ -76,6 +86,25 @@ pub fn dashboard<'a>(
         .round(2)
         .unwrap_or(Size::B(used_ram_bytes as usize));
 
+    let swaps_usage = match swaps {
+        Some(swaps) => {
+            let mut usage = Vec::with_capacity(swaps.swaps.len());
+            for swap in &swaps.swaps {
+                let size_b = swap.size.get_bytes2().unwrap_or(0) as f32;
+                let used_b = swap.used.get_bytes2().unwrap_or(0) as f32;
+                usage.push(SwapUsage {
+                    name: &swap.filename,
+                    size: swap.size,
+                    used: swap.used,
+                    size_b,
+                    used_b,
+                });
+            }
+            usage
+        }
+        None => vec![],
+    };
+
     let os_name = {
         match osr {
             Some(osr) => match &osr.pretty_name {
@@ -112,7 +141,7 @@ pub fn dashboard<'a>(
         }
     };
 
-    let items = vec![
+    let mut items = vec![
         card(
             fl!("dash-proc"),
             fl!("dash-proc-info", name = proc_name, threads = proc_threads),
@@ -150,6 +179,28 @@ pub fn dashboard<'a>(
         ),
         card(fl!("misc-de"), de, Message::SelectPage(Page::SystemMisc)),
     ];
+
+    for swap in swaps_usage {
+        items.push(widget_card(
+            fl!("dash-swap"),
+            column![
+                column![
+                    text(swap.name),
+                    text(fl!(
+                        "dash-mem-used",
+                        used = swap.used.round(2).unwrap_or_default().to_string()
+                    )),
+                    text(fl!(
+                        "dash-mem-total",
+                        total = swap.size.round(2).unwrap_or_default().to_string()
+                    )),
+                ],
+                progress_bar(0.0..=swap.size_b, swap.used_b),
+            ]
+            .spacing(5),
+            Message::SelectPage(Page::Memory),
+        ));
+    }
 
     let mut gr = grid([]).spacing(5).columns(4).height(280.);
     for item in items {

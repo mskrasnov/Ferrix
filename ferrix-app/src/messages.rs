@@ -32,7 +32,12 @@ use ferrix_lib::{
 use iced::{Task, color, time::Instant};
 
 use crate::{
-    dmi::DMIResult, export::{ExportData, ExportFormat, ExportMode}, styles::CPU_CHARTS_COLORS, utils::get_home, widgets::line_charts::LineSeries, DataLoadingState, Ferrix, KernelData, Page, Style, System, SETTINGS_PATH
+    DataLoadingState, Ferrix, KernelData, Page, SETTINGS_PATH, Style, System,
+    dmi::DMIResult,
+    export::{ExportData, ExportFormat, ExportMode},
+    styles::CPU_CHARTS_COLORS,
+    utils::get_home,
+    widgets::line_charts::LineSeries,
 };
 
 #[derive(Debug, Clone)]
@@ -339,8 +344,10 @@ impl DataReceiverMessage {
                     let current_series_cnt = fx.ram_usage_chart.series_count();
 
                     for id in 0..len {
-                        let used =
-                            swap.swaps[id].used.get_bytes2().unwrap_or(0) as f64 / 1024. / 1024.;
+                        let used = swap.swaps[id].used.get_bytes2().unwrap_or(0) as f64
+                            / 1024.
+                            / 1024.
+                            / 1024.;
                         let series_idx = id + 1;
 
                         if series_idx >= current_series_cnt {

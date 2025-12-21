@@ -134,6 +134,7 @@ dash-mem-used = Used: {$used}
 dash-mem-total = Total: {$total}
 dash-proc-usage = CPU Usage
 dash-proc-usg_label = Total usage: {$usage}%
+dash-swap = Swap
 
 # DISTRO PAGE
 distro-name = OS Name

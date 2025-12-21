@@ -134,6 +134,7 @@ dash-mem-used = Использ.: {$used}
 dash-mem-total = Всего: {$total}
 dash-proc-usage = Нагрузка на ЦП
 dash-proc-usg_label = Общая: {$usage}%
+dash-swap = Подкачка
 
 # DISTRO PAGE
 distro-name = Имя ОС

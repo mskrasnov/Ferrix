@@ -134,6 +134,7 @@ impl<'a> Page {
                     state.curr_proc_stat.to_option(),
                 ),
                 state.ram_data.to_option(),
+                state.swap_data.to_option(),
                 state.osrel_data.to_option(),
                 state.system.to_option(),
             )
