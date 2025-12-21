@@ -721,15 +721,32 @@ impl PlotData<f64> for LineChart {
                 let (x_min, x_max) = x_axis.domain();
                 let (y_min, y_max) = y_axis.domain();
 
+                let max_cols = 6;
+                let item_cnt = self.series.len();
+                let cols_per_row = if item_cnt <= 2 { item_cnt } else { max_cols };
+
                 let start_x = (x_max - x_min).mul_add(0.02, *x_min);
                 let start_y = (y_max - y_min).mul_add(-0.05, *y_max);
-                let step_y = (y_max - y_min) * 0.06;
+                let step_y = (y_max - y_min) * 0.09;
+
+                let avail_width = (x_max - x_min) * 0.8;
+                let col_width = if cols_per_row > 0 {
+                    avail_width / cols_per_row as f64
+                } else {
+                    avail_width
+                };
 
                 for (i, series) in self.series.iter().enumerate() {
-                    let y_pos = (i as f64).mul_add(-step_y, start_y);
+                    let row = i / cols_per_row;
+                    let col = i % cols_per_row;
+
+                    let x_pos = start_x + (col as f64) * col_width;
+                    let y_pos = start_y - (row as f64) * step_y;
+
+                    // let y_pos = (i as f64).mul_add(-step_y, start_y);
                     plot.add_shape(
                         Rectangle::centered(
-                            PlotPoint::new(start_x, y_pos),
+                            PlotPoint::new(x_pos, y_pos),
                             Measure::Screen(10.0),
                             Measure::Screen(10.0),
                         )
@@ -737,7 +754,7 @@ impl PlotData<f64> for LineChart {
                     );
                     let text_offset = (x_max - x_min) * 0.01;
                     plot.add_shape(
-                        Label::new(&series.name, PlotPoint::new(start_x + text_offset, y_pos))
+                        Label::new(&series.name, PlotPoint::new(x_pos + text_offset, y_pos))
                             .fill(palette.text)
                             .size(12.0)
                             .align(Horizontal::Left, Vertical::Center),
