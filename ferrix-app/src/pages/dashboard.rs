@@ -187,25 +187,28 @@ pub fn dashboard<'a>(
      */
     let mut offset = 3;
     for swap in swaps_usage {
-        items.insert(offset, widget_card(
-            fl!("dash-swap"),
-            column![
+        items.insert(
+            offset,
+            widget_card(
+                fl!("dash-swap"),
                 column![
-                    text(swap.name),
-                    text(fl!(
-                        "dash-mem-used",
-                        used = swap.used.round(2).unwrap_or_default().to_string()
-                    )),
-                    text(fl!(
-                        "dash-mem-total",
-                        total = swap.size.round(2).unwrap_or_default().to_string()
-                    )),
-                ],
-                progress_bar(0.0..=swap.size_b, swap.used_b),
-            ]
-            .spacing(5),
-            Message::SelectPage(Page::Memory),
-        ));
+                    column![
+                        text(swap.name),
+                        text(fl!(
+                            "dash-mem-used",
+                            used = swap.used.round(2).unwrap_or_default().to_string()
+                        )),
+                        text(fl!(
+                            "dash-mem-total",
+                            total = swap.size.round(2).unwrap_or_default().to_string()
+                        )),
+                    ],
+                    progress_bar(0.0..=swap.size_b, swap.used_b),
+                ]
+                .spacing(5),
+                Message::SelectPage(Page::Memory),
+            ),
+        );
         offset += 1;
     }
 
