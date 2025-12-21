@@ -23,10 +23,13 @@
 use iced::widget::svg::Handle;
 use iced::widget::text::IntoFragment;
 use iced::widget::tooltip;
+use iced::{Border, Element, Theme};
 use iced::{
     Color,
-    widget::{button, container, svg, text, tooltip::Position},
+    widget::{button, column, container, svg, text, tooltip::Position},
 };
+
+// pub mod line_charts;
 
 use crate::{
     icons::{ABOUT_ICON, ERROR_ICON, EXPORT_ICON, SETTINGS_ICON},
@@ -152,4 +155,39 @@ where
         }),
         Position::Bottom,
     )
+}
+
+pub fn category_header<'a, T>(txt: T) -> text::Text<'a>
+where
+    T: IntoFragment<'a> + 'a,
+{
+    text(txt).size(14).style(|t: &Theme| {
+        let palette = t.palette();
+        let text_color = palette.text.scale_alpha(0.7);
+
+        let mut style = text::Style::default();
+        style.color = Some(text_color);
+
+        style
+    })
+}
+
+pub fn glassy_container<'a, T, C>(header: T, content: C) -> container::Container<'a, Message>
+where
+    T: IntoFragment<'a> + 'a,
+    C: Into<Element<'a, Message>> + 'a,
+{
+    container(column![category_header(header), content.into()].spacing(5))
+        .padding(5)
+        .style(|t| {
+            let palette = t.palette();
+            let bg = palette.text.scale_alpha(0.03);
+            let border_color = palette.text.scale_alpha(0.08);
+
+            container::Style::default().background(bg).border(Border {
+                color: border_color,
+                width: 1.,
+                radius: 5.0.into(),
+            })
+        })
 }

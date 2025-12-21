@@ -37,7 +37,7 @@
  *            END WARNING WARNING WARNING               *
  ********************************************************/
 
-use crate::{DataLoadingState, Ferrix, Message, fl};
+use crate::{DataLoadingState, Ferrix, Message, fl, widgets::glassy_container};
 use ferrix_lib::cpu::Stat;
 
 use iced::{
@@ -52,7 +52,7 @@ use iced_aksel::{
     axis::{self, TickLine, TickResult},
     plot::{Plot, PlotData},
     scale::Linear,
-    shape::{Label, Polygon, Polyline, Rectangle},
+    shape::{Area, Label, Polygon, Polyline, Rectangle},
 };
 use std::collections::{HashMap, VecDeque};
 
@@ -94,10 +94,8 @@ pub fn usage_charts_page<'a>(
         ]
         .align_y(Center)
         .spacing(5),
-        text(fl!("sysmon-cpu-hdr")).style(text::warning),
-        fx.cpu_usage_chart.chart(),
-        text(fl!("sysmon-ram-hdr")).style(text::warning),
-        fx.ram_usage_chart.chart(),
+        glassy_container(fl!("sysmon-cpu-hdr"), fx.cpu_usage_chart.chart()),
+        glassy_container(fl!("sysmon-ram-hdr"), fx.ram_usage_chart.chart()),
     ]
     .spacing(5);
 
@@ -117,7 +115,6 @@ pub struct LineSeries {
     pub max_displayed_values: usize,
 }
 
-#[allow(unused)]
 impl LineSeries {
     pub fn new(name: impl Into<String>, color: Color, mx: usize) -> Self {
         Self {
@@ -158,11 +155,14 @@ impl LineSeries {
     }
 
     pub fn push(&mut self, val: f64) {
-        let mut i = self.current_values.len();
-        if i != 0 {
-            i -= 1;
-        }
-        let start_val = *self.current_values.get(i).unwrap_or(&0.);
+        // let mut i = self.current_values.len();
+        // if i != 0 {
+        //     i -= 1;
+        // }
+        // let start_val = *self.current_values.get(i).unwrap_or(&0.);
+        // self.current_values.push_back(start_val);
+        // self.target_values.push_back(val);
+        let start_val = self.current_values.iter().last().copied().unwrap_or(0.);
         self.current_values.push_back(start_val);
         self.target_values.push_back(val);
 
@@ -235,7 +235,6 @@ pub struct LineChart {
     max_y_val: Option<f64>,
 }
 
-#[allow(unused)]
 impl LineChart {
     pub const X: &'static str = "X";
     pub const Y: &'static str = "Y";
@@ -397,9 +396,10 @@ impl LineChart {
         let Some(speed_normalized) = self.animation_speed else {
             return;
         };
+
         let dt = self
             .last_tick
-            .map_or(0., |last| (now - last).as_secs_f64() as f64);
+            .map_or(0.0, |last| (now - last).as_secs_f32() as f64);
         self.last_tick = Some(now);
 
         let physics_speed = speed_normalized * 10.0;
@@ -416,7 +416,7 @@ impl LineChart {
 
         self.current_x_domain = (next_x0, next_x1);
 
-        if let Some(axis) = self.state.axis_mut(&Self::X.to_string()) {
+        if let Some(axis) = self.state.axis_mut_opt(&Self::X.to_string()) {
             axis.set_domain(self.current_x_domain.0, self.current_x_domain.1);
         }
 
@@ -425,7 +425,7 @@ impl LineChart {
             current.0 += (target.0 - current.0) * alpha;
             current.1 += (target.1 - current.1) * alpha;
 
-            if let Some(axis) = self.state.axis_mut(&id) {
+            if let Some(axis) = self.state.axis_mut_opt(&id) {
                 axis.set_domain(current.0, current.1);
             }
         }
@@ -464,22 +464,13 @@ impl LineChart {
         self.current_x_domain = tx;
         self.current_y_domains = tys;
 
-        if let Some(axis) = self.state.axis_mut(&Self::X.to_string()) {
+        if let Some(axis) = self.state.axis_mut_opt(&Self::X.to_string()) {
             axis.set_domain(tx.0, tx.1);
         }
         for (id, d) in &self.current_y_domains {
-            if let Some(axis) = self.state.axis_mut(id) {
+            if let Some(axis) = self.state.axis_mut_opt(id) {
                 axis.set_domain(d.0, d.1);
             }
-        }
-    }
-
-    fn auto_scale(&mut self) {
-        if self.animation_speed.is_none() {
-            for s in &mut self.series {
-                s.snap();
-            }
-            self.snap_axes();
         }
     }
 
@@ -526,7 +517,13 @@ impl LineChart {
                 None => *bounds,
             };
             let padding = if max > min { (max - min) * 0.05 } else { 1.0 };
-            let final_min = if factor > 0.1 { min.min(0.0) } else { min };
+            // let final_min = if factor > 0.1 { min.min(0.0) } else { min };
+            // let final_min = 0.0;
+            let final_min = if factor > 0.1 {
+                min.min(0.0)
+            } else {
+                if min < 0. { min } else { 0.0 }
+            };
             *bounds = (final_min, max + padding);
         }
 
@@ -610,10 +607,10 @@ impl LineChart {
 
     fn update_x_axis_labels(&mut self) {
         let labels = self.labels.clone();
-        let x_axis = self.state.axis_mut(&Self::X.to_string()).unwrap();
+        let x_axis = self.state.axis_mut(&Self::X.to_string());
 
         x_axis.set_tick_renderer(move |ctx| {
-            let mut result = TickResult::new();
+            let result = TickResult::new();
             let idx = ctx.tick.value.round();
             if (ctx.tick.value - idx).abs() > 0.001 {
                 return result;
@@ -660,12 +657,11 @@ impl LineChart {
     }
 }
 
-// Unified Renderer
 impl PlotData<f64> for LineChart {
     fn draw(&self, plot: &mut Plot<f64>, theme: &Theme) {
         let chart_floor = self
             .state
-            .axis(&Self::Y.to_string())
+            .axis_opt(&Self::Y.to_string())
             .map_or(0.0, |axis| *axis.domain().0);
 
         let mut baseline: Vec<f64> = Vec::new();
@@ -706,12 +702,12 @@ impl PlotData<f64> for LineChart {
                 }
                 let mut color = s.color;
                 color.a = self.current_fill_alpha;
-                plot.add_shape(Polygon::new(fill_poly).fill(color));
+                plot.add_shape(Area::new(fill_poly).fill(color));
             }
 
             plot.add_shape(Polyline {
                 points: points.clone(),
-                stroke: Stroke::new(s.color, Measure::Screen(s.width)),
+                stroke: Some(Stroke::new(s.color, Measure::Screen(s.width))),
                 extend_start: false,
                 extend_end: false,
                 arrow_start: false,
@@ -722,7 +718,7 @@ impl PlotData<f64> for LineChart {
             if s.show_markers {
                 for point in &points {
                     let marker_size = Measure::Screen(s.width.mul_add(2.0, 2.0));
-                    plot.add_shape(Rectangle::new(*point, marker_size, marker_size).fill(s.color));
+                    plot.add_shape(Polygon::new(*point, marker_size, 4).fill(s.color));
                 }
             }
 
@@ -734,8 +730,8 @@ impl PlotData<f64> for LineChart {
         if self.show_legend {
             let palette = theme.palette();
             if let (Some(x_axis), Some(y_axis)) = (
-                self.state.axis(&Self::X.to_string()),
-                self.state.axis(&Self::Y.to_string()),
+                self.state.axis_opt(&Self::X.to_string()),
+                self.state.axis_opt(&Self::Y.to_string()),
             ) {
                 let (x_min, x_max) = x_axis.domain();
                 let (y_min, y_max) = y_axis.domain();
@@ -747,14 +743,14 @@ impl PlotData<f64> for LineChart {
                 for (i, series) in self.series.iter().enumerate() {
                     let y_pos = (i as f64).mul_add(-step_y, start_y);
                     plot.add_shape(
-                        Rectangle::new(
+                        Rectangle::centered(
                             PlotPoint::new(start_x, y_pos),
                             Measure::Screen(10.0),
                             Measure::Screen(10.0),
                         )
                         .fill(series.color),
                     );
-                    let text_offset = (x_max - x_min) * 0.02;
+                    let text_offset = (x_max - x_min) * 0.01;
                     plot.add_shape(
                         Label::new(&series.name, PlotPoint::new(start_x + text_offset, y_pos))
                             .fill(palette.text)
