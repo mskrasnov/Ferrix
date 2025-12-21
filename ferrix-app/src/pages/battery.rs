@@ -26,12 +26,24 @@ use crate::{
 };
 use ferrix_lib::battery::{BatInfo, Battery, Level, Status};
 
-use iced::widget::{column, container, scrollable, text};
+use iced::widget::{center, column, container, scrollable, text};
 
 pub fn bat_page<'a>(bat_info: &'a DataLoadingState<BatInfo>) -> container::Container<'a, Message> {
     match bat_info {
         DataLoadingState::Loaded(bat_info) => {
             let mut bat_list = column![].spacing(5);
+            if bat_info.bats.is_empty() {
+                bat_list = bat_list.push(center(
+                    column![
+                        text(fl!("bat-not-found"))
+                            .style(text::secondary)
+                            .size(16)
+                    ]
+                    .spacing(5),
+                ));
+                return container(bat_list);
+            }
+
             for bat in &bat_info.bats {
                 bat_list = bat_list.push(
                     text(fl!(

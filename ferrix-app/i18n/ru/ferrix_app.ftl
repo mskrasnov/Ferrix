@@ -82,6 +82,7 @@ bat-energy-now = Текущая энергия, Вт/ч
 bat-model = Модель аккумулятора
 bat-manufact = Производитель
 bat-serial = Серийный номер
+bat-not-found = Отсутствуют подключенные аккумуляторы
 
 # TABLE HEADERS
 hdr-param = Параметр

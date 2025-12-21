@@ -82,6 +82,7 @@ bat-energy-now = Current energy, Wh
 bat-model = Battery model
 bat-manufact = Manufacturer
 bat-serial = Serial number
+bat-not-found = There are no connected batteries
 
 # TABLE HEADERS
 hdr-param = Parameter
