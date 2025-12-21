@@ -25,14 +25,18 @@ use ferrix_lib::{
     cpu::{Processors, Stat},
     drm::Video,
     init::{Connection, SystemdServices},
-    ram::RAM,
+    ram::{RAM, Swaps},
     sys::{Groups, OsRelease, Users},
     traits::ToJson,
 };
 use iced::{Task, color, time::Instant};
 
 use crate::{
-    dmi::DMIResult, export::{ExportData, ExportFormat, ExportMode}, styles::CPU_CHARTS_COLORS, utils::get_home, DataLoadingState, Ferrix, KernelData, LineSeries, Page, Style, System, SETTINGS_PATH
+    DataLoadingState, Ferrix, KernelData, LineSeries, Page, SETTINGS_PATH, Style, System,
+    dmi::DMIResult,
+    export::{ExportData, ExportFormat, ExportMode},
+    styles::CPU_CHARTS_COLORS,
+    utils::get_home,
 };
 
 #[derive(Debug, Clone)]
@@ -84,6 +88,9 @@ pub enum DataReceiverMessage {
 
     GetRAMData,
     RAMDataReceived(DataLoadingState<RAM>),
+
+    GetSwapData,
+    SwapDataReceived(DataLoadingState<Swaps>),
 
     AddTotalRAMUsage,
 
@@ -293,17 +300,72 @@ impl DataReceiverMessage {
                 },
                 |val| Message::DataReceiver(Self::RAMDataReceived(val)),
             ),
-            Self::AddTotalRAMUsage => {
-                fx.ram_usage_chart.push_value(match &fx.ram_data {
-                    DataLoadingState::Loaded(ram) => {
-                        let total = ram.total.get_bytes2().unwrap_or(0) as f64;
-                        let avail = ram.available.get_bytes2().unwrap_or(0) as f64;
-
-                        (total - avail) / 1024. / 1024. / 1024.
+            Self::SwapDataReceived(state) => {
+                fx.swap_data = state;
+                Task::none()
+            }
+            Self::GetSwapData => Task::perform(
+                async move {
+                    let swap = Swaps::new();
+                    match swap {
+                        Ok(swap) => DataLoadingState::Loaded(swap),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
                     }
-                    _ => 0.,
-                });
-                fx.ram_usage_chart.set_max_values(fx.show_chart_elements);
+                },
+                |val| Message::DataReceiver(Self::SwapDataReceived(val)),
+            ),
+            Self::AddTotalRAMUsage => {
+                let ram = &fx.ram_data;
+                let swap = &fx.swap_data;
+
+                if ram.is_none() {
+                    return Task::none();
+                }
+                let ram = ram.to_option().unwrap();
+                let ram_color = color!(128, 64, 255);
+
+                let used_ram =
+                    ram.used_ram(2).get_bytes2().unwrap_or(0) as f64 / 1024. / 1024. / 1024.;
+
+                if fx.ram_usage_chart.series_count() == 0 {
+                    let mut ram_line =
+                        LineSeries::new(format!("RAM"), ram_color, fx.show_chart_elements);
+                    ram_line.push(used_ram);
+                    fx.ram_usage_chart.push_series(ram_line);
+                } else {
+                    fx.ram_usage_chart.push_to(0, "", used_ram);
+                }
+
+                if let Some(swap) = swap.to_option() {
+                    let len = swap.swaps.len();
+                    let colors = CPU_CHARTS_COLORS;
+
+                    let current_series_cnt = fx.ram_usage_chart.series_count();
+
+                    for id in 0..len {
+                        let used =
+                            swap.swaps[id].used.get_bytes2().unwrap_or(0) as f64 / 1024. / 1024.;
+                        let series_idx = id + 1;
+
+                        if series_idx >= current_series_cnt {
+                            let color = if colors.len() - 1 < id {
+                                color!(255, 255, 128)
+                            } else {
+                                colors[id]
+                            };
+                            let mut line = LineSeries::new(
+                                &swap.swaps[id].filename,
+                                color,
+                                fx.show_chart_elements,
+                            );
+                            line.push(used);
+
+                            fx.ram_usage_chart.push_series(line);
+                        } else {
+                            fx.ram_usage_chart.push_to(series_idx, "", used);
+                        }
+                    }
+                }
                 Task::none()
             }
             Self::OsReleaseDataReceived(state) => {

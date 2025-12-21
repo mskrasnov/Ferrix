@@ -155,13 +155,6 @@ impl LineSeries {
     }
 
     pub fn push(&mut self, val: f64) {
-        // let mut i = self.current_values.len();
-        // if i != 0 {
-        //     i -= 1;
-        // }
-        // let start_val = *self.current_values.get(i).unwrap_or(&0.);
-        // self.current_values.push_back(start_val);
-        // self.target_values.push_back(val);
         let start_val = self.current_values.iter().last().copied().unwrap_or(0.);
         self.current_values.push_back(start_val);
         self.target_values.push_back(val);
@@ -517,8 +510,6 @@ impl LineChart {
                 None => *bounds,
             };
             let padding = if max > min { (max - min) * 0.05 } else { 1.0 };
-            // let final_min = if factor > 0.1 { min.min(0.0) } else { min };
-            // let final_min = 0.0;
             let final_min = if factor > 0.1 {
                 min.min(0.0)
             } else {
@@ -529,8 +520,6 @@ impl LineChart {
 
         (target_x, target_ys)
     }
-
-    // --- Data Injection ---
 
     pub fn push(&mut self, label: impl Into<String>, value: f64) {
         let label = label.into();
@@ -603,8 +592,6 @@ impl LineChart {
         self.series.len()
     }
 
-    // --- Internal Logic ---
-
     fn update_x_axis_labels(&mut self) {
         let labels = self.labels.clone();
         let x_axis = self.state.axis_mut(&Self::X.to_string());
@@ -642,8 +629,6 @@ impl LineChart {
             self.defined_axes.push(series.y_key.clone());
         }
     }
-
-    // --- View ---
 
     pub fn chart<Message>(&self) -> Chart<'_, AxisID, f64, Message> {
         let mut chart = Chart::new(&self.state);

@@ -36,8 +36,8 @@ use anyhow::{Result, anyhow};
 use serde::Serialize;
 use std::fs::read_to_string;
 
-use crate::utils::Size;
 use crate::traits::ToJson;
+use crate::utils::Size;
 
 /// A structure containing data from the `/proc/meminfo` file
 #[derive(Debug, Serialize, Default, Clone)]
@@ -283,6 +283,31 @@ impl RAM {
             }
         }
         Ok(ram)
+    }
+
+    pub fn used_ram(&self, base: u8) -> Size {
+        if base != 2 && base != 10 {
+            panic!("Unknown base: {base} (supported values: 2 or 10)");
+        }
+
+        let total = if base == 2 {
+            self.total.get_bytes2().unwrap_or(0) as f32 / 1024. / 1024. / 1024.
+        } else
+        /* base == 10 */
+        {
+            self.total.get_bytes10().unwrap_or(0) as f32 / 1000. / 1000. / 1000.
+        };
+
+        let avail = if base == 2 {
+            self.available.get_bytes2().unwrap_or(0) as f32 / 1024. / 1024. / 1024.
+        } else
+        /* base == 10 */
+        {
+            self.available.get_bytes10().unwrap_or(0) as f32 / 1000. / 1000. / 1000.
+        };
+        let used = total - avail;
+
+        Size::GB(used)
     }
 }
 

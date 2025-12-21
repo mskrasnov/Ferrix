@@ -49,7 +49,7 @@ use ferrix_lib::{
     cpu::{Processors, Stat},
     drm::Video,
     init::SystemdServices,
-    ram::RAM,
+    ram::{RAM, Swaps},
     sys::{
         Groups, LoadAVG, OsRelease, Uptime, Users, get_current_desktop, get_env_vars, get_hostname,
         get_lang,
@@ -76,6 +76,9 @@ pub struct Ferrix {
     pub show_cpus_chart: HashSet<usize>,
     pub show_chart_elements: usize,
     pub ram_data: DataLoadingState<RAM>,
+    pub swap_data: DataLoadingState<Swaps>,
+    pub show_mem_chart: HashSet<usize>,
+    pub show_ram_chart: bool,
     pub ram_usage_chart: LineChart,
     pub dmi_data: DataLoadingState<DMIResult>,
     pub bat_data: DataLoadingState<BatInfo>,
@@ -99,12 +102,12 @@ impl Default for Ferrix {
             curr_proc_stat: DataLoadingState::Loading,
             cpu_usage_chart: LineChart::new().legend(true).fill_alpha(0.25).animated(0.7),
             show_cpus_chart: HashSet::new(),
-            show_chart_elements: 10,
+            show_chart_elements: 100,
             ram_data: DataLoadingState::Loading,
-            ram_usage_chart: LineChart::new()
-                .legend(false)
-                .fill_alpha(0.25)
-                .animated(0.7),
+            swap_data: DataLoadingState::Loading,
+            ram_usage_chart: LineChart::new().legend(true).fill_alpha(0.25).animated(0.7),
+            show_mem_chart: HashSet::new(),
+            show_ram_chart: true,
             dmi_data: DataLoadingState::Loading,
             bat_data: DataLoadingState::Loading,
             drm_data: DataLoadingState::Loading,
@@ -233,6 +236,10 @@ impl Ferrix {
             scripts.push(
                 time::every(Duration::from_secs(self.settings.update_period as u64))
                     .map(|_| Message::DataReceiver(DataReceiverMessage::GetRAMData)),
+            );
+            scripts.push(
+                time::every(Duration::from_secs(self.settings.update_period as u64))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetSwapData)),
             );
         }
 
