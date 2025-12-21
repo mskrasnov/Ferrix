@@ -20,9 +20,10 @@
 
 //! Custom widgets for UI
 
+use iced::Alignment::Center;
 use iced::widget::svg::Handle;
 use iced::widget::text::IntoFragment;
-use iced::widget::tooltip;
+use iced::widget::{row, rule, tooltip};
 use iced::{Border, Element, Theme};
 use iced::{
     Color,
@@ -155,6 +156,15 @@ where
         }),
         Position::Bottom,
     )
+}
+
+pub fn header<'a, T>(txt: T) -> row::Row<'a, Message>
+where
+    T: IntoFragment<'a> + 'a,
+{
+    row![text(txt).size(16), rule::horizontal(1),]
+        .spacing(5)
+        .align_y(Center)
 }
 
 pub fn category_header<'a, T>(txt: T) -> text::Text<'a>

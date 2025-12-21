@@ -23,13 +23,10 @@
 use crate::{
     DataLoadingState, Message, fl,
     pages::{InfoRow, fmt_val, kv_info_table},
+    widgets::header,
 };
 use ferrix_lib::drm::{DRM, EDID, Video, VideoInputParams};
-
-use iced::{
-    Alignment::Center,
-    widget::{column, container, row, rule, scrollable, text},
-};
+use iced::widget::{column, container, scrollable, text};
 
 pub fn drm_page<'a>(video: &'a DataLoadingState<Video>) -> container::Container<'a, Message> {
     match video {
@@ -48,15 +45,7 @@ pub fn drm_page<'a>(video: &'a DataLoadingState<Video>) -> container::Container<
 }
 
 fn screen_subpage<'a>(drm: &'a DRM, idx: usize) -> container::Container<'a, Message> {
-    let mut layout = column![
-        row![
-            text(fl!("drm-title", idx = idx)).size(16),
-            rule::horizontal(1),
-        ]
-        .spacing(5)
-        .align_y(Center),
-    ]
-    .spacing(5);
+    let mut layout = column![header(fl!("drm-title", idx = idx)),].spacing(5);
 
     layout = if drm.enabled {
         match &drm.edid {
@@ -116,7 +105,10 @@ fn edid_video_params_table<'a>(edid: &'a EDID) -> container::Container<'a, Messa
         VideoInputParams::Digital(val) => vec![
             InfoRow::new(fl!("drm-signal"), Some(fl!("drm-digital"))),
             InfoRow::new(fl!("drm-bit-depth"), Some(format!("{}", val.bit_depth))),
-            InfoRow::new(fl!("drm-interface"), Some(format!("{}", val.video_interface))),
+            InfoRow::new(
+                fl!("drm-interface"),
+                Some(format!("{}", val.video_interface)),
+            ),
         ],
         VideoInputParams::Analog(val) => vec![
             InfoRow::new(fl!("drm-signal"), Some(fl!("drm-analog"))),

@@ -25,13 +25,12 @@ use crate::{
     dmi::DMIResult,
     fl,
     pages::{InfoRow, fmt_bool, fmt_val, fmt_vec, hdr_name, text_fmt_val},
+    widgets::header,
 };
 use ferrix_lib::dmi::{Baseboard, Bios, Chassis, ChassisStateData, Processor};
-
 use iced::{
-    Alignment::Center,
     Element, Length,
-    widget::{column, container, row, rule, scrollable, table, text},
+    widget::{column, container, scrollable, table, text},
 };
 
 pub fn dmi_page<'a>(dmi: &'a DataLoadingState<DMIResult>) -> container::Container<'a, Message> {
@@ -100,9 +99,7 @@ fn bios_table<'a>(bios: &'a Bios) -> container::Container<'a, Message> {
 
     container(
         column![
-            row![text("BIOS (Type 0)").size(16), rule::horizontal(1.),]
-                .spacing(5)
-                .align_y(Center),
+            header("BIOS (Type 0)"),
             text("Summary").style(text::warning),
             container(kv_info_table(rows)).style(container::rounded_box),
             bios_characteristics_table(bios),
@@ -359,9 +356,7 @@ fn baseboard_table<'a>(bb: &'a Baseboard) -> container::Container<'a, Message> {
     };
 
     let bb_view = column![
-        row![text("Base Board (Type 2)").size(16), rule::horizontal(1.),]
-            .spacing(5)
-            .align_y(Center),
+        header("Base Board (Type 2)"),
         text("Summary").style(text::warning),
         container(kv_info_table(rows)).style(container::rounded_box),
         features,
@@ -436,9 +431,7 @@ fn chassis_table<'a>(c: &'a Chassis) -> container::Container<'a, Message> {
     };
 
     let chassis_view = column![
-        row![text("Chassis (Type 3)").size(16), rule::horizontal(1.),]
-            .spacing(5)
-            .align_y(Center),
+        header("Chassis (Type 3)"),
         text("Summary").style(text::warning),
         container(kv_info_table(rows)).style(container::rounded_box),
         chassis_type,
@@ -594,9 +587,7 @@ fn processor_table<'a>(p: &'a Processor) -> container::Container<'a, Message> {
 
     container(
         column![
-            row![text("Processor (Type 4)").size(16), rule::horizontal(1.),]
-                .spacing(5)
-                .align_y(Center),
+            header("Processor (Type 4)"),
             text("Summary").style(text::warning),
             container(kv_info_table(rows)).style(container::rounded_box),
             processor_characteristics_table(p),
