@@ -202,7 +202,7 @@ pub fn dashboard<'a>(
         ));
     }
 
-    let mut gr = grid([]).spacing(5).columns(4).height(280.);
+    let mut gr = grid([]).spacing(5).fluid(185.);
     for item in items {
         gr = gr.push(item);
     }
