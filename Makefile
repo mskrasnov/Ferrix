@@ -25,7 +25,7 @@ build:
 	cargo build --release --target=$(TARGET)
 	@echo "$(GREEN)Build completed successfully!$(NC)"
 
-deb: build
+deb:
 	cargo deb --target=$(TARGET)
 
 install: build
