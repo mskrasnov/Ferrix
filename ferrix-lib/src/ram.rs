@@ -309,6 +309,14 @@ impl RAM {
 
         Size::GB(used)
     }
+
+    pub fn usage_percentage(&self) -> Option<f64> {
+        let total_ram = self.total.get_bytes2()?;
+        let avail_ram = self.available.get_bytes2()?;
+        let used_ram = total_ram - avail_ram;
+
+        Some(used_ram as f64 / total_ram as f64 * 100.)
+    }
 }
 
 impl ToJson for RAM {}
@@ -352,6 +360,15 @@ pub struct Swap {
 
     /// Priority of this swap file/partition
     pub priority: i8,
+}
+
+impl Swap {
+    pub fn usage_percentage(&self) -> Option<f64> {
+        let total_swap = self.size.get_bytes2()?;
+        let used_swap = self.used.get_bytes2()?;
+
+        Some(used_swap as f64 / total_swap as f64 * 100.)
+    }
 }
 
 impl TryFrom<&str> for Swap {

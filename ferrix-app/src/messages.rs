@@ -143,12 +143,7 @@ impl DataReceiverMessage {
             Self::AnimationTick(now) => {
                 if let Page::SystemMonitor = fx.current_page {
                     fx.cpu_usage_chart.set_max_y(100.);
-                    fx.ram_usage_chart.set_max_y(match &fx.ram_data {
-                        DataLoadingState::Loaded(ram) => {
-                            ram.total.get_bytes2().unwrap_or(0) as f64 / 1024. / 1024. / 1024.
-                        }
-                        _ => 0.,
-                    });
+                    fx.ram_usage_chart.set_max_y(100.);
                 }
                 fx.cpu_usage_chart.tick(now);
                 fx.ram_usage_chart.tick(now);
@@ -325,16 +320,15 @@ impl DataReceiverMessage {
                 let ram = ram.to_option().unwrap();
                 let ram_color = color!(128, 64, 255);
 
-                let used_ram =
-                    ram.used_ram(2).get_bytes2().unwrap_or(0) as f64 / 1024. / 1024. / 1024.;
+                let ram_usage = ram.usage_percentage().unwrap_or(0.);
 
                 if fx.ram_usage_chart.series_count() == 0 {
                     let mut ram_line =
                         LineSeries::new(format!("RAM"), ram_color, fx.show_chart_elements);
-                    ram_line.push(used_ram);
+                    ram_line.push(ram_usage);
                     fx.ram_usage_chart.push_series(ram_line);
                 } else {
-                    fx.ram_usage_chart.push_to(0, "", used_ram);
+                    fx.ram_usage_chart.push_to(0, "", ram_usage);
                 }
 
                 if let Some(swap) = swap.to_option() {
@@ -344,11 +338,8 @@ impl DataReceiverMessage {
                     let current_series_cnt = fx.ram_usage_chart.series_count();
 
                     for id in 0..len {
-                        let used = swap.swaps[id].used.get_bytes2().unwrap_or(0) as f64
-                            / 1024.
-                            / 1024.
-                            / 1024.;
                         let series_idx = id + 1;
+                        let swap_usage = swap.swaps[id].usage_percentage().unwrap_or(0.);
 
                         if series_idx >= current_series_cnt {
                             let color = if colors.len() - 1 < id {
@@ -361,11 +352,11 @@ impl DataReceiverMessage {
                                 color,
                                 fx.show_chart_elements,
                             );
-                            line.push(used);
+                            line.push(swap_usage);
 
                             fx.ram_usage_chart.push_series(line);
                         } else {
-                            fx.ram_usage_chart.push_to(series_idx, "", used);
+                            fx.ram_usage_chart.push_to(series_idx, "", swap_usage);
                         }
                     }
                 }
