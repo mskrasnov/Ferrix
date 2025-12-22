@@ -38,12 +38,16 @@
  ********************************************************/
 
 use iced::{
-    Color, Theme,
+    Color, Pixels, Theme,
     alignment::{Horizontal, Vertical},
     time::Instant,
 };
 use iced_aksel::{
-    axis::{self, TickLine, TickResult}, plot::{Plot, PlotData}, scale::Linear, shape::{Area, Label, Polygon, Polyline, Rectangle}, Axis, Chart, Measure, PlotPoint, State, Stroke
+    Axis, Chart, Measure, PlotPoint, State, Stroke,
+    axis::{self, TickLine, TickResult},
+    plot::{Plot, PlotData},
+    scale::Linear,
+    shape::{Area, Label, Polygon, Polyline, Rectangle},
 };
 use std::collections::{HashMap, VecDeque};
 
@@ -70,7 +74,7 @@ impl LineSeries {
             target_values: VecDeque::new(),
             y_key: "Y".to_string(),
             color,
-            width: 2.5,
+            width: 1.5,
             show_markers: false,
             fill_color: None,
             max_displayed_values: mx,
@@ -674,7 +678,7 @@ impl PlotData<f64> for LineChart {
 
                 let start_x = (x_max - x_min).mul_add(0.02, *x_min);
                 let start_y = (y_max - y_min).mul_add(-0.05, *y_max);
-                let step_y = (y_max - y_min) * 0.09;
+                let step_y = (y_max - y_min) * 0.1;
 
                 let avail_width = (x_max - x_min) * 0.8;
                 let col_width = if cols_per_row > 0 {
@@ -713,10 +717,15 @@ impl PlotData<f64> for LineChart {
 }
 
 fn y_axis(min_y: f64, max_y: f64) -> Axis<f64> {
-    Axis::new(Linear::new(min_y, max_y), axis::Position::Left).with_tick_renderer(|ctx| {
-        match ctx.tick.level {
-            0 => TickResult::default().label(format!("{:.2}", ctx.tick.value)),
-            _ => TickResult::new(),
-        }
+    Axis::new(Linear::new(min_y, max_y), axis::Position::Right).with_tick_renderer(|ctx| match ctx
+        .tick
+        .level
+    {
+        0 => TickResult::default().label({
+            let mut label = iced_aksel::axis::Label::from(format!("{:.2}", ctx.tick.value));
+            label.size = Pixels::from(10.);
+            label
+        }),
+        _ => TickResult::new(),
     })
 }
