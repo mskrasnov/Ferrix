@@ -3,7 +3,7 @@
 TARGET := x86_64-unknown-linux-gnu
 BINARY_NAME := ferrix-app
 POLKIT_BINARY := ferrix-polkit
-RELEASE_DIR := ./target/release/$(TARGET)/
+RELEASE_DIR := ./target/$(TARGET)/release/
 INSTALL_DIR := /usr/bin
 POLICY_DIR := /usr/share/polkit-1/actions
 DESKTOP_DIR := /usr/share/applications
