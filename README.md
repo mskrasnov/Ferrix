@@ -50,7 +50,7 @@ make deb
 And install `deb`-package:
 
 ```bash
-sudo dpkg -i ./target/${TARGET ARCH}/debian/ferrix-app_${VERSION}-${BUILD_NUM}_${ARCH}.deb
+sudo dpkg -i ./target/${TARGET_ARCH}/debian/ferrix-app_${VERSION}-${BUILD_NUM}_${ARCH}.deb
 ```
 
 If you use other Linux system, perform:
@@ -81,7 +81,7 @@ Build Ferrix:
 ```bash
 cargo build [--release] --target=aarch64-unknown-linux-gnu
 # or:
-make TARGET=aarch64-unknown-linux-gnu
+make TARGET=aarch64-unknown-linux-gnu build
 ```
 
 ## Technology stack
