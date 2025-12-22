@@ -64,8 +64,14 @@ pub fn usage_charts_page<'a>(
         ]
         .align_y(Center)
         .spacing(5),
-        glassy_container(fl!("sysmon-cpu-hdr"), fx.cpu_usage_chart.chart()),
-        glassy_container(fl!("sysmon-ram-hdr"), fx.ram_usage_chart.chart()),
+        glassy_container(
+            fl!("sysmon-cpu-hdr"),
+            fx.cpu_usage_chart.chart().padding(3.into()),
+        ),
+        glassy_container(
+            fl!("sysmon-ram-hdr"),
+            fx.ram_usage_chart.chart().padding(3.into()),
+        ),
     ]
     .spacing(5);
 
