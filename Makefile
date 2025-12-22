@@ -4,11 +4,12 @@ TARGET := x86_64-unknown-linux-gnu
 BINARY_NAME := ferrix-app
 POLKIT_BINARY := ferrix-polkit
 RELEASE_DIR := ./target/$(TARGET)/release/
-INSTALL_DIR := /usr/bin
-POLICY_DIR := /usr/share/polkit-1/actions
-DESKTOP_DIR := /usr/share/applications
-ICON_DIR := /usr/share/icons/hicolor/scalable/apps
-SHARE_DIR := /usr/share/Ferrix
+DESTDIR := /
+INSTALL_DIR := $(DESTDIR)/usr/bin
+POLICY_DIR := $(DESTDIR)/usr/share/polkit-1/actions
+DESKTOP_DIR := $(DESTDIR)/usr/share/applications
+ICON_DIR := $(DESTDIR)/usr/share/icons/hicolor/scalable/apps
+SHARE_DIR := $(DESTDIR)/usr/share/Ferrix
 DATA_DIR := ./ferrix-app/data
 
 GREEN := \033[0;32m
@@ -38,7 +39,7 @@ install: build
 	sudo install -Dm644 $(DATA_DIR)/com.ferrix.policy $(POLICY_DIR)/com.ferrix.policy
 	@echo "$(GREEN)Polkit policy installed$(NC)"
 	
-	sudo install -Dm644 $(DATA_DIR)/Ferrix.desktop $(DESKTOP_DIR)/Ferrix.desktop
+	sudo install -Dm644 $(DATA_DIR)/FSM.desktop $(DESKTOP_DIR)/FSM.desktop
 	sudo install -Dm644 $(DATA_DIR)/com.mskrasnov.Ferrix.svg $(ICON_DIR)/com.mskrasnov.Ferrix.svg
 	sudo install -Dm644 $(DATA_DIR)/com.mskrasnov.Ferrix.svg $(SHARE_DIR)/com.mskrasnov.Ferrix.svg
 	@echo "$(GREEN)Desktop integration installed$(NC)"
@@ -65,7 +66,7 @@ uninstall:
 	sudo rm -f $(POLICY_DIR)/com.ferrix.policy
 	@echo "$(GREEN)Polkit policy removed$(NC)"
 	
-	sudo rm -f $(DESKTOP_DIR)/Ferrix.desktop
+	sudo rm -f $(DESKTOP_DIR)/FSM.desktop
 	sudo rm -f $(ICON_DIR)/com.mskrasnov.Ferrix.svg
 	@echo "$(GREEN)Desktop integration removed$(NC)"
 	
