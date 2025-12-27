@@ -284,6 +284,13 @@ sysd-warning = Внимание:
 sysd-warn-txt = Увеличьте размер окна для более корректного отображения ряда строк!
 sysd-total = Всего сервисов: {$total}
 
+# SOFTWARE PAGE
+soft-hdr-name = Имя
+soft-hdr-ver = Версия
+soft-hdr-arch = Архитектура
+soft-hdr-type = Тип
+soft-total = Всего пакетов: {$total}
+
 # USERS PAGE
 users-name = Имя пользователя
 users-id = ID пользователя

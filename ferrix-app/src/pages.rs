@@ -44,6 +44,7 @@ mod groups;
 mod kernel;
 mod ram;
 mod settings;
+mod soft;
 mod sysmon;
 mod system;
 mod systemd;
@@ -157,6 +158,7 @@ impl<'a> Page {
             Self::Users => users::users_page(&state.users_list).into(),
             Self::Groups => groups::groups_page(&state.groups_list).into(),
             Self::SystemManager => systemd::services_page(&state.sysd_services_list).into(),
+            Self::Software => soft::soft_page(&state.installed_pkgs_list).into(),
             Self::Environment => env::env_page(&state.system).into(),
             Self::Settings => settings::settings_page(&state).into(),
             Self::Export => export::export_page().into(),

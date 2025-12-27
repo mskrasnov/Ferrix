@@ -53,6 +53,7 @@ pub mod ram;
 pub mod sys;
 pub mod vulnerabilities;
 pub mod cpu_freq;
+pub mod soft;
 
 pub mod traits;
 pub mod utils;

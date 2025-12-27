@@ -284,6 +284,13 @@ sysd-warning = Warning:
 sysd-warn-txt = Increase the window size to display a number of lines more correctly!
 sysd-total = Total services: {$total}
 
+# SOFTWARE PAGE
+soft-hdr-name = Name
+soft-hdr-ver = Version
+soft-hdr-arch = Arch
+soft-hdr-type = Type
+soft-total = Total packages: {$total}
+
 # USERS PAGE
 users-name = User name
 users-id = User ID

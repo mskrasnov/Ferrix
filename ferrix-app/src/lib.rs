@@ -51,6 +51,7 @@ use ferrix_lib::{
     drm::Video,
     init::SystemdServices,
     ram::{RAM, Swaps},
+    soft::InstalledPackages,
     sys::{
         Groups, LoadAVG, OsRelease, Uptime, Users, get_current_desktop, get_env_vars, get_hostname,
         get_lang,
@@ -89,6 +90,7 @@ pub struct Ferrix {
     pub users_list: DataLoadingState<Users>,
     pub groups_list: DataLoadingState<Groups>,
     pub sysd_services_list: DataLoadingState<SystemdServices>,
+    pub installed_pkgs_list: DataLoadingState<InstalledPackages>,
     pub system: DataLoadingState<System>,
     pub settings: FXSettings,
     pub is_polkit: bool,
@@ -117,6 +119,7 @@ impl Default for Ferrix {
             users_list: DataLoadingState::Loading,
             groups_list: DataLoadingState::Loading,
             sysd_services_list: DataLoadingState::Loading,
+            installed_pkgs_list: DataLoadingState::Loading,
             system: DataLoadingState::Loading,
             settings: FXSettings::read(get_home().join(".config").join(SETTINGS_PATH))
                 .unwrap_or_default(),
@@ -275,6 +278,13 @@ impl Ferrix {
             scripts.push(
                 time::every(Duration::from_secs(1))
                     .map(|_| Message::DataReceiver(DataReceiverMessage::GetDMIData)),
+            );
+        }
+
+        if self.current_page == Page::Software && self.installed_pkgs_list.is_none() {
+            scripts.push(
+                time::every(Duration::from_millis(10))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetPackagesList)),
             );
         }
 

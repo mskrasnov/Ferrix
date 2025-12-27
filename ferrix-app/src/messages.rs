@@ -26,6 +26,7 @@ use ferrix_lib::{
     drm::Video,
     init::{Connection, SystemdServices},
     ram::{RAM, Swaps},
+    soft::InstalledPackages,
     sys::{Groups, OsRelease, Users},
     traits::ToJson,
 };
@@ -119,6 +120,9 @@ pub enum DataReceiverMessage {
 
     GetSystemdServices,
     SystemdServicesReceived(DataLoadingState<SystemdServices>),
+
+    GetPackagesList,
+    PackagesListReceived(DataLoadingState<InstalledPackages>),
 
     GetSystemData,
     SystemDataReceived(DataLoadingState<System>),
@@ -450,6 +454,20 @@ impl DataReceiverMessage {
             ),
             Self::SystemDataReceived(state) => {
                 fx.system = state;
+                Task::none()
+            }
+            Self::GetPackagesList => Task::perform(
+                async move {
+                    let pkglist = InstalledPackages::get();
+                    match pkglist {
+                        Ok(pkglist) => DataLoadingState::Loaded(pkglist),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
+                    }
+                },
+                |val| Message::DataReceiver(Self::PackagesListReceived(val)),
+            ),
+            Self::PackagesListReceived(state) => {
+                fx.installed_pkgs_list = state;
                 Task::none()
             }
             Self::GetSystemData => Task::perform(
