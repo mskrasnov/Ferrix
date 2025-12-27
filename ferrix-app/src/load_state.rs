@@ -20,6 +20,8 @@
 
 //! Data loading states
 
+// TODO: remove this module
+
 use ferrix_core::load_state::LoadState;
 
 pub type DataLoadingState<P> = LoadState<P>;
