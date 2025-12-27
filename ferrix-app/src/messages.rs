@@ -81,7 +81,7 @@ pub enum DataReceiverMessage {
     AnimationTick(Instant),
     ToggleStacked,
 
-    AddTotalCPUUsage,
+    // AddTotalCPUUsage,
     AddCPUCoreLineSeries,
     ChangeShowCPUChartElements(usize),
 
@@ -176,16 +176,16 @@ impl DataReceiverMessage {
                 },
                 |val| Message::DataReceiver(Self::ProcStatReceived(val)),
             ),
-            Self::AddTotalCPUUsage => {
-                fx.cpu_usage_chart.push_value(match &fx.curr_proc_stat {
-                    DataLoadingState::Loaded(val) => val.cpu.unwrap().usage_percentage({
-                        let prev = fx.prev_proc_stat.clone().unwrap();
-                        prev.cpu
-                    }) as f64,
-                    _ => 0.,
-                });
-                Task::none()
-            }
+            // Self::AddTotalCPUUsage => {
+            //     fx.cpu_usage_chart.push_value(match &fx.curr_proc_stat {
+            //         DataLoadingState::Loaded(val) => val.cpu.unwrap().usage_percentage({
+            //             let prev = fx.prev_proc_stat.clone().unwrap();
+            //             prev.cpu
+            //         }) as f64,
+            //         _ => 0.,
+            //     });
+            //     Task::none()
+            // }
             Self::AddCPUCoreLineSeries => {
                 let curr_proc = &fx.curr_proc_stat;
                 let prev_proc = &fx.prev_proc_stat;
