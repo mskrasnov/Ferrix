@@ -23,6 +23,7 @@
 use crate::{
     Ferrix, fl,
     messages::{ButtonsMessage, Message, SettingsMessage},
+    settings::Style,
     widgets::icon_tooltip,
 };
 use iced::{
@@ -54,7 +55,7 @@ pub fn settings_page<'a>(state: &'a Ferrix) -> container::Container<'a, Message>
     ]
     .spacing(5);
 
-    let theme_selector = pick_list(crate::Style::ALL, Some(state.settings.style), |style| {
+    let theme_selector = pick_list(Style::ALL, Some(state.settings.style), |style| {
         Message::Settings(SettingsMessage::ChangeStyle(style))
     });
     let theme_changer = column![

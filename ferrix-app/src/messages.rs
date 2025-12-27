@@ -32,9 +32,10 @@ use ferrix_lib::{
 use iced::{Task, color, time::Instant};
 
 use crate::{
-    DataLoadingState, Ferrix, KernelData, Page, SETTINGS_PATH, Style, System,
+    DataLoadingState, Ferrix, KernelData, Page, SETTINGS_PATH, System,
     dmi::DMIResult,
     export::{ExportData, ExportFormat, ExportMode},
+    settings::Style,
     styles::CPU_CHARTS_COLORS,
     utils::get_home,
     widgets::line_charts::LineSeries,
