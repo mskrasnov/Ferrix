@@ -22,8 +22,10 @@
 
 use crate::{
     DataLoadingState, Message, fl,
-    pages::{InfoRow, fmt_val, kv_info_table},
-    widgets::header,
+    widgets::{
+        header,
+        table::{InfoRow, fmt_val, kv_info_table},
+    },
 };
 use ferrix_lib::drm::{DRM, EDID, Video, VideoInputParams};
 use iced::widget::{column, container, scrollable, text};

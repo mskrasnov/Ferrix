@@ -20,7 +20,7 @@
 
 //! systemd services list
 
-use crate::{Message, fl, load_state::DataLoadingState, pages::hdr_name};
+use crate::{Message, fl, load_state::DataLoadingState, widgets::table::hdr_name};
 use ferrix_lib::init::{ActiveState, LoadState, ServiceInfo, SystemdServices, WorkState};
 
 use iced::{

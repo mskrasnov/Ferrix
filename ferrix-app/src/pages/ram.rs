@@ -23,8 +23,10 @@
 use crate::{
     Message, fl,
     load_state::DataLoadingState,
-    pages::{InfoRow, fmt_val, kv_info_table},
-    widgets::header,
+    widgets::{
+        header,
+        table::{InfoRow, fmt_val, kv_info_table},
+    },
 };
 use ferrix_lib::ram::{RAM, Swaps};
 use iced::widget::{column, container, scrollable, text};

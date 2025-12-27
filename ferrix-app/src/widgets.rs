@@ -23,7 +23,7 @@
 use iced::Alignment::Center;
 use iced::widget::svg::Handle;
 use iced::widget::text::IntoFragment;
-use iced::widget::{row, rule, tooltip};
+use iced::widget::{Column, row, rule, tooltip};
 use iced::{Border, Element, Theme};
 use iced::{
     Color,
@@ -31,6 +31,7 @@ use iced::{
 };
 
 pub mod line_charts;
+pub mod table;
 
 use crate::{
     icons::{ABOUT_ICON, ERROR_ICON, EXPORT_ICON, SETTINGS_ICON},
@@ -165,6 +166,10 @@ where
     row![text(txt).size(16), rule::horizontal(1),]
         .spacing(5)
         .align_y(Center)
+}
+
+pub fn header_text<'a>(txt: String) -> Column<'a, Message> {
+    column![text(txt).size(22), rule::horizontal(1)].spacing(2)
 }
 
 pub fn category_header<'a, T>(txt: T) -> text::Text<'a>

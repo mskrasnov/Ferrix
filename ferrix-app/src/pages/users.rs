@@ -23,7 +23,7 @@
 use crate::{
     Message, fl,
     load_state::DataLoadingState,
-    pages::{InfoRow, fmt_val, kv_info_table},
+    widgets::table::{InfoRow, fmt_val, kv_info_table},
 };
 use ferrix_lib::sys::Users;
 

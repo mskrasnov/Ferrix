@@ -24,8 +24,10 @@ use crate::{
     DataLoadingState, Message,
     dmi::DMIResult,
     fl,
-    pages::{InfoRow, fmt_bool, fmt_val, fmt_vec, hdr_name, text_fmt_val},
-    widgets::header,
+    widgets::{
+        header,
+        table::{InfoRow, fmt_bool, fmt_val, fmt_vec, hdr_name, text_fmt_val},
+    },
 };
 use ferrix_lib::dmi::{Baseboard, Bios, Chassis, ChassisStateData, Processor};
 use iced::{

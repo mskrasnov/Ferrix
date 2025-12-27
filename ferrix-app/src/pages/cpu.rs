@@ -22,7 +22,7 @@
 
 use crate::{
     DataLoadingState, Message, fl,
-    pages::{InfoRow, fmt_bool, fmt_val, fmt_vec, kv_info_table},
+    widgets::table::{InfoRow, fmt_bool, fmt_val, fmt_vec, kv_info_table},
 };
 use ferrix_lib::cpu::Processors;
 
@@ -35,11 +35,9 @@ pub fn proc_page<'a>(
     processors: &'a DataLoadingState<Processors>,
 ) -> container::Container<'a, Message> {
     container(scrollable(
-        column![
-            proc_info(processors),
-        ]
-        .padding(Padding::new(0.).right(15.))
-        .spacing(5),
+        column![proc_info(processors),]
+            .padding(Padding::new(0.).right(15.))
+            .spacing(5),
     ))
 }
 

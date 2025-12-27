@@ -22,7 +22,7 @@
 
 use crate::{
     DataLoadingState, Message, fl,
-    pages::{InfoRow, fmt_val, kv_info_table},
+    widgets::table::{InfoRow, fmt_val, kv_info_table},
 };
 use ferrix_lib::battery::{BatInfo, Battery, Level, Status};
 
@@ -34,12 +34,7 @@ pub fn bat_page<'a>(bat_info: &'a DataLoadingState<BatInfo>) -> container::Conta
             let mut bat_list = column![].spacing(5);
             if bat_info.bats.is_empty() {
                 bat_list = bat_list.push(center(
-                    column![
-                        text(fl!("bat-not-found"))
-                            .style(text::secondary)
-                            .size(16)
-                    ]
-                    .spacing(5),
+                    column![text(fl!("bat-not-found")).style(text::secondary).size(16)].spacing(5),
                 ));
                 return container(bat_list);
             }

@@ -20,14 +20,17 @@
 
 //! Pages with information about hardware and software
 
-use iced::widget::text::IntoFragment;
 use iced::{
     Alignment::{self, Center},
-    Element, Length,
-    widget::{Column, center, column, container, row, rule, svg::Handle, table, text},
+    Element,
+    widget::{center, column, container, row, rule, svg::Handle, text},
 };
 
-use crate::{Ferrix, Message, fl, icons::ERROR_ICON, widgets::link_button};
+use crate::{
+    Ferrix, Message, fl,
+    icons::ERROR_ICON,
+    widgets::{header_text, link_button},
+};
 
 mod battery;
 mod cpu;
@@ -242,102 +245,6 @@ impl<'a> Page {
         .spacing(5);
 
         container(contents)
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct InfoRow<V> {
-    pub param_header: String,
-    pub value: Option<V>,
-}
-
-impl<V> InfoRow<V> {
-    pub fn new<P>(param: P, value: Option<V>) -> Self
-    where
-        P: Into<String>,
-        V: ToString,
-    {
-        Self {
-            param_header: param.into(),
-            value,
-        }
-    }
-}
-
-fn text_fmt_val<'a, V>(val: Option<V>) -> Element<'a, Message>
-where
-    V: ToString + 'a,
-{
-    match val {
-        Some(val) if !val.to_string().is_empty() && !val.to_string().contains("http") => {
-            text(val.to_string()).into()
-        }
-        Some(val) if !val.to_string().is_empty() && val.to_string().contains("http") => {
-            link_button(val.to_string(), val.to_string()).into()
-        }
-        Some(_) => text("N/A").into(),
-        None => text("").into(),
-    }
-}
-
-pub fn kv_info_table<'a, V>(rows: Vec<InfoRow<V>>) -> Element<'a, Message>
-where
-    V: ToString + Clone + 'a,
-{
-    let columns = [
-        table::column(hdr_name(fl!("hdr-param")), |row: InfoRow<V>| {
-            text(row.param_header)
-        }),
-        table::column(hdr_name(fl!("hdr-value")), |row: InfoRow<V>| {
-            text_fmt_val(row.value)
-        })
-        .width(Length::Fill),
-    ];
-
-    table(columns, rows).padding(2).width(Length::Fill).into()
-}
-
-fn hdr_name<'a, S: IntoFragment<'a>>(s: S) -> text::Text<'a> {
-    text(s).style(text::secondary)
-}
-
-fn header_text<'a>(txt: String) -> Column<'a, Message> {
-    column![text(txt).size(22), rule::horizontal(1)].spacing(2)
-}
-
-fn fmt_val<T>(val: Option<T>) -> Option<String>
-where
-    T: ToString + Copy,
-{
-    match val {
-        Some(val) => Some(val.to_string()),
-        None => None,
-    }
-}
-
-fn fmt_vec<T>(val: &Option<Vec<T>>) -> Option<String>
-where
-    T: ToString + Clone,
-{
-    match val {
-        Some(val) => {
-            let mut s = String::new();
-            for i in val {
-                s = format!("{s}{} ", i.to_string());
-            }
-            Some(s)
-        }
-        None => None,
-    }
-}
-
-fn fmt_bool(val: Option<bool>) -> Option<String> {
-    match val {
-        Some(val) => match val {
-            true => Some(fl!("bool-true")),
-            false => Some(fl!("bool-false")),
-        },
-        None => None,
     }
 }
 

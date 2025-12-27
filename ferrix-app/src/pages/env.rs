@@ -23,7 +23,7 @@
 use crate::{
     Message,
     load_state::DataLoadingState,
-    pages::{InfoRow, kv_info_table},
+    widgets::table::{InfoRow, kv_info_table},
 };
 
 use iced::widget::{container, scrollable};

@@ -23,7 +23,7 @@
 use crate::{
     Message, fl,
     load_state::DataLoadingState,
-    pages::{InfoRow, fmt_val, hdr_name, kv_info_table, text_fmt_val},
+    widgets::table::{InfoRow, fmt_val, hdr_name, kv_info_table, text_fmt_val},
 };
 use ferrix_lib::sys::{KModules, Kernel, Module};
 
