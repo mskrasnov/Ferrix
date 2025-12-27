@@ -1,0 +1,12 @@
+[package]
+name = "ferrix-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+# readme = "README.md"
+# exclude.workspace = true
+
+[dependencies]
+ferrix-lib = { path = "../ferrix-lib", version = "0.3.0" }
