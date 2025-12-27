@@ -33,6 +33,7 @@ pub mod kernel;
 
 // REFACTORED MODULES
 pub mod messages;
+pub mod settings;
 // pub mod ferrix; // TODO!
 use messages::*;
 
@@ -40,7 +41,7 @@ pub use load_state::DataLoadingState;
 pub use pages::*;
 
 use dmi::DMIResult;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use widgets::{icon_button, sidebar_button};
 
 use anyhow::Result;
@@ -60,9 +61,9 @@ use iced::{
     Element, Length, Padding, Subscription, Task, Theme, time,
     widget::{column, container, row, scrollable, text},
 };
-use std::{collections::HashSet, fmt::Display, fs, path::Path, time::Duration};
+use std::{collections::HashSet, time::Duration};
 
-use crate::{utils::get_home, widgets::line_charts::LineChart};
+use crate::{settings::FXSettings, utils::get_home, widgets::line_charts::LineChart};
 
 const SETTINGS_PATH: &str = "./ferrix.conf";
 
@@ -144,66 +145,6 @@ impl System {
             language: get_lang(),
             env_vars: get_env_vars(),
         })
-    }
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct FXSettings {
-    pub update_period: u8,
-    pub style: Style,
-}
-
-impl FXSettings {
-    pub fn read<P: AsRef<Path>>(pth: P) -> Result<Self> {
-        let contents = fs::read_to_string(pth)?;
-        let data = toml::from_str(&contents)?;
-        Ok(data)
-    }
-
-    pub fn write<'a, P: AsRef<Path>>(&'a self, pth: P) -> Result<()> {
-        let contents = toml::to_string(&self)?;
-        fs::write(pth, contents)?;
-        Ok(())
-    }
-}
-
-impl Default for FXSettings {
-    fn default() -> Self {
-        Self {
-            update_period: 1,
-            style: Style::default(),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, Deserialize, Serialize, Default, PartialEq)]
-pub enum Style {
-    Light,
-    #[default]
-    Dark,
-}
-
-impl Style {
-    pub const ALL: &[Self] = &[Self::Light, Self::Dark];
-
-    pub fn to_theme(&self) -> Theme {
-        match self {
-            Self::Light => Theme::GruvboxLight,
-            Self::Dark => Theme::GruvboxDark,
-        }
-    }
-}
-
-impl Display for Style {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Self::Light => fl!("style-light"),
-                Self::Dark => fl!("style-dark"),
-            }
-        )
     }
 }
 

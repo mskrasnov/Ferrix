@@ -1,0 +1,86 @@
+/* settings.rs
+ *
+ * Copyright 2025 Michail Krasnov <mskrasnov07@ya.ru>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+use anyhow::Result;
+use iced::Theme;
+use serde::{Deserialize, Serialize};
+use std::{fmt::Display, fs, path::Path};
+
+use crate::fl;
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct FXSettings {
+    pub update_period: u8,
+    pub style: Style,
+}
+
+impl FXSettings {
+    pub fn read<P: AsRef<Path>>(pth: P) -> Result<Self> {
+        let contents = fs::read_to_string(pth)?;
+        let data = toml::from_str(&contents)?;
+        Ok(data)
+    }
+
+    pub fn write<'a, P: AsRef<Path>>(&'a self, pth: P) -> Result<()> {
+        let contents = toml::to_string(&self)?;
+        fs::write(pth, contents)?;
+        Ok(())
+    }
+}
+
+impl Default for FXSettings {
+    fn default() -> Self {
+        Self {
+            update_period: 1,
+            style: Style::default(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, Default, PartialEq)]
+pub enum Style {
+    Light,
+    #[default]
+    Dark,
+}
+
+impl Style {
+    pub const ALL: &[Self] = &[Self::Light, Self::Dark];
+
+    pub fn to_theme(&self) -> Theme {
+        match self {
+            Self::Light => Theme::GruvboxLight,
+            Self::Dark => Theme::GruvboxDark,
+        }
+    }
+}
+
+impl Display for Style {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Light => fl!("style-light"),
+                Self::Dark => fl!("style-dark"),
+            }
+        )
+    }
+}
