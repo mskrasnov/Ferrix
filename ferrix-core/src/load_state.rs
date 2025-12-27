@@ -20,6 +20,40 @@
 
 //! Data loading states
 
-use ferrix_core::load_state::LoadState;
+// use crate::error::Error;
+use serde::{Deserialize, Serialize};
 
-pub type DataLoadingState<P> = LoadState<P>;
+#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+pub enum LoadState<P> {
+    #[default]
+    Loading,
+    Error(String), // TODO: replace `String` to `crate::error::Error`
+    Loaded(P),
+}
+
+impl<P> LoadState<P> {
+    pub fn to_option<'a>(&'a self) -> Option<&'a P> {
+        match self {
+            Self::Loaded(data) => Some(data),
+            _ => None,
+        }
+    }
+
+    pub fn is_none(&self) -> bool {
+        match self {
+            Self::Loaded(_) => false,
+            _ => true,
+        }
+    }
+
+    pub fn is_some(&self) -> bool {
+        !self.is_none()
+    }
+
+    pub fn is_error(&self) -> bool {
+        match self {
+            Self::Error(_) => true,
+            _ => false,
+        }
+    }
+}

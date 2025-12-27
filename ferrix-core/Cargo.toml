@@ -10,3 +10,4 @@ repository.workspace = true
 
 [dependencies]
 ferrix-lib = { path = "../ferrix-lib", version = "0.3.0" }
+serde = { version = "1.0.228", features = ["derive"] }
