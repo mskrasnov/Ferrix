@@ -50,7 +50,6 @@ mod system;
 mod systemd;
 mod users;
 
-pub use kernel::KernelData;
 pub use sysmon::*;
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq)]
@@ -153,7 +152,8 @@ impl<'a> Page {
             Self::Battery => battery::bat_page(&state.bat_data).into(),
             Self::Screen => drm::drm_page(&state.drm_data).into(),
             Self::Distro => distro::distro_page(&state.osrel_data).into(),
-            Self::Kernel => kernel::kernel_page(&state.info_kernel).into(),
+            Self::Kernel => kernel::kernel_page(&state.kernel_data).into(),
+            Self::KModules => kernel::kmods_page(&state.kmods_data).into(),
             Self::SystemMisc => system::system_page(&state.system).into(),
             Self::Users => users::users_page(&state.users_list).into(),
             Self::Groups => groups::groups_page(&state.groups_list).into(),

@@ -28,12 +28,12 @@ use ferrix_lib::{
     drm::Video,
     init::SystemdServices,
     ram::RAM,
-    sys::{Groups, OsRelease, Users},
+    sys::{Groups, KModules, Kernel, OsRelease, Users},
     traits::ToJson,
 };
 use serde::Serialize;
 
-use crate::{DataLoadingState, KernelData};
+use crate::DataLoadingState;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum ExportStatus {
@@ -124,7 +124,8 @@ pub struct ExportData<'a> {
     pub battery: Option<ExportMember<'a, BatInfo>>,
     pub drm: Option<ExportMember<'a, Video>>,
     pub os_release: Option<ExportMember<'a, OsRelease>>,
-    pub kernel: Option<ExportMember<'a, KernelData>>,
+    pub kernel: Option<ExportMember<'a, Kernel>>,
+    pub kmods: Option<ExportMember<'a, KModules>>,
     pub users: Option<ExportMember<'a, Users>>,
     pub groups: Option<ExportMember<'a, Groups>>,
     pub systemd: Option<ExportMember<'a, SystemdServices>>,
@@ -139,7 +140,8 @@ impl<'a> From<&'a mut crate::Ferrix> for ExportData<'a> {
             battery: get_data(&value.bat_data),
             drm: get_data(&value.drm_data),
             os_release: get_data(&value.osrel_data),
-            kernel: get_data(&value.info_kernel),
+            kernel: get_data(&value.kernel_data),
+            kmods: get_data(&value.kmods_data),
             users: get_data(&value.users_list),
             groups: get_data(&value.groups_list),
             systemd: get_data(&value.sysd_services_list),

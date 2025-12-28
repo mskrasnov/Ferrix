@@ -54,12 +54,24 @@ pub fn bat_page<'a>(bat_info: &'a DataLoadingState<BatInfo>) -> container::Conta
                     ))
                     .style(text::warning),
                 );
+                let capacity = bat.capacity.unwrap_or(0);
                 bat_list = bat_list.push(
                     row![
                         text(fl!("bat-capacity")),
                         horizontal(),
-                        progress_bar(0.0..=100., bat.capacity.unwrap_or(0) as f32)
-                            .length(Length::FillPortion(2)),
+                        progress_bar(0.0..=100., capacity as f32)
+                            .length(Length::FillPortion(2))
+                            .style(move |t: &iced::Theme| {
+                                let p = t.palette();
+                                progress_bar::Style {
+                                    bar: iced::Background::Color(match capacity {
+                                        40..=100 => p.success,
+                                        20..40 => p.warning,
+                                        _ => p.danger,
+                                    }),
+                                    ..progress_bar::primary(t)
+                                }
+                            }),
                     ]
                     .spacing(5)
                     .align_y(Center),

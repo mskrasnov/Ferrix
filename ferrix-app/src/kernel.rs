@@ -20,6 +20,8 @@
 
 //! Information about kernel modules
 
+// TODO v0.5.0: use this module to get modules info!
+
 use anyhow::Result;
 use async_std::task;
 use ferrix_lib::sys::KModules;

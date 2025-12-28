@@ -31,22 +31,6 @@ use iced::{
     Length, Padding,
     widget::{column, container, scrollable, table, text},
 };
-use serde::Serialize;
-
-#[derive(Debug, Clone, Serialize)]
-pub struct KernelData {
-    pub kernel: Kernel,
-    pub mods: KModules,
-}
-
-impl KernelData {
-    pub fn new() -> anyhow::Result<Self> {
-        Ok(Self {
-            kernel: Kernel::new()?,
-            mods: KModules::new()?,
-        })
-    }
-}
 
 fn modules_table<'a>(rows: &'a [Module]) -> table::Table<'a, Message> {
     let columns = [
@@ -85,12 +69,11 @@ fn modules_table<'a>(rows: &'a [Module]) -> table::Table<'a, Message> {
 }
 
 pub fn kernel_page<'a>(
-    kernel_data: &'a DataLoadingState<KernelData>,
+    kernel_data: &'a DataLoadingState<Kernel>,
 ) -> container::Container<'a, Message> {
     match kernel_data {
-        DataLoadingState::Loaded(kernel_data) => {
-            let kern = &kernel_data.kernel;
-            let summary_rows = vec![
+        DataLoadingState::Loaded(kern) => {
+            let rows = vec![
                 InfoRow::new(fl!("kernel-summary"), kern.uname.clone()),
                 InfoRow::new(fl!("kernel-cmdline"), kern.cmdline.clone()),
                 InfoRow::new(fl!("kernel-arch"), kern.arch.clone()),
@@ -102,22 +85,29 @@ pub fn kernel_page<'a>(
                 InfoRow::new(fl!("kernel-avail-enthropy"), fmt_val(kern.enthropy_avail)),
             ];
 
-            let kern_summary_data =
-                column![container(kv_info_table(summary_rows)).style(container::rounded_box)]
-                    .spacing(5);
-
-            let kern_modules =
-                container(modules_table(&kernel_data.mods.modules)).style(container::rounded_box);
-
             let layout = column![
                 text(fl!("kernel-summary-hdr")).style(text::warning),
-                kern_summary_data,
-                text(fl!("kernel-mods-hdr")).style(text::warning),
-                kern_modules.padding(Padding::new(0.).right(10.)),
+                container(kv_info_table(rows)).style(container::rounded_box),
+                // kern_summary_data,
+                // text(fl!("kernel-mods-hdr")).style(text::warning),
+                // kern_modules,
             ]
             .spacing(5);
 
             container(scrollable(layout))
+        }
+        DataLoadingState::Error(why) => super::error_page(why),
+        DataLoadingState::Loading => super::loading_page(),
+    }
+}
+
+pub fn kmods_page<'a>(kmods: &'a DataLoadingState<KModules>) -> container::Container<'a, Message> {
+    match kmods {
+        DataLoadingState::Loaded(kmods) => {
+            let table = container(modules_table(&kmods.modules))
+                .style(container::rounded_box)
+                .padding(Padding::new(0.).right(10.));
+            container(scrollable(table))
         }
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),

@@ -27,13 +27,13 @@ use ferrix_lib::{
     init::{Connection, SystemdServices},
     ram::{RAM, Swaps},
     soft::InstalledPackages,
-    sys::{Groups, OsRelease, Users},
+    sys::{Groups, KModules, Kernel, OsRelease, Users},
     traits::ToJson,
 };
 use iced::{Task, color, time::Instant};
 
 use crate::{
-    DataLoadingState, Ferrix, KernelData, Page, SETTINGS_PATH, System,
+    DataLoadingState, Ferrix, Page, SETTINGS_PATH, System,
     dmi::DMIResult,
     export::{ExportData, ExportFormat, ExportMode},
     settings::Style,
@@ -110,7 +110,10 @@ pub enum DataReceiverMessage {
     OsReleaseDataReceived(DataLoadingState<OsRelease>),
 
     GetKernelData,
-    KernelDataReceived(DataLoadingState<KernelData>),
+    KernelDataReceived(DataLoadingState<Kernel>),
+
+    GetKModsData,
+    KModsDataReceived(DataLoadingState<KModules>),
 
     GetUsersData,
     UsersDataReceived(DataLoadingState<Users>),
@@ -382,21 +385,38 @@ impl DataReceiverMessage {
                 |val| Message::DataReceiver(Self::OsReleaseDataReceived(val)),
             ),
             Self::KernelDataReceived(state) => {
-                fx.info_kernel = state;
+                fx.kernel_data = state;
                 Task::none()
             }
             Self::GetKernelData => Task::perform(
                 async move {
-                    let kern = KernelData::new();
+                    let kern = Kernel::new();
                     match kern {
-                        Ok(mut kern) => {
-                            kern.mods.modules.sort_by_key(|md| md.name.clone());
+                        Ok(kern) => {
+                            // kern.mods.modules.sort_by_key(|md| md.name.clone());
                             DataLoadingState::Loaded(kern)
                         }
                         Err(why) => DataLoadingState::Error(why.to_string()),
                     }
                 },
                 |val| Message::DataReceiver(Self::KernelDataReceived(val)),
+            ),
+            Self::KModsDataReceived(state) => {
+                fx.kmods_data = state;
+                Task::none()
+            }
+            Self::GetKModsData => Task::perform(
+                async move {
+                    let kern = KModules::new();
+                    match kern {
+                        Ok(mut kern) => {
+                            kern.modules.sort_by_key(|module| module.name.clone());
+                            DataLoadingState::Loaded(kern)
+                        }
+                        Err(why) => DataLoadingState::Error(why.to_string()),
+                    }
+                },
+                |val| Message::DataReceiver(Self::KModsDataReceived(val)),
             ),
             Self::UsersDataReceived(state) => {
                 fx.users_list = state;

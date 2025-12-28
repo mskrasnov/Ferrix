@@ -53,8 +53,8 @@ use ferrix_lib::{
     ram::{RAM, Swaps},
     soft::InstalledPackages,
     sys::{
-        Groups, LoadAVG, OsRelease, Uptime, Users, get_current_desktop, get_env_vars, get_hostname,
-        get_lang,
+        Groups, KModules, Kernel, LoadAVG, OsRelease, Uptime, Users, get_current_desktop,
+        get_env_vars, get_hostname, get_lang,
     },
 };
 use iced::{
@@ -86,7 +86,8 @@ pub struct Ferrix {
     pub bat_data: DataLoadingState<BatInfo>,
     pub drm_data: DataLoadingState<Video>,
     pub osrel_data: DataLoadingState<OsRelease>,
-    pub info_kernel: DataLoadingState<KernelData>,
+    pub kernel_data: DataLoadingState<Kernel>,
+    pub kmods_data: DataLoadingState<KModules>,
     pub users_list: DataLoadingState<Users>,
     pub groups_list: DataLoadingState<Groups>,
     pub sysd_services_list: DataLoadingState<SystemdServices>,
@@ -115,7 +116,8 @@ impl Default for Ferrix {
             bat_data: DataLoadingState::Loading,
             drm_data: DataLoadingState::Loading,
             osrel_data: DataLoadingState::Loading,
-            info_kernel: DataLoadingState::Loading,
+            kernel_data: DataLoadingState::Loading,
+            kmods_data: DataLoadingState::Loading,
             users_list: DataLoadingState::Loading,
             groups_list: DataLoadingState::Loading,
             sysd_services_list: DataLoadingState::Loading,
@@ -220,10 +222,17 @@ impl Ferrix {
             );
         }
 
-        if self.info_kernel.is_none() && self.current_page == Page::Kernel {
+        if self.kernel_data.is_none() && self.current_page == Page::Kernel {
             scripts.push(
                 time::every(Duration::from_millis(10))
                     .map(|_| Message::DataReceiver(DataReceiverMessage::GetKernelData)),
+            );
+        }
+
+        if self.kmods_data.is_none() && self.current_page == Page::KModules {
+            scripts.push(
+                time::every(Duration::from_millis(10))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetKModsData)),
             );
         }
 
