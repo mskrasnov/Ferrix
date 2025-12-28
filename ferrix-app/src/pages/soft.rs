@@ -69,7 +69,8 @@ fn soft_table<'a>(rows: &'a [Package]) -> table::Table<'a, Message> {
         .width(Length::Shrink),
         table::column(hdr_name(fl!("soft-hdr-ver")), |row: &'a Package| {
             text(&row.version)
-        }),
+        })
+        .width(Length::Shrink),
         table::column(hdr_name(fl!("soft-hdr-arch")), |row: &'a Package| {
             text(&row.arch)
         }),
