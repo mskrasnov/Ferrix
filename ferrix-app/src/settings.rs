@@ -19,7 +19,7 @@
  */
 
 use anyhow::Result;
-use iced::Theme;
+use iced::{Theme, color};
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, fs, path::Path};
 
@@ -66,8 +66,24 @@ impl Style {
 
     pub fn to_theme(&self) -> Theme {
         match self {
-            Self::Light => Theme::GruvboxLight,
-            Self::Dark => Theme::GruvboxDark,
+            Self::Light => {
+                let mut palette = Theme::GruvboxLight.palette();
+                palette.success = color!(0x98971a);
+                palette.danger = color!(0xaf3a03);
+                palette.warning = color!(0xb57614);
+                palette.primary = color!(0xd79921);
+
+                Theme::custom("Ferrix Light Theme", palette)
+            }
+            Self::Dark => {
+                let mut palette = Theme::GruvboxDark.palette();
+                palette.success = color!(0x98971a);
+                palette.danger = color!(0xfe8019);
+                palette.warning = color!(0xfabd2f);
+                palette.primary = color!(0xfabd2f);
+
+                Theme::custom("Ferrix Dark Theme", palette)
+            }
         }
     }
 }
