@@ -26,7 +26,11 @@ use crate::{
 };
 use ferrix_lib::battery::{BatInfo, Battery, Level, Status};
 
-use iced::widget::{center, column, container, scrollable, text};
+use iced::{
+    Alignment::Center,
+    Length,
+    widget::{center, column, container, progress_bar, row, scrollable, space::horizontal, text},
+};
 
 pub fn bat_page<'a>(bat_info: &'a DataLoadingState<BatInfo>) -> container::Container<'a, Message> {
     match bat_info {
@@ -49,6 +53,16 @@ pub fn bat_page<'a>(bat_info: &'a DataLoadingState<BatInfo>) -> container::Conta
                         }
                     ))
                     .style(text::warning),
+                );
+                bat_list = bat_list.push(
+                    row![
+                        text(fl!("bat-capacity")),
+                        horizontal(),
+                        progress_bar(0.0..=100., bat.capacity.unwrap_or(0) as f32)
+                            .length(Length::FillPortion(2)),
+                    ]
+                    .spacing(5)
+                    .align_y(Center),
                 );
                 bat_list = bat_list.push(bat_table(bat));
             }
