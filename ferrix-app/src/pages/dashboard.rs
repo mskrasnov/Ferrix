@@ -29,7 +29,7 @@ use ferrix_lib::{
 };
 
 use iced::{
-    Element, Font, Length, never,
+    Element, Font, Length, Theme, Vector, color, never,
     widget::{
         button, column, container, grid, progress_bar, rich_text, scrollable, space, span, text,
     },
@@ -245,7 +245,20 @@ where
         .max_width(135)
         .height(135)
         .max_height(135)
-        .style(container::rounded_box)
+        .style(|t: &Theme| container::Style {
+            shadow: iced::Shadow {
+                color: {
+                    if t.extended_palette().is_dark {
+                        color!(0x1d2021)
+                    } else {
+                        color!(0xebdbb2)
+                    }
+                },
+                offset: Vector::new(2., 2.),
+                blur_radius: 2.,
+            },
+            ..container::rounded_box(t)
+        })
         .padding(5),
     )
     .style(button::text)
@@ -279,7 +292,20 @@ where
         .max_width(135)
         .height(135)
         .max_height(135)
-        .style(container::rounded_box)
+        .style(|t| container::Style {
+            shadow: iced::Shadow {
+                color: {
+                    if t.extended_palette().is_dark {
+                        color!(0x1d2021)
+                    } else {
+                        color!(0xebdbb2)
+                    }
+                },
+                offset: Vector::new(2., 2.),
+                blur_radius: 2.,
+            },
+            ..container::rounded_box(t)
+        })
         .padding(5),
     )
     .style(button::text)
