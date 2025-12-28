@@ -22,6 +22,7 @@
 
 use crate::{Message, Page, fl};
 use ferrix_lib::{
+    battery::BatInfo,
     cpu::{Processors, Stat},
     ram::{RAM, Swaps},
     sys::OsRelease,
@@ -51,6 +52,7 @@ pub fn dashboard<'a>(
     swaps: Option<&'a Swaps>,
     osr: Option<&'a OsRelease>,
     system: Option<&'a crate::System>,
+    bat: Option<&'a BatInfo>,
 ) -> container::Container<'a, Message> {
     let (proc_name, proc_threads) = {
         match proc {
@@ -141,6 +143,21 @@ pub fn dashboard<'a>(
         }
     };
 
+    let battery = match bat {
+        Some(bat) => {
+            let mut bats = Vec::with_capacity(bat.bats.len());
+            for b in &bat.bats {
+                let name = match &b.name {
+                    Some(name) => name.to_string(),
+                    None => fl!("dash-unk-bat"),
+                };
+                bats.push((name, b.capacity.unwrap_or(0)));
+            }
+            bats
+        }
+        None => vec![],
+    };
+
     let mut items = vec![
         card(
             fl!("dash-proc"),
@@ -210,6 +227,18 @@ pub fn dashboard<'a>(
             ),
         );
         offset += 1;
+    }
+
+    for bat in battery {
+        items.push(widget_card(
+            fl!("dash-bat"),
+            column![
+                text(format!("{}: {}%", bat.0, bat.1)),
+                progress_bar(0.0..=100., bat.1 as f32)
+            ]
+            .spacing(5),
+            Message::SelectPage(Page::Battery),
+        ));
     }
 
     let mut gr = grid([]).spacing(5).fluid(185.);

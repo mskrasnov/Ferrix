@@ -14,6 +14,7 @@ sidebar-manage = Management
 # PAGES
 page-dashboard = Dashboard
 page-procs = Processors
+page-vuln = CPU Vulnerabilities
 page-memory = Memory
 page-storage = Storage
 page-dmi = DMI Tables
@@ -136,6 +137,8 @@ dash-mem-total = Total: {$total}
 dash-proc-usage = CPU Usage
 dash-proc-usg_label = Total usage: {$usage}%
 dash-swap = Swap
+dash-bat = Battery
+dash-unk-bat = No name
 
 # DISTRO PAGE
 distro-name = OS Name
@@ -299,3 +302,7 @@ users-gecos = GECOS
 users-home = Home directory
 users-shell = Login shell
 users-hdr = User #{$id}
+
+# CPU VULNERABILITY PAGE
+vuln-hdr-name = Name
+vuln-hdr-descr = Description

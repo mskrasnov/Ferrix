@@ -56,6 +56,7 @@ use ferrix_lib::{
         Groups, KModules, Kernel, LoadAVG, OsRelease, Uptime, Users, get_current_desktop,
         get_env_vars, get_hostname, get_lang,
     },
+    vulnerabilities::Vulnerabilities,
 };
 use iced::{
     Alignment::Center,
@@ -77,6 +78,7 @@ pub struct Ferrix {
     pub cpu_usage_chart: LineChart,
     pub show_cpus_chart: HashSet<usize>,
     pub show_chart_elements: usize,
+    pub cpu_vulnerabilities: DataLoadingState<Vulnerabilities>,
     pub ram_data: DataLoadingState<RAM>,
     pub swap_data: DataLoadingState<Swaps>,
     pub show_mem_chart: HashSet<usize>,
@@ -104,12 +106,13 @@ impl Default for Ferrix {
             proc_data: DataLoadingState::Loading,
             prev_proc_stat: DataLoadingState::Loading,
             curr_proc_stat: DataLoadingState::Loading,
-            cpu_usage_chart: LineChart::new().legend(true).fill_alpha(0.25).animated(0.9),
+            cpu_usage_chart: LineChart::new().legend(true).fill_alpha(0.25).animated(1.),
             show_cpus_chart: HashSet::new(),
             show_chart_elements: 100,
+            cpu_vulnerabilities: DataLoadingState::Loading,
             ram_data: DataLoadingState::Loading,
             swap_data: DataLoadingState::Loading,
-            ram_usage_chart: LineChart::new().legend(true).fill_alpha(0.25).animated(0.9),
+            ram_usage_chart: LineChart::new().legend(true).fill_alpha(0.25).animated(1.),
             show_mem_chart: HashSet::new(),
             show_ram_chart: true,
             dmi_data: DataLoadingState::Loading,
@@ -189,6 +192,20 @@ impl Ferrix {
             );
         }
 
+        if self.current_page == Page::CPUVulnerabilities {
+            if self.cpu_vulnerabilities.is_none() {
+                scripts
+                    .push(time::every(Duration::from_millis(10)).map(|_| {
+                        Message::DataReceiver(DataReceiverMessage::GetCPUVulnerabilities)
+                    }));
+            } else {
+                scripts.push(
+                    time::every(Duration::from_secs(self.settings.update_period as u64))
+                        .map(|_| Message::DataReceiver(DataReceiverMessage::GetCPUVulnerabilities)),
+                );
+            }
+        }
+
         if self.osrel_data.is_none()
             && (self.current_page == Page::Distro || self.current_page == Page::Dashboard)
         {
@@ -210,16 +227,18 @@ impl Ferrix {
             );
         }
 
-        if self.bat_data.is_none() && self.current_page == Page::Battery {
-            scripts.push(
-                time::every(Duration::from_millis(10))
-                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetBatInfo)),
-            );
-        } else if self.bat_data.is_some() && self.current_page == Page::Battery {
-            scripts.push(
-                time::every(Duration::from_secs(self.settings.update_period as u64))
-                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetBatInfo)),
-            );
+        if self.current_page == Page::Dashboard || self.current_page == Page::Battery {
+            if self.bat_data.is_none() {
+                scripts.push(
+                    time::every(Duration::from_millis(10))
+                        .map(|_| Message::DataReceiver(DataReceiverMessage::GetBatInfo)),
+                );
+            } else {
+                scripts.push(
+                    time::every(Duration::from_secs(self.settings.update_period as u64))
+                        .map(|_| Message::DataReceiver(DataReceiverMessage::GetBatInfo)),
+                );
+            }
         }
 
         if self.kernel_data.is_none() && self.current_page == Page::Kernel {
@@ -324,6 +343,7 @@ fn sidebar<'a>(cur_page: Page) -> container::Container<'a, Message> {
         sidebar_button(Page::SystemMonitor, cur_page),
         text(fl!("sidebar-hardware")).style(text::secondary),
         sidebar_button(Page::Processors, cur_page),
+        sidebar_button(Page::CPUVulnerabilities, cur_page),
         sidebar_button(Page::Memory, cur_page),
         sidebar_button(Page::Storage, cur_page),
         sidebar_button(Page::DMI, cur_page),

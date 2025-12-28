@@ -29,6 +29,7 @@ use ferrix_lib::{
     soft::InstalledPackages,
     sys::{Groups, KModules, Kernel, OsRelease, Users},
     traits::ToJson,
+    vulnerabilities::Vulnerabilities,
 };
 use iced::{Task, color, time::Instant};
 
@@ -88,6 +89,9 @@ pub enum DataReceiverMessage {
 
     GetProcStat,
     ProcStatReceived(DataLoadingState<Stat>),
+
+    GetCPUVulnerabilities,
+    CPUVulnerabilitiesReveived(DataLoadingState<Vulnerabilities>),
 
     GetRAMData,
     RAMDataReceived(DataLoadingState<RAM>),
@@ -244,6 +248,20 @@ impl DataReceiverMessage {
 
                 Task::none()
             }
+            Self::CPUVulnerabilitiesReveived(state) => {
+                fx.cpu_vulnerabilities = state;
+                Task::none()
+            }
+            Self::GetCPUVulnerabilities => Task::perform(
+                async move {
+                    let vuln = Vulnerabilities::new();
+                    match vuln {
+                        Ok(vuln) => DataLoadingState::Loaded(vuln),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
+                    }
+                },
+                |val| Message::DataReceiver(Self::CPUVulnerabilitiesReveived(val)),
+            ),
             Self::DMIDataReceived(state) => {
                 fx.is_polkit = true;
                 if state.is_some() && fx.is_polkit {

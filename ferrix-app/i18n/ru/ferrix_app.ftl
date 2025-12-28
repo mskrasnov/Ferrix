@@ -14,6 +14,7 @@ sidebar-manage = Обслуживание
 # PAGES
 page-dashboard = Обзор
 page-procs = Процессоры
+page-vuln = Уязвимости ЦП
 page-memory = Память
 page-storage = Накопители
 page-dmi = Таблицы DMI
@@ -136,6 +137,8 @@ dash-mem-total = Всего: {$total}
 dash-proc-usage = Нагрузка на ЦП
 dash-proc-usg_label = Общая: {$usage}%
 dash-swap = Подкачка
+dash-bat = Аккумулятор
+dash-unk-bat = Без имени
 
 # DISTRO PAGE
 distro-name = Имя ОС
@@ -299,3 +302,7 @@ users-gecos = GECOS
 users-home = Домашний каталог
 users-shell = Оболочка входа
 users-hdr = Пользователь №{$id}
+
+# CPU VULNERABILITY PAGE
+vuln-hdr-name = Имя
+vuln-hdr-descr = Описание

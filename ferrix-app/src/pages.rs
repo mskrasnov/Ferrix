@@ -49,6 +49,7 @@ mod sysmon;
 mod system;
 mod systemd;
 mod users;
+mod vulnerabilities;
 
 pub use sysmon::*;
 
@@ -60,6 +61,7 @@ pub enum Page {
     #[default]
     Dashboard,
     Processors,
+    CPUVulnerabilities,
     SystemMonitor,
     Memory,
     Storage,
@@ -104,6 +106,7 @@ impl<'a> Page {
         match self {
             Self::Dashboard => fl!("page-dashboard"),
             Self::Processors => fl!("page-procs"),
+            Self::CPUVulnerabilities => fl!("page-vuln"),
             Self::SystemMonitor => fl!("page-sysmon"),
             Self::Memory => fl!("page-memory"),
             Self::Storage => fl!("page-storage"),
@@ -140,12 +143,16 @@ impl<'a> Page {
                 state.swap_data.to_option(),
                 state.osrel_data.to_option(),
                 state.system.to_option(),
+                state.bat_data.to_option(),
             )
             .into(),
-            Self::Processors => cpu::proc_page(&state.proc_data).into(),
             Self::SystemMonitor => {
                 sysmon::usage_charts_page(&state, &state.curr_proc_stat, &state.prev_proc_stat)
                     .into()
+            }
+            Self::Processors => cpu::proc_page(&state.proc_data).into(),
+            Self::CPUVulnerabilities => {
+                vulnerabilities::vulnerabilities_page(&state.cpu_vulnerabilities).into()
             }
             Self::Memory => ram::ram_page(&state.ram_data, &state.swap_data).into(),
             Self::DMI => dmi::dmi_page(&state.dmi_data).into(),
