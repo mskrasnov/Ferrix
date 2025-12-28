@@ -5,6 +5,7 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
+description = "Intermediate crate for FSM"
 # readme = "README.md"
 # exclude.workspace = true
 
