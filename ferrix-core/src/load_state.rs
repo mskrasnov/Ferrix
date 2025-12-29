@@ -56,4 +56,8 @@ impl<P> LoadState<P> {
             _ => false,
         }
     }
+
+    pub fn unwrap(&self) -> &P {
+        self.to_option().unwrap()
+    }
 }

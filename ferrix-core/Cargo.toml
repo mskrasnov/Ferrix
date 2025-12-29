@@ -10,5 +10,6 @@ description = "Intermediate crate for FSM"
 # exclude.workspace = true
 
 [dependencies]
+anyhow = "1.0.100"
 ferrix-lib = { path = "../ferrix-lib", version = "0.3.0" }
 serde = { version = "1.0.228", features = ["derive"] }
