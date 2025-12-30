@@ -721,11 +721,12 @@ fn y_axis(min_y: f64, max_y: f64) -> Axis<f64> {
         .tick
         .level
     {
-        0 => TickResult::default().label({
-            let mut label = iced_aksel::axis::Label::from(format!("{:.2}", ctx.tick.value));
-            label.size = Pixels::from(10.);
-            label
-        }),
+        // 0 => TickResult::default().label({
+        //     let mut label = iced_aksel::axis::Label::from(format!("{:.2}", ctx.tick.value));
+        //     label.size = Pixels::from(10.);
+        //     label
+        // }),
+        0 => TickResult::default().label(format!("{:.2}", ctx.tick.value)),
         _ => TickResult::new(),
     })
 }
