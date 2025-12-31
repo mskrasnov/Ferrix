@@ -19,6 +19,16 @@
  */
 
 //! Get information from `ferrix-lib` crate
+//!
+//! ## Usage
+//!
+//! ```no-test
+//! use ferrix_core::data::{DataType, FXData};
+//! let mut data = FXData::new();
+//! data.get(DataType::Overview); // NOTE: <-- this is async function!
+//! ```
+
+use std::env;
 
 use ferrix_lib::{
     battery::BatInfo,
@@ -28,7 +38,10 @@ use ferrix_lib::{
     init::{Connection, SystemdServices},
     ram::{RAM, Swaps},
     soft::InstalledPackages,
-    sys::{Groups, KModules, Kernel, LoadAVG, OsRelease, Uptime, Users},
+    sys::{
+        Groups, KModules, Kernel, LoadAVG, OsRelease, Uptime, Users, get_current_desktop,
+        get_hostname, get_lang,
+    },
     vulnerabilities::Vulnerabilities,
 };
 use serde::{Deserialize, Serialize};
@@ -132,7 +145,9 @@ impl FXData {
             DataType::Software => self.installed_pkgs = InstalledPackages::get().to_load_state(),
             DataType::Kernel => self.kernel = Kernel::new().to_load_state(),
             DataType::KMods => self.kmods = KModules::new().to_load_state(),
-            _ => panic!(),
+
+            // Not implemented functions
+            _ => panic!("{data_type:?}: not implemented yet"),
         }
     }
 
@@ -163,7 +178,9 @@ impl FXData {
         self.battery = BatInfo::new().to_load_state();
     }
 
-    fn get_system_misc(&mut self) {}
+    fn get_system_misc(&mut self) {
+        self.system = LoadState::Loaded(SystemMisc::get());
+    }
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -174,6 +191,25 @@ pub struct SystemMisc {
     pub desktop: Option<String>,
     pub language: Option<String>,
     pub env_vars: Vec<(String, String)>,
+}
+
+impl SystemMisc {
+    pub fn get() -> Self {
+        Self {
+            hostname: get_hostname(),
+            loadavg: match LoadAVG::new() {
+                Ok(loadavg) => Some(loadavg),
+                Err(_) => None,
+            },
+            uptime: match Uptime::new() {
+                Ok(uptime) => Some(uptime),
+                Err(_) => None,
+            },
+            language: get_lang(),
+            desktop: get_current_desktop(),
+            env_vars: env::vars().collect(),
+        }
+    }
 }
 
 trait ToLoadState<T> {
