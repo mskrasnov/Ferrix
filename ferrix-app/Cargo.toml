@@ -15,10 +15,6 @@ name = "ferrix-app"
 path = "src/bin/app.rs"
 
 [[bin]]
-name = "ferrix-cli"
-path = "src/bin/cli.rs"
-
-[[bin]]
 name = "ferrix-polkit"
 path = "src/bin/polkit.rs"
 
