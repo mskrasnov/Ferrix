@@ -66,7 +66,7 @@ pub fn bat_page<'a>(bat_info: &'a DataLoadingState<BatInfo>) -> container::Conta
                                 progress_bar::Style {
                                     bar: iced::Background::Color(match capacity {
                                         40..=100 => p.success,
-                                        20..40 => p.warning,
+                                        21..40 => p.warning,
                                         _ => p.danger,
                                     }),
                                     ..progress_bar::primary(t)
