@@ -33,6 +33,7 @@ use std::env;
 use ferrix_lib::{
     battery::BatInfo,
     cpu::{Processors, Stat},
+    cpu_freq::CpuFreq,
     dmi::{Baseboard, Bios, Chassis, Processor},
     drm::Video,
     init::{Connection, SystemdServices},
@@ -53,6 +54,7 @@ pub enum DataType {
     Overview,
     Processor,
     Vulnerabilities,
+    CPUFrequency,
     Memory,
     Storage,
     DMITable0,
@@ -78,6 +80,7 @@ pub struct FXData {
     pub prev_proc_stat: LoadState<Stat>,
     pub curr_proc_stat: LoadState<Stat>,
     pub cpu_vulnerabilities: LoadState<Vulnerabilities>,
+    pub cpu_frequency: LoadState<CpuFreq>,
 
     // Memory info
     pub memory_ram: LoadState<RAM>,
@@ -122,6 +125,7 @@ impl FXData {
             DataType::Vulnerabilities => {
                 self.cpu_vulnerabilities = Vulnerabilities::new().to_load_state();
             }
+            DataType::CPUFrequency => self.cpu_frequency = CpuFreq::new().to_load_state(),
             DataType::Memory => self.get_memory(),
             DataType::Battery => self.get_battery(),
             DataType::Screen => self.video = Video::new().to_load_state(),
