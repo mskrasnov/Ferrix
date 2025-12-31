@@ -23,7 +23,7 @@
 /********************************************************
  *               WARNING WARNING WARNING                *
  ********************************************************
- * To implement the graphs of the system monitor, I     *
+ * To implement the charts of the system monitor, I     *
  * used the iced_aksel crate.                           *
  *                                                      *
  * The main part of the source code from here is taken  *
@@ -31,7 +31,7 @@
  * https://github.com/QuistHQ/iced_aksel/tree/main/examples/dashboard *
  ********************************************************
  * NOTE: refactoring!                                   *
- * NOTE: move the graph structures to the `widgets`     *
+ * NOTE: move the chart structures to the `widgets`     *
  * module.                                              *
  ********************************************************
  *            END WARNING WARNING WARNING               *
