@@ -64,7 +64,6 @@ impl ToJson for CpuFreq {}
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 pub struct Policy {
     pub bios_limit: Option<u32>,
-    pub boost: Option<bool>,
     pub cpb: Option<bool>,
     pub cpu_max_freq: Option<u32>,
     pub cpu_min_freq: Option<u32>,
@@ -95,10 +94,9 @@ impl Policy {
 
         Ok(Self {
             bios_limit: read(&tgt, "bios_limit")?.trim().parse().ok(),
-            boost: get_bool(read(&tgt, "boost")?.trim().parse().ok()),
             cpb: get_bool(read(&tgt, "cpb")?.trim().parse().ok()),
-            cpu_max_freq: read(&tgt, "cpu_max_freq")?.trim().parse().ok(),
-            cpu_min_freq: read(&tgt, "cpu_min_freq")?.trim().parse().ok(),
+            cpu_max_freq: read(&tgt, "cpuinfo_max_freq")?.trim().parse().ok(),
+            cpu_min_freq: read(&tgt, "cpuinfo_min_freq")?.trim().parse().ok(),
             cpuinfo_transition_latency: get_bool(
                 read(&tgt, "cpuinfo_transition_latency")?
                     .trim()
@@ -121,11 +119,17 @@ impl Policy {
                     .collect(),
             ),
             scaling_cur_freq: read(&tgt, "scaling_cur_freq")?.trim().parse().ok(),
-            scaling_driver: read(&tgt, "scaling_driver").ok(),
-            scaling_governor: read(&tgt, "scaling_governor").ok(),
+            scaling_driver: read(&tgt, "scaling_driver")
+                .ok()
+                .and_then(|s| Some(s.trim().to_string())),
+            scaling_governor: read(&tgt, "scaling_governor")
+                .ok()
+                .and_then(|s| Some(s.trim().to_string())),
             scaling_max_freq: read(&tgt, "scaling_max_freq")?.trim().parse().ok(),
             scaling_min_freq: read(&tgt, "scaling_min_freq")?.trim().parse().ok(),
-            scaling_setspeed: read(&tgt, "scaling_setspeed").ok(),
+            scaling_setspeed: read(&tgt, "scaling_setspeed")
+                .ok()
+                .and_then(|s| Some(s.trim().to_string())),
         })
     }
 }
