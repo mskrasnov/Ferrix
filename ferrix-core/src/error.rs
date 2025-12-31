@@ -38,6 +38,7 @@ pub enum ErrorKind {
     NotAFile,
     NotADir,
     ObjectNotFound,
+    IncorrectFormat,
 }
 
 impl Error {
@@ -87,6 +88,7 @@ impl Display for ErrorKind {
                 Self::NotAFile => "not a file",
                 Self::NotADir => "not a directory",
                 Self::ObjectNotFound => "requested object not found",
+                Self::IncorrectFormat => "object format is incorrect",
             }
         )
     }
