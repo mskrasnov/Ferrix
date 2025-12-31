@@ -12,4 +12,4 @@ Categories=Application;System;
 Keywords=System;Monitor
 StartupNotify=true
 DBusActivatable=true
-Name[ru_RU]=FSM.desktop
+Name[ru_RU]=Ferrix System Monitor
