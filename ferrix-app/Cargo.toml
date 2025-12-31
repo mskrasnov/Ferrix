@@ -46,7 +46,6 @@ assets = [
 [dependencies]
 anyhow = "1.0.98"
 async-std = "1.13.2"
-ferrix-core = { path = "../ferrix-core", version = "0.4.0" }
 ferrix-lib = { path = "../ferrix-lib", version = "0.3.0" }
 i18n-embed = { version = "0.16.0", features = ["fluent-system", "desktop-requester"] }
 i18n-embed-fl = "0.10.0"
