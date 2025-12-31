@@ -38,7 +38,7 @@
  ********************************************************/
 
 use iced::{
-    Color, Pixels, Theme,
+    Color, Theme,
     alignment::{Horizontal, Vertical},
     time::Instant,
 };
