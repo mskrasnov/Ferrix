@@ -20,6 +20,7 @@
 
 //! UI events handler & Data Updater
 
+use ferrix_core::data::{DataType, FXData};
 use ferrix_lib::{
     battery::BatInfo,
     cpu::{Processors, Stat},
@@ -77,6 +78,8 @@ impl Ferrix {
 
 #[derive(Debug, Clone)]
 pub enum DataReceiverMessage {
+    // GetAllData,
+    // FXDataReceived(FXData),
     GetCPUData,
     CPUDataReceived(DataLoadingState<Processors>),
 
@@ -138,17 +141,43 @@ pub enum DataReceiverMessage {
 impl DataReceiverMessage {
     pub fn update<'a>(self, fx: &'a mut Ferrix) -> Task<Message> {
         match self {
+            // Self::GetAllData => Task::perform(
+            //     async move {
+            //         let fx = FXData::export_data(&[
+            //             // DataType::Processor,
+            //             // DataType::Vulnerabilities,
+            //             // DataType::CPUFrequency,
+            //             // DataType::Memory,
+            //             // DataType::Battery,
+            //             // DataType::Screen,
+            //             // DataType::Distro,
+            //             // DataType::Users,
+            //             // DataType::Groups,
+            //             // DataType::SystemMgr,
+            //             // DataType::Software,
+            //             // DataType::Kernel,
+            //             // DataType::KMods,
+            //             // DataType::SystemMisc,
+            //             DataType::Overview,
+            //         ])
+            //         .await;
+            //         fx
+            //     },
+            //     |val| Message::DataReceiver(DataReceiverMessage::FXDataReceived(val)),
+            // ),
+            // Self::FXDataReceived(state) => {
+            //     fx.fx_data = state;
+            //     Task::none()
+            // }
             Self::CPUDataReceived(state) => {
                 fx.proc_data = state;
                 Task::none()
             }
             Self::GetCPUData => Task::perform(
                 async move {
-                    let proc = Processors::new();
-                    match proc {
-                        Ok(proc) => DataLoadingState::Loaded(proc),
-                        Err(why) => DataLoadingState::Error(why.to_string()),
-                    }
+                    let mut fx = FXData::new();
+                    fx.get(DataType::Processor).await;
+                    fx.processors
                 },
                 |val| Message::DataReceiver(Self::CPUDataReceived(val)),
             ),

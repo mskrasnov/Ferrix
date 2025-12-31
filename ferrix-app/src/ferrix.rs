@@ -22,19 +22,11 @@
 
 use std::time::Duration;
 
-use ferrix_lib::{
-    battery::BatInfo,
-    cpu::{Processors, Stat},
-    drm::Video,
-    init::SystemdServices,
-    ram::RAM,
-    sys::{Groups, KModules, Kernel, OsRelease, Users},
-};
-use iced::{Subscription, Task, Theme, time};
+use ferrix_core::data::FXData;
+use iced::{Subscription, Theme, time};
 
 use crate::{
-    DataLoadingState, FXSettings, Page, SETTINGS_PATH, System,
-    dmi::DMIResult,
+    FXSettings, Page, SETTINGS_PATH,
     messages::{DataReceiverMessage, Message},
     utils::get_home,
 };
@@ -64,61 +56,13 @@ impl AppState {
         self.settings.style.to_theme()
     }
 
-    // pub fn update(&mut self, message: Message) -> Task<Message> {
-    //     message.update(self)
-    // }
-
     pub fn subscription(&self) -> Subscription<Message> {
         let update_period = self.settings.update_period as u64;
-        let page = self.current_page;
         let mut scripts = vec![];
-
-        if page == Page::Dashboard || page == Page::Processors {
-            scripts.push(
-                time::every(Duration::from_secs(update_period))
-                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetCPUData)),
-            );
-            scripts.push(
-                time::every(Duration::from_secs(update_period))
-                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetProcStat)),
-            );
-        }
-        if page == Page::Dashboard || page == Page::Memory {
-            scripts.push(
-                time::every(Duration::from_secs(update_period))
-                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetRAMData)),
-            );
-        }
-
-        match self.current_page {
-            Page::Dashboard => {
-                let mut subscripts = vec![
-                    time::every(Duration::from_secs(update_period))
-                        .map(|_| Message::DataReceiver(DataReceiverMessage::GetRAMData)),
-                ];
-                scripts.append(&mut subscripts);
-            }
-            _ => {}
-        }
-
-        todo!()
+        scripts.push(
+            time::every(Duration::from_secs(update_period))
+                .map(|_| Message::DataReceiver(DataReceiverMessage::GetAllData)),
+        );
+        Subscription::batch(scripts)
     }
-}
-
-#[derive(Debug, Clone, Default)]
-pub struct FXData {
-    pub processors: DataLoadingState<Processors>,
-    pub current_proc_stat: DataLoadingState<Stat>,
-    pub previous_proc_stat: DataLoadingState<Stat>,
-    pub ram: DataLoadingState<RAM>,
-    pub dmi: DataLoadingState<DMIResult>,
-    pub battery: DataLoadingState<BatInfo>,
-    pub video: DataLoadingState<Video>,
-    pub os_release: DataLoadingState<OsRelease>,
-    pub kernel_summary: DataLoadingState<Kernel>,
-    pub kernel_modules: DataLoadingState<KModules>,
-    pub users_list: DataLoadingState<Users>,
-    pub groups_list: DataLoadingState<Groups>,
-    pub systemd_services: DataLoadingState<SystemdServices>,
-    pub system_misc: DataLoadingState<System>,
 }

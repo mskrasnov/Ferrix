@@ -24,6 +24,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]
+#[serde(untagged)]
 pub enum LoadState<P> {
     #[default]
     Loading,

@@ -57,10 +57,15 @@ pub enum DataType {
     CPUFrequency,
     Memory,
     Storage,
-    DMITable0,
-    DMITable2,
-    DMITable3,
-    DMITable4,
+    DMITable0,  // BIOS
+    DMITable1,  // System
+    DMITable2,  // Baseboard
+    DMITable3,  // Chassis/enclosure
+    DMITable4,  // Processor
+    DMITable7,  // CPU Cache
+    DMITable8,  // Port connectors
+    DMITable16, // Physical memory array
+    DMITable17, // Installed memory devices
     Battery,
     Screen,
     Distro,
@@ -149,10 +154,19 @@ impl FXData {
             DataType::Software => self.installed_pkgs = InstalledPackages::get().to_load_state(),
             DataType::Kernel => self.kernel = Kernel::new().to_load_state(),
             DataType::KMods => self.kmods = KModules::new().to_load_state(),
+            DataType::SystemMisc => self.system = LoadState::Loaded(SystemMisc::get()),
 
             // Not implemented functions
             _ => panic!("{data_type:?}: not implemented yet"),
         }
+    }
+
+    pub async fn export_data<'a>(data_types: &'a [DataType]) -> Self {
+        let mut data = Self::default();
+        for dt in data_types {
+            data.get(*dt).await;
+        }
+        data
     }
 
     fn get_proc_stat(&mut self) {

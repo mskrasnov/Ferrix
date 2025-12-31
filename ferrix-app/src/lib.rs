@@ -32,9 +32,11 @@ pub mod dmi;
 pub mod kernel;
 
 // REFACTORED MODULES
+// pub mod ferrix;
 pub mod messages;
 pub mod settings;
-// pub mod ferrix; // TODO!
+use ferrix_core::data::FXData;
+// TODO!
 use messages::*;
 
 pub use load_state::DataLoadingState;
@@ -71,6 +73,7 @@ const SETTINGS_PATH: &str = "./ferrix.conf";
 
 #[derive(Debug)]
 pub struct Ferrix {
+    pub fx_data: FXData,
     pub current_page: Page,
     pub proc_data: DataLoadingState<Processors>,
     pub prev_proc_stat: DataLoadingState<Stat>,
@@ -102,6 +105,7 @@ pub struct Ferrix {
 impl Default for Ferrix {
     fn default() -> Self {
         Self {
+            fx_data: FXData::default(),
             current_page: Page::default(),
             proc_data: DataLoadingState::Loading,
             prev_proc_stat: DataLoadingState::Loading,
