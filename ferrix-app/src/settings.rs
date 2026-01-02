@@ -78,7 +78,7 @@ impl Style {
             Self::Dark => {
                 let mut palette = Theme::GruvboxDark.palette();
                 palette.success = color!(0x98971a);
-                palette.danger = color!(0xfe8019);
+                palette.danger = color!(0xfb4934);
                 palette.warning = color!(0xfabd2f);
                 palette.primary = color!(0xfabd2f);
 
