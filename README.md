@@ -91,6 +91,15 @@ make TARGET=aarch64-unknown-linux-gnu build
 - **GUI:** [`iced`](https://iced.rs);
 - **Hardware:** modern PC or laptop;
 
+## ❤️ Support Ferrix System Monitor
+
+Developing Ferrix System Monitor takes time and passion. If you find it useful, please consider supporting its development:
+
+- **Star ⭐ this repo!** It helps others discover FSM;
+- **Write comments, questions, bug reports, or suggestions** for new functionality in [issues](https://github.com/mskrasnov/Ferrix/issues/new).
+- If you are from Russia, **send me a donation 💰** in [Boosty](https://boosty.to/mskrasnov). This will help me keep my enthusiasm alive, as well as pay my internet bills so that I can continue working on FSM.
+- **Spread the world!** Tell friends, post on forums.
+
 ## License
 
 Ferrix System Monitor is free and open-source software distributed under the **GNU General Public License v3.0**. See [LICENSE](LICENSE) file for details.
