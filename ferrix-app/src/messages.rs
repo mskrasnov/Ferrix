@@ -20,6 +20,8 @@
 
 //! UI events handler & Data Updater
 
+use std::time::Duration;
+
 use ferrix_lib::{
     battery::BatInfo,
     cpu::{Processors, Stat},
@@ -35,7 +37,7 @@ use iced::{Task, color, time::Instant};
 
 use crate::{
     DataLoadingState, Ferrix, Page, SETTINGS_PATH, System,
-    dmi::DMIResult,
+    dmi::DMIData,
     export::{ExportData, ExportFormat, ExportMode},
     settings::Style,
     styles::CPU_CHARTS_COLORS,
@@ -102,7 +104,7 @@ pub enum DataReceiverMessage {
     AddTotalRAMUsage,
 
     GetDMIData,
-    DMIDataReceived(DataLoadingState<DMIResult>),
+    DMIDataReceived(DataLoadingState<DMIData>),
 
     GetBatInfo,
     BatInfoReceived(DataLoadingState<BatInfo>),
@@ -264,7 +266,7 @@ impl DataReceiverMessage {
             ),
             Self::DMIDataReceived(state) => {
                 fx.is_polkit = true;
-                if state.is_some() && fx.is_polkit {
+                if state.some_value() && fx.is_polkit {
                     fx.dmi_data = state;
                 } else if !fx.is_polkit {
                     fx.dmi_data = state;
@@ -272,7 +274,7 @@ impl DataReceiverMessage {
                 Task::none()
             }
             Self::GetDMIData => {
-                if fx.dmi_data.is_none() && fx.current_page == Page::DMI && !fx.is_polkit {
+                if !fx.is_polkit && fx.dmi_data.is_none() && fx.current_page == Page::DMI {
                     Task::perform(async move { crate::dmi::get_dmi_data().await }, |val| {
                         Message::DataReceiver(Self::DMIDataReceived(val))
                     })

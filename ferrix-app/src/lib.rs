@@ -40,7 +40,7 @@ use messages::*;
 pub use load_state::DataLoadingState;
 pub use pages::*;
 
-use dmi::DMIResult;
+use dmi::DMIData;
 use serde::Serialize;
 use widgets::{icon_button, sidebar_button};
 
@@ -84,7 +84,7 @@ pub struct Ferrix {
     pub show_mem_chart: HashSet<usize>,
     pub show_ram_chart: bool,
     pub ram_usage_chart: LineChart,
-    pub dmi_data: DataLoadingState<DMIResult>,
+    pub dmi_data: DataLoadingState<DMIData>,
     pub bat_data: DataLoadingState<BatInfo>,
     pub drm_data: DataLoadingState<Video>,
     pub osrel_data: DataLoadingState<OsRelease>,

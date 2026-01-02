@@ -52,6 +52,13 @@ impl<P> LoadState<P> {
         !self.is_none()
     }
 
+    pub fn some_value(&self) -> bool {
+        match self {
+            Self::Loading => false,
+            _ => true,
+        }
+    }
+
     pub fn is_error(&self) -> bool {
         match self {
             Self::Error(_) => true,
@@ -61,5 +68,18 @@ impl<P> LoadState<P> {
 
     pub fn unwrap(&self) -> &P {
         self.to_option().unwrap()
+    }
+}
+
+pub trait ToLoadState<P> {
+    fn to_load_state(self) -> LoadState<P>;
+}
+
+impl<P> ToLoadState<P> for anyhow::Result<P> {
+    fn to_load_state(self) -> LoadState<P> {
+        match self {
+            Self::Ok(data) => LoadState::Loaded(data),
+            Self::Err(why) => LoadState::Error(why.to_string()),
+        }
     }
 }

@@ -22,7 +22,7 @@
 
 use crate::{
     DataLoadingState, Message,
-    dmi::DMIResult,
+    dmi::DMIData,
     fl,
     widgets::{
         header,
@@ -35,81 +35,84 @@ use iced::{
     widget::{column, container, scrollable, table, text},
 };
 
-pub fn dmi_page<'a>(dmi: &'a DataLoadingState<DMIResult>) -> container::Container<'a, Message> {
+pub fn dmi_page<'a>(dmi: &'a DataLoadingState<DMIData>) -> container::Container<'a, Message> {
     match dmi {
-        DataLoadingState::Loaded(dmi) => match dmi {
-            DMIResult::Ok { data } => {
-                let bios = bios_table(&data.bios);
-                let baseboard = baseboard_table(&data.baseboard);
-                let chassis = chassis_table(&data.chassis);
-                let proc = processor_table(&data.processor);
+        DataLoadingState::Loaded(data) => {
+            let bios = bios_table(&data.bios);
+            let baseboard = baseboard_table(&data.baseboard);
+            let chassis = chassis_table(&data.chassis);
+            let proc = processor_table(&data.processor);
 
-                container(scrollable(
-                    column![bios, baseboard, chassis, proc,].spacing(5),
-                ))
-            }
-            DMIResult::Error { error } => super::error_page(error),
-        },
+            container(scrollable(
+                column![bios, baseboard, chassis, proc,].spacing(5),
+            ))
+        }
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),
     }
 }
 
-fn bios_table<'a>(bios: &'a Bios) -> container::Container<'a, Message> {
-    let rows = vec![
-        InfoRow::new("BIOS Vendor", bios.vendor.clone()),
-        InfoRow::new("Version", bios.version.clone()),
-        InfoRow::new(
-            "Starting address segment",
-            match bios.starting_address_segment {
-                Some(sas) => Some(format!("0x{sas:05X}")),
-                None => None,
-            },
-        ),
-        InfoRow::new("Release date", bios.release_date.clone()),
-        InfoRow::new(
-            "ROM Size",
-            match &bios.rom_size {
-                Some(rs) => Some(rs.to_string()),
-                None => None,
-            },
-        ),
-        InfoRow::new(
-            "System BIOS Revision",
-            Some(format!(
-                "{}.{}",
-                bios.system_bios_major_release.unwrap_or(0),
-                bios.system_bios_minor_release.unwrap_or(0)
-            )),
-        ),
-        InfoRow::new(
-            "Embedded controller firmware Revision",
-            Some(format!(
-                "{}.{}",
-                bios.e_c_firmware_major_release.unwrap_or(0),
-                bios.e_c_firmware_minor_release.unwrap_or(0)
-            )),
-        ),
-        InfoRow::new(
-            "Extended BIOS ROM Size",
-            match &bios.extended_rom_size {
-                Some(ers) => Some(ers.to_string()),
-                None => None,
-            },
-        ),
-    ];
+fn bios_table<'a>(bios: &'a DataLoadingState<Bios>) -> container::Container<'a, Message> {
+    let bios_data = match bios {
+        DataLoadingState::Loading => container(text(fl!("ldr-page-tooltip"))),
+        DataLoadingState::Error(why) => container(text(why).style(text::danger)),
+        DataLoadingState::Loaded(bios) => {
+            let rows = vec![
+                InfoRow::new("BIOS Vendor", bios.vendor.clone()),
+                InfoRow::new("Version", bios.version.clone()),
+                InfoRow::new(
+                    "Starting address segment",
+                    match bios.starting_address_segment {
+                        Some(sas) => Some(format!("0x{sas:05X}")),
+                        None => None,
+                    },
+                ),
+                InfoRow::new("Release date", bios.release_date.clone()),
+                InfoRow::new(
+                    "ROM Size",
+                    match &bios.rom_size {
+                        Some(rs) => Some(rs.to_string()),
+                        None => None,
+                    },
+                ),
+                InfoRow::new(
+                    "System BIOS Revision",
+                    Some(format!(
+                        "{}.{}",
+                        bios.system_bios_major_release.unwrap_or(0),
+                        bios.system_bios_minor_release.unwrap_or(0)
+                    )),
+                ),
+                InfoRow::new(
+                    "Embedded controller firmware Revision",
+                    Some(format!(
+                        "{}.{}",
+                        bios.e_c_firmware_major_release.unwrap_or(0),
+                        bios.e_c_firmware_minor_release.unwrap_or(0)
+                    )),
+                ),
+                InfoRow::new(
+                    "Extended BIOS ROM Size",
+                    match &bios.extended_rom_size {
+                        Some(ers) => Some(ers.to_string()),
+                        None => None,
+                    },
+                ),
+            ];
+            container(
+                column![
+                    text("Summary").style(text::warning),
+                    container(kv_info_table(rows)).style(container::rounded_box),
+                    bios_characteristics_table(bios),
+                    bios_ext0_table(bios),
+                    bios_ext1_table(bios),
+                ]
+                .spacing(5),
+            )
+        }
+    };
 
-    container(
-        column![
-            header("BIOS (Type 0)"),
-            text("Summary").style(text::warning),
-            container(kv_info_table(rows)).style(container::rounded_box),
-            bios_characteristics_table(bios),
-            bios_ext0_table(bios),
-            bios_ext1_table(bios),
-        ]
-        .spacing(5),
-    )
+    container(column![header("BIOS (Type 0)"), bios_data,].spacing(5))
 }
 
 fn bios_characteristics_table<'a>(bios: &'a Bios) -> container::Container<'a, Message> {
@@ -305,144 +308,160 @@ fn bios_ext1_table<'a>(b: &'a Bios) -> container::Container<'a, Message> {
     }
 }
 
-fn baseboard_table<'a>(bb: &'a Baseboard) -> container::Container<'a, Message> {
-    let rows = vec![
-        InfoRow::new("Manufacturer", bb.manufacturer.clone()),
-        InfoRow::new("Product", bb.product.clone()),
-        InfoRow::new("Serial number", bb.serial_number.clone()),
-        InfoRow::new("Asset tag", bb.asset_tag.clone()),
-        InfoRow::new("Location in chassis", bb.location_in_chassis.clone()),
-        InfoRow::new("Chassis handle", fmt_val(bb.chassis_handle)),
-    ];
-
-    let features = match &bb.feature_flags {
-        Some(bf) => {
+fn baseboard_table<'a>(bb: &'a DataLoadingState<Baseboard>) -> container::Container<'a, Message> {
+    let bb_data = match bb {
+        DataLoadingState::Loading => container(text(fl!("ldr-page-tooltip"))),
+        DataLoadingState::Error(why) => container(text(why).style(text::danger)),
+        DataLoadingState::Loaded(bb) => {
             let rows = vec![
-                InfoRow::new("Hosting board", fmt_bool(Some(bf.hosting_board))),
-                InfoRow::new(
-                    "Requires daughter board",
-                    fmt_bool(Some(bf.requires_daughterboard)),
-                ),
-                InfoRow::new("Removable?", fmt_bool(Some(bf.is_removable))),
-                InfoRow::new("Replaceable?", fmt_bool(Some(bf.is_replaceable))),
-                InfoRow::new("Hot swappable?", fmt_bool(Some(bf.is_hot_swappable))),
+                InfoRow::new("Manufacturer", bb.manufacturer.clone()),
+                InfoRow::new("Product", bb.product.clone()),
+                InfoRow::new("Serial number", bb.serial_number.clone()),
+                InfoRow::new("Asset tag", bb.asset_tag.clone()),
+                InfoRow::new("Location in chassis", bb.location_in_chassis.clone()),
+                InfoRow::new("Chassis handle", fmt_val(bb.chassis_handle)),
             ];
+
+            let features = match &bb.feature_flags {
+                Some(bf) => {
+                    let rows = vec![
+                        InfoRow::new("Hosting board", fmt_bool(Some(bf.hosting_board))),
+                        InfoRow::new(
+                            "Requires daughter board",
+                            fmt_bool(Some(bf.requires_daughterboard)),
+                        ),
+                        InfoRow::new("Removable?", fmt_bool(Some(bf.is_removable))),
+                        InfoRow::new("Replaceable?", fmt_bool(Some(bf.is_replaceable))),
+                        InfoRow::new("Hot swappable?", fmt_bool(Some(bf.is_hot_swappable))),
+                    ];
+
+                    container(
+                        column![
+                            text("Baseboard features").style(text::warning),
+                            container(kv_info_table(rows)).style(container::rounded_box),
+                        ]
+                        .spacing(5),
+                    )
+                }
+                None => container(text("Baseboard features is empty!").style(text::danger)),
+            };
+
+            let btype = match &bb.board_type {
+                Some(bt) => {
+                    let rows = vec![
+                        InfoRow::new("Raw value", Some(format!("{}", bt.raw))),
+                        InfoRow::new("Type", Some(bt.value.to_string())),
+                    ];
+
+                    container(
+                        column![
+                            text("Baseboard type").style(text::warning),
+                            container(kv_info_table(rows)).style(container::rounded_box),
+                        ]
+                        .spacing(5),
+                    )
+                }
+                None => container(text("Unknown baseboard type!").style(text::danger)),
+            };
 
             container(
                 column![
-                    text("Baseboard features").style(text::warning),
+                    text("Summary").style(text::warning),
                     container(kv_info_table(rows)).style(container::rounded_box),
+                    features,
+                    btype,
                 ]
                 .spacing(5),
             )
         }
-        None => container(text("Baseboard features is empty!").style(text::danger)),
     };
 
-    let btype = match &bb.board_type {
-        Some(bt) => {
-            let rows = vec![
-                InfoRow::new("Raw value", Some(format!("{}", bt.raw))),
-                InfoRow::new("Type", Some(bt.value.to_string())),
-            ];
-
-            container(
-                column![
-                    text("Baseboard type").style(text::warning),
-                    container(kv_info_table(rows)).style(container::rounded_box),
-                ]
-                .spacing(5),
-            )
-        }
-        None => container(text("Unknown baseboard type!").style(text::danger)),
-    };
-
-    let bb_view = column![
-        header("Base Board (Type 2)"),
-        text("Summary").style(text::warning),
-        container(kv_info_table(rows)).style(container::rounded_box),
-        features,
-        btype,
-    ]
-    .spacing(5);
-
-    container(bb_view)
+    container(column![header("Base Board (Type 2)"), bb_data,].spacing(5))
 }
 
-fn chassis_table<'a>(c: &'a Chassis) -> container::Container<'a, Message> {
-    let rows = vec![
-        InfoRow::new("Manufacturer", c.manufacturer.clone()),
-        InfoRow::new("Version", c.version.clone()),
-        InfoRow::new("Serial number", c.serial_number.clone()),
-        InfoRow::new("Asset tag", c.asset_tag_number.clone()),
-        InfoRow::new("OEM Defined", fmt_val(c.oem_defined)),
-        InfoRow::new("Contained elements", fmt_val(c.contained_element_count)),
-        InfoRow::new(
-            "Contained elements record length",
-            fmt_val(c.contained_element_record_length),
-        ),
-        InfoRow::new("SKU Number", c.sku_number.clone()),
-    ];
-
-    let chassis_type = match &c.chassis_type {
-        Some(ct) => {
+fn chassis_table<'a>(c: &'a DataLoadingState<Chassis>) -> container::Container<'a, Message> {
+    let c_data = match c {
+        DataLoadingState::Loading => container(text(fl!("ldr-page-tooltip"))),
+        DataLoadingState::Error(why) => container(text(why).style(text::danger)),
+        DataLoadingState::Loaded(c) => {
             let rows = vec![
-                InfoRow::new("Raw", fmt_val(Some(ct.raw))),
-                InfoRow::new("Type", Some(ct.value.to_string())),
-                InfoRow::new("Lock presence", Some(ct.lock_presence.to_string())),
+                InfoRow::new("Manufacturer", c.manufacturer.clone()),
+                InfoRow::new("Version", c.version.clone()),
+                InfoRow::new("Serial number", c.serial_number.clone()),
+                InfoRow::new("Asset tag", c.asset_tag_number.clone()),
+                InfoRow::new("OEM Defined", fmt_val(c.oem_defined)),
+                InfoRow::new("Contained elements", fmt_val(c.contained_element_count)),
+                InfoRow::new(
+                    "Contained elements record length",
+                    fmt_val(c.contained_element_record_length),
+                ),
+                InfoRow::new("SKU Number", c.sku_number.clone()),
             ];
+
+            let chassis_type = match &c.chassis_type {
+                Some(ct) => {
+                    let rows = vec![
+                        InfoRow::new("Raw", fmt_val(Some(ct.raw))),
+                        InfoRow::new("Type", Some(ct.value.to_string())),
+                        InfoRow::new("Lock presence", Some(ct.lock_presence.to_string())),
+                    ];
+                    container(
+                        column![
+                            text("Chassis type").style(text::warning),
+                            container(kv_info_table(rows)).style(container::rounded_box)
+                        ]
+                        .spacing(5),
+                    )
+                }
+                None => container(text("Unknown chassis type").style(text::danger)),
+            };
+
+            let bootup_state = match &c.bootup_state {
+                Some(bs) => chassis_state(bs, "Bootup state"),
+                None => container(text("Unknown bootup state").style(text::danger)),
+            };
+            let ps_state = match &c.power_supply_state {
+                Some(pss) => chassis_state(pss, "Power Supply state"),
+                None => container(text("Unknown power supply state").style(text::danger)),
+            };
+            let t_state = match &c.thermal_state {
+                Some(ts) => chassis_state(ts, "Thermal state"),
+                None => container(text("Unknown thermal state").style(text::danger)),
+            };
+
+            let security_status = match &c.security_status {
+                Some(ss) => {
+                    let rows = vec![
+                        InfoRow::new("Raw", fmt_val(Some(ss.raw))),
+                        InfoRow::new("Status", Some(ss.value.to_string())),
+                    ];
+                    container(
+                        column![
+                            text("Security status").style(text::warning),
+                            container(kv_info_table(rows)).style(container::rounded_box)
+                        ]
+                        .spacing(5),
+                    )
+                }
+                None => container(text("Unknown security status!").style(text::danger)),
+            };
+
             container(
                 column![
-                    text("Chassis type").style(text::warning),
-                    container(kv_info_table(rows)).style(container::rounded_box)
+                    text("Summary").style(text::warning),
+                    container(kv_info_table(rows)).style(container::rounded_box),
+                    chassis_type,
+                    bootup_state,
+                    ps_state,
+                    t_state,
+                    security_status,
                 ]
                 .spacing(5),
             )
         }
-        None => container(text("Unknown chassis type").style(text::danger)),
     };
 
-    let bootup_state = match &c.bootup_state {
-        Some(bs) => chassis_state(bs, "Bootup state"),
-        None => container(text("Unknown bootup state").style(text::danger)),
-    };
-    let ps_state = match &c.power_supply_state {
-        Some(pss) => chassis_state(pss, "Power Supply state"),
-        None => container(text("Unknown power supply state").style(text::danger)),
-    };
-    let t_state = match &c.thermal_state {
-        Some(ts) => chassis_state(ts, "Thermal state"),
-        None => container(text("Unknown thermal state").style(text::danger)),
-    };
-
-    let security_status = match &c.security_status {
-        Some(ss) => {
-            let rows = vec![
-                InfoRow::new("Raw", fmt_val(Some(ss.raw))),
-                InfoRow::new("Status", Some(ss.value.to_string())),
-            ];
-            container(
-                column![
-                    text("Security status").style(text::warning),
-                    container(kv_info_table(rows)).style(container::rounded_box)
-                ]
-                .spacing(5),
-            )
-        }
-        None => container(text("Unknown security status!").style(text::danger)),
-    };
-
-    let chassis_view = column![
-        header("Chassis (Type 3)"),
-        text("Summary").style(text::warning),
-        container(kv_info_table(rows)).style(container::rounded_box),
-        chassis_type,
-        bootup_state,
-        ps_state,
-        t_state,
-        security_status,
-    ]
-    .spacing(5);
+    let chassis_view = column![header("Chassis (Type 3)"), c_data,].spacing(5);
 
     container(chassis_view)
 }
@@ -465,138 +484,144 @@ fn chassis_state<'a>(
     )
 }
 
-fn processor_table<'a>(p: &'a Processor) -> container::Container<'a, Message> {
-    let rows = vec![
-        InfoRow::new(
-            "Raw Processor ID",
-            match p.processor_id {
-                Some(pid) => fmt_vec(&Some(pid.to_vec())),
-                None => None,
-            },
-        ),
-        InfoRow::new("Socket reference designation", p.socked_designation.clone()),
-        InfoRow::new(
-            "Processor type",
-            match &p.processor_type {
-                Some(pt) => Some(pt.value.to_string()),
-                None => None,
-            },
-        ),
-        InfoRow::new(
-            "Processor family",
-            match &p.processor_family {
-                Some(pf) => Some(pf.value.to_string()),
-                None => None,
-            },
-        ),
-        InfoRow::new(
-            "Processor family #2",
-            match &p.processor_family_2 {
-                Some(pf) => Some(pf.value.to_string()),
-                None => None,
-            },
-        ),
-        InfoRow::new("Processor manufacturer", p.processor_manufacturer.clone()),
-        InfoRow::new("Processor version", p.processor_version.clone()),
-        InfoRow::new(
-            "External clock",
-            match &p.external_clock {
-                Some(ec) => Some(ec.to_string()),
-                None => None,
-            },
-        ),
-        InfoRow::new(
-            "Max speed",
-            match &p.max_speed {
-                Some(ms) => Some(ms.to_string()),
-                None => None,
-            },
-        ),
-        InfoRow::new(
-            "Current speed",
-            match &p.current_speed {
-                Some(cs) => Some(cs.to_string()),
-                None => None,
-            },
-        ),
-        InfoRow::new(
-            "Socket populated",
-            match &p.status {
-                Some(ps) => fmt_bool(Some(ps.socket_populated)),
-                None => None,
-            },
-        ),
-        InfoRow::new(
-            "CPU Status",
-            match &p.status {
-                Some(ps) => Some(ps.cpu_status.to_string()),
-                None => None,
-            },
-        ),
-        InfoRow::new(
-            "Processor Upgrade",
-            match &p.processor_upgrade {
-                Some(pu) => Some(pu.value.to_string()),
-                None => None,
-            },
-        ),
-        InfoRow::new("Serial number", p.serial_number.clone()),
-        InfoRow::new("Asset tag", p.asset_tag.clone()),
-        InfoRow::new("Part number", p.part_number.clone()),
-        InfoRow::new(
-            "Core count",
-            match &p.core_count {
-                Some(cc) => Some(cc.to_string()),
-                None => None,
-            },
-        ),
-        InfoRow::new(
-            "Cores enabled",
-            match &p.cores_enabled {
-                Some(ce) => Some(ce.to_string()),
-                None => None,
-            },
-        ),
-        InfoRow::new(
-            "Thread count",
-            match &p.thread_count {
-                Some(tc) => Some(tc.to_string()),
-                None => None,
-            },
-        ),
-        InfoRow::new(
-            "Core count #2",
-            match &p.core_count_2 {
-                Some(cc) => Some(cc.to_string()),
-                None => None,
-            },
-        ),
-        InfoRow::new(
-            "Cores enabled #2",
-            match &p.cores_enabled_2 {
-                Some(ce) => Some(ce.to_string()),
-                None => None,
-            },
-        ),
-        InfoRow::new(
-            "Thread count #2",
-            match &p.thread_count_2 {
-                Some(tc) => Some(tc.to_string()),
-                None => None,
-            },
-        ),
-    ];
+fn processor_table<'a>(p: &'a DataLoadingState<Processor>) -> container::Container<'a, Message> {
+    let p_data = match p {
+        DataLoadingState::Loading => container(text(fl!("ldr-page-tooltip"))),
+        DataLoadingState::Error(why) => container(text(why).style(text::danger)),
+        DataLoadingState::Loaded(p) => {
+            let rows = vec![
+                InfoRow::new(
+                    "Raw Processor ID",
+                    match p.processor_id {
+                        Some(pid) => fmt_vec(&Some(pid.to_vec())),
+                        None => None,
+                    },
+                ),
+                InfoRow::new("Socket reference designation", p.socked_designation.clone()),
+                InfoRow::new(
+                    "Processor type",
+                    match &p.processor_type {
+                        Some(pt) => Some(pt.value.to_string()),
+                        None => None,
+                    },
+                ),
+                InfoRow::new(
+                    "Processor family",
+                    match &p.processor_family {
+                        Some(pf) => Some(pf.value.to_string()),
+                        None => None,
+                    },
+                ),
+                InfoRow::new(
+                    "Processor family #2",
+                    match &p.processor_family_2 {
+                        Some(pf) => Some(pf.value.to_string()),
+                        None => None,
+                    },
+                ),
+                InfoRow::new("Processor manufacturer", p.processor_manufacturer.clone()),
+                InfoRow::new("Processor version", p.processor_version.clone()),
+                InfoRow::new(
+                    "External clock",
+                    match &p.external_clock {
+                        Some(ec) => Some(ec.to_string()),
+                        None => None,
+                    },
+                ),
+                InfoRow::new(
+                    "Max speed",
+                    match &p.max_speed {
+                        Some(ms) => Some(ms.to_string()),
+                        None => None,
+                    },
+                ),
+                InfoRow::new(
+                    "Current speed",
+                    match &p.current_speed {
+                        Some(cs) => Some(cs.to_string()),
+                        None => None,
+                    },
+                ),
+                InfoRow::new(
+                    "Socket populated",
+                    match &p.status {
+                        Some(ps) => fmt_bool(Some(ps.socket_populated)),
+                        None => None,
+                    },
+                ),
+                InfoRow::new(
+                    "CPU Status",
+                    match &p.status {
+                        Some(ps) => Some(ps.cpu_status.to_string()),
+                        None => None,
+                    },
+                ),
+                InfoRow::new(
+                    "Processor Upgrade",
+                    match &p.processor_upgrade {
+                        Some(pu) => Some(pu.value.to_string()),
+                        None => None,
+                    },
+                ),
+                InfoRow::new("Serial number", p.serial_number.clone()),
+                InfoRow::new("Asset tag", p.asset_tag.clone()),
+                InfoRow::new("Part number", p.part_number.clone()),
+                InfoRow::new(
+                    "Core count",
+                    match &p.core_count {
+                        Some(cc) => Some(cc.to_string()),
+                        None => None,
+                    },
+                ),
+                InfoRow::new(
+                    "Cores enabled",
+                    match &p.cores_enabled {
+                        Some(ce) => Some(ce.to_string()),
+                        None => None,
+                    },
+                ),
+                InfoRow::new(
+                    "Thread count",
+                    match &p.thread_count {
+                        Some(tc) => Some(tc.to_string()),
+                        None => None,
+                    },
+                ),
+                InfoRow::new(
+                    "Core count #2",
+                    match &p.core_count_2 {
+                        Some(cc) => Some(cc.to_string()),
+                        None => None,
+                    },
+                ),
+                InfoRow::new(
+                    "Cores enabled #2",
+                    match &p.cores_enabled_2 {
+                        Some(ce) => Some(ce.to_string()),
+                        None => None,
+                    },
+                ),
+                InfoRow::new(
+                    "Thread count #2",
+                    match &p.thread_count_2 {
+                        Some(tc) => Some(tc.to_string()),
+                        None => None,
+                    },
+                ),
+            ];
+            container(
+                column![
+                    text("Summary").style(text::warning),
+                    container(kv_info_table(rows)).style(container::rounded_box),
+                    processor_characteristics_table(p),
+                    processor_voltage_table(p),
+                ]
+                .spacing(5),
+            )
+        }
+    };
 
-    container(
-        column![
-            header("Processor (Type 4)"),
-            text("Summary").style(text::warning),
-            container(kv_info_table(rows)).style(container::rounded_box),
-            processor_characteristics_table(p),
-            processor_voltage_table(p),
-        ]
-        .spacing(5),
-    )
+    container(column![header("Processor (Type 4)"), p_data,].spacing(5))
 }
 
 fn processor_voltage_table<'a>(p: &'a Processor) -> container::Container<'a, Message> {

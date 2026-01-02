@@ -22,55 +22,56 @@
 
 use anyhow::Result;
 use async_std::task;
-use ferrix_lib::dmi::{Baseboard, Chassis, Processor, Bios};
+use ferrix_lib::dmi::{Baseboard, Bios, Chassis, Processor};
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 
-use crate::DataLoadingState;
+use crate::load_state::{LoadState, ToLoadState};
 
-pub async fn get_dmi_data() -> DataLoadingState<DMIResult> {
+pub async fn get_dmi_data() -> LoadState<DMIData> {
     let output = task::spawn_blocking(|| {
         Command::new("pkexec")
-            .arg("/usr/bin/ferrix-polkit")
+            .arg("ferrix-polkit")
             .arg("dmi")
             .output()
     })
     .await;
 
     if let Err(why) = output {
-        return DataLoadingState::Error(why.to_string());
+        return LoadState::Error(why.to_string());
     }
     let output = output.unwrap();
-    if !output.status.success() {
-        return DataLoadingState::Error(format!(
+    if !output.status.code().unwrap_or(0) != 0 {
+        return LoadState::Error(format!(
             "[ferrix-polkit] Non-zero return code:\n{}",
             String::from_utf8_lossy(&output.stderr)
         ));
     }
 
     let json_str = String::from_utf8_lossy(&output.stdout);
-    let json_data = DMIResult::from_json(&json_str);
+    let json_data = DMIData::from_json(&json_str);
 
     match json_data {
-        Ok(data) => DataLoadingState::Loaded(data),
-        Err(why) => DataLoadingState::Error(why.to_string()),
+        Ok(data) => LoadState::Loaded(data),
+        Err(why) => LoadState::Error(why.to_string()),
     }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(untagged)]
-pub enum DMIResult {
-    Ok { data: DMIData },
-    Error { error: String },
+pub struct DMIData {
+    pub bios: LoadState<Bios>,
+    pub baseboard: LoadState<Baseboard>,
+    pub chassis: LoadState<Chassis>,
+    pub processor: LoadState<Processor>,
 }
 
-impl DMIResult {
+impl DMIData {
     pub fn new() -> Self {
-        match DMIData::new() {
-            Ok(data) => Self::Ok { data },
-            Err(why) => Self::Error {
-                error: why.to_string(),
-            },
+        Self {
+            bios: Bios::new().to_load_state(),
+            baseboard: Baseboard::new().to_load_state(),
+            chassis: Chassis::new().to_load_state(),
+            processor: Processor::new().to_load_state(),
         }
     }
 
@@ -81,24 +82,5 @@ impl DMIResult {
 
     pub fn from_json(json: &str) -> Result<Self> {
         Ok(serde_json::from_str(json)?)
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct DMIData {
-    pub bios: Bios,
-    pub baseboard: Baseboard,
-    pub chassis: Chassis,
-    pub processor: Processor,
-}
-
-impl DMIData {
-    pub fn new() -> Result<Self> {
-        Ok(Self {
-            bios: Bios::new()?,
-            baseboard: Baseboard::new()?,
-            chassis: Chassis::new()?,
-            processor: Processor::new()?,
-        })
     }
 }
