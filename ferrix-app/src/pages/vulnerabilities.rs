@@ -51,11 +51,12 @@ enum VulnType {
 
 impl VulnType {
     fn detect(descr: &str) -> Self {
+        let descr = descr.to_lowercase();
         if descr.contains("vulnerable") {
             Self::Danger
-        } else if descr.contains("Mitigation") {
+        } else if descr.contains("mitigation") {
             Self::Warning
-        } else if descr.contains("Not affected") {
+        } else if descr.contains("not affected") {
             Self::Safe
         } else {
             Self::Unknown
