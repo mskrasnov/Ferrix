@@ -41,7 +41,7 @@ pub async fn get_dmi_data() -> LoadState<DMIData> {
         return LoadState::Error(why.to_string());
     }
     let output = output.unwrap();
-    if !output.status.code().unwrap_or(0) != 0 {
+    if output.status.code().unwrap_or(0) != 0 {
         return LoadState::Error(format!(
             "[ferrix-polkit] Non-zero return code:\n{}",
             String::from_utf8_lossy(&output.stderr)

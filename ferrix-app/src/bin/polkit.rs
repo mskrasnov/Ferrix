@@ -35,7 +35,7 @@ fn main() {
 
     match mode {
         Some(mode) => {
-            if &mode == "dmiaaa" {
+            if &mode == "dmi" {
                 let data = DMIData::new();
                 println!("{}", data.to_json().unwrap());
             } else if &mode == "kmods" {

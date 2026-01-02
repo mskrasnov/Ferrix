@@ -20,8 +20,6 @@
 
 //! UI events handler & Data Updater
 
-use std::time::Duration;
-
 use ferrix_lib::{
     battery::BatInfo,
     cpu::{Processors, Stat},
@@ -265,7 +263,6 @@ impl DataReceiverMessage {
                 |val| Message::DataReceiver(Self::CPUVulnerabilitiesReveived(val)),
             ),
             Self::DMIDataReceived(state) => {
-                fx.is_polkit = true;
                 if state.some_value() && fx.is_polkit {
                     fx.dmi_data = state;
                 } else if !fx.is_polkit {
@@ -275,6 +272,7 @@ impl DataReceiverMessage {
             }
             Self::GetDMIData => {
                 if !fx.is_polkit && fx.dmi_data.is_none() && fx.current_page == Page::DMI {
+                    fx.is_polkit = true;
                     Task::perform(async move { crate::dmi::get_dmi_data().await }, |val| {
                         Message::DataReceiver(Self::DMIDataReceived(val))
                     })
