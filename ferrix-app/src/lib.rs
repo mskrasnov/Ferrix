@@ -34,6 +34,7 @@ pub mod kernel;
 // REFACTORED MODULES
 pub mod messages;
 pub mod settings;
+pub mod subscription;
 use messages::*;
 
 pub use load_state::DataLoadingState;
@@ -59,10 +60,10 @@ use ferrix_lib::{
 };
 use iced::{
     Alignment::Center,
-    Element, Length, Padding, Subscription, Task, Theme, time,
+    Element, Length, Padding, Task, Theme,
     widget::{column, container, row, scrollable, text},
 };
-use std::{collections::HashSet, time::Duration};
+use std::collections::HashSet;
 
 use crate::{settings::FXSettings, utils::get_home, widgets::line_charts::LineChart};
 
@@ -101,7 +102,6 @@ pub struct Ferrix {
 impl Default for Ferrix {
     fn default() -> Self {
         Self {
-            // fx_data: FXData::default(),
             current_page: Page::default(),
             proc_data: DataLoadingState::Loading,
             prev_proc_stat: DataLoadingState::Loading,
@@ -163,160 +163,6 @@ impl Ferrix {
 
     pub fn update(&mut self, message: Message) -> Task<Message> {
         message.update(self)
-    }
-
-    pub fn subscription(&self) -> Subscription<Message> {
-        let mut scripts = vec![
-            time::every(Duration::from_secs(self.settings.update_period as u64))
-                .map(|_| Message::DataReceiver(DataReceiverMessage::GetCPUData)),
-            time::every(Duration::from_secs(self.settings.update_period as u64))
-                .map(|_| Message::DataReceiver(DataReceiverMessage::GetProcStat)),
-            // Charts
-            time::every(Duration::from_secs(self.settings.update_period as u64))
-                .map(|_| Message::DataReceiver(DataReceiverMessage::AddCPUCoreLineSeries)),
-            time::every(Duration::from_secs(self.settings.update_period as u64))
-                .map(|_| Message::DataReceiver(DataReceiverMessage::AddTotalRAMUsage)),
-            // Charts update
-            iced::window::frames()
-                .map(|inst| Message::DataReceiver(DataReceiverMessage::AnimationTick(inst))),
-        ];
-
-        if self.current_page == Page::Dashboard || self.current_page == Page::SystemMonitor {
-            scripts.push(
-                time::every(Duration::from_secs(self.settings.update_period as u64))
-                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetRAMData)),
-            );
-            scripts.push(
-                time::every(Duration::from_secs(self.settings.update_period as u64))
-                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetSwapData)),
-            );
-        }
-
-        if self.current_page == Page::CPUVulnerabilities {
-            if self.cpu_vulnerabilities.is_none() {
-                scripts
-                    .push(time::every(Duration::from_millis(10)).map(|_| {
-                        Message::DataReceiver(DataReceiverMessage::GetCPUVulnerabilities)
-                    }));
-            } else {
-                scripts.push(
-                    time::every(Duration::from_secs(self.settings.update_period as u64))
-                        .map(|_| Message::DataReceiver(DataReceiverMessage::GetCPUVulnerabilities)),
-                );
-            }
-        }
-
-        if self.osrel_data.is_none()
-            && (self.current_page == Page::Distro || self.current_page == Page::Dashboard)
-        {
-            scripts.push(
-                time::every(Duration::from_millis(10))
-                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetOsReleaseData)),
-            );
-        }
-
-        if self.drm_data.is_none() && self.current_page == Page::Screen {
-            scripts.push(
-                time::every(Duration::from_millis(10))
-                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetDRMData)),
-            );
-        } else if self.drm_data.is_some() && self.current_page == Page::Screen {
-            scripts.push(
-                time::every(Duration::from_secs(self.settings.update_period as u64))
-                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetDRMData)),
-            );
-        }
-
-        if self.current_page == Page::Dashboard || self.current_page == Page::Battery {
-            if self.bat_data.is_none() {
-                scripts.push(
-                    time::every(Duration::from_millis(10))
-                        .map(|_| Message::DataReceiver(DataReceiverMessage::GetBatInfo)),
-                );
-            } else {
-                scripts.push(
-                    time::every(Duration::from_secs(self.settings.update_period as u64))
-                        .map(|_| Message::DataReceiver(DataReceiverMessage::GetBatInfo)),
-                );
-            }
-        }
-
-        if self.kernel_data.is_none() && self.current_page == Page::Kernel {
-            scripts.push(
-                time::every(Duration::from_millis(10))
-                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetKernelData)),
-            );
-        }
-
-        if self.kmods_data.is_none() && self.current_page == Page::KModules {
-            scripts.push(
-                time::every(Duration::from_millis(10))
-                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetKModsData)),
-            );
-        }
-
-        if self.users_list.is_none() && self.current_page == Page::Users {
-            scripts.push(
-                time::every(Duration::from_millis(10))
-                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetUsersData)),
-            );
-        }
-
-        if self.system.is_none() {
-            scripts.push(
-                time::every(Duration::from_millis(10))
-                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetSystemData)),
-            );
-        }
-
-        if self.groups_list.is_none() && self.current_page == Page::Groups {
-            scripts.push(
-                time::every(Duration::from_millis(10))
-                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetGroupsData)),
-            );
-        }
-
-        if self.sysd_services_list.is_none() && self.current_page == Page::SystemManager {
-            scripts.push(
-                time::every(Duration::from_millis(10))
-                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetSystemdServices)),
-            );
-        } else if self.sysd_services_list.is_some() && self.current_page == Page::SystemManager {
-            scripts.push(
-                time::every(Duration::from_secs(
-                    self.settings.update_period as u64 * 10u64,
-                ))
-                .map(|_| Message::DataReceiver(DataReceiverMessage::GetSystemdServices)),
-            );
-        }
-
-        if self.system.is_none() && self.current_page == Page::SystemMisc {
-            scripts.push(
-                time::every(Duration::from_millis(10))
-                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetSystemData)),
-            );
-        } else if self.system.is_some() && self.current_page == Page::SystemMisc {
-            scripts.push(
-                time::every(Duration::from_secs(self.settings.update_period as u64))
-                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetSystemData)),
-            );
-        }
-
-        if self.current_page == Page::DMI && !self.is_polkit && self.dmi_data.is_none() {
-            scripts.push(
-                time::every(Duration::from_secs(1))
-                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetDMIData)),
-            );
-        }
-
-        if self.current_page == Page::Software && self.installed_pkgs_list.is_none() {
-            scripts.push(
-                time::every(Duration::from_millis(10))
-                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetPackagesList)),
-            );
-        }
-
-        Subscription::batch(scripts)
     }
 
     pub fn view<'a>(&'a self) -> Element<'a, Message> {
