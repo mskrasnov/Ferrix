@@ -248,6 +248,7 @@ ram-swp-used = Used
 ram-swp-prior = Priority
 ram-hdr = RAM Info
 ram-swp-hdr = Swaps Info
+ram-swp-not-found = No swaps files/partitions found.
 
 # SETTINGS PAGE
 settings-update-period = Update period

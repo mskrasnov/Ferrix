@@ -108,6 +108,11 @@ fn swap_table<'a>(swaps: &'a DataLoadingState<Swaps>) -> container::Container<'a
         DataLoadingState::Loaded(swaps) => {
             let mut swap_data = column![header(fl!("ram-swp-hdr"))].spacing(5);
 
+            if swaps.swaps.is_empty() {
+                swap_data = swap_data.push(text(fl!("ram-swp-not-found")).style(text::danger));
+                return container(swap_data);
+            }
+
             for swap in &swaps.swaps {
                 let rows = vec![
                     InfoRow::new(fl!("ram-swp-size"), fmt_val(swap.size.round(2))),

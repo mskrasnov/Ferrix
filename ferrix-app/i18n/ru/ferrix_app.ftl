@@ -248,6 +248,7 @@ ram-swp-used = Занятый объём
 ram-swp-prior = Приоритет
 ram-hdr = Оперативная память
 ram-swp-hdr = Подкачка
+ram-swp-not-found = Не найдены файлы/разделы подкачки.
 
 # SETTINGS PAGE
 settings-update-period = Период обновления
