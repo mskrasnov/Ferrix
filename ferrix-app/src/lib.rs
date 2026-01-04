@@ -208,7 +208,7 @@ fn sidebar<'a>(cur_page: Page) -> container::Container<'a, Message> {
         sidebar_button(Page::About, cur_page),
     ]
     .padding(Padding::new(0.).right(5.))
-    .spacing(5);
+    .spacing(3);
 
     container(column![buttons_bar, scrollable(pages_bar)].spacing(5))
         .padding(5)
