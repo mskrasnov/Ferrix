@@ -1,4 +1,4 @@
-/* ram.rs
+/* cpu_freq.rs
  *
  * Copyright 2025 Michail Krasnov <mskrasnov07@ya.ru>
  *
