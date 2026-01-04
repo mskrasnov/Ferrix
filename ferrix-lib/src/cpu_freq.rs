@@ -63,16 +63,36 @@ impl ToJson for CpuFreq {}
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 pub struct Policy {
+    /// Maximum frequency from the BIOS
     pub bios_limit: Option<u32>,
+
+    /// Core Performance Boost (only for AMD)
     pub cpb: Option<bool>,
+
+    /// Maximum hardware frequency
     pub cpu_max_freq: Option<u32>,
+
+    /// Minimum hardware frequency
     pub cpu_min_freq: Option<u32>,
+
+    /// Time (nsecs) for transition between frequencies
     pub cpuinfo_transition_latency: Option<bool>,
+
+    /// Available frequencies
     pub scaling_available_frequencies: Option<Vec<u32>>,
-    pub scaling_available_governors: Option<String>,
+
+    /// Available frequency governors
+    pub scaling_available_governors: Option<Vec<String>>,
+
+    /// Current core frequency
     pub scaling_cur_freq: Option<u32>,
+
+    /// Using cpufreq driver
     pub scaling_driver: Option<String>,
+
+    /// Using governor
     pub scaling_governor: Option<String>,
+
     pub scaling_max_freq: Option<u32>,
     pub scaling_min_freq: Option<u32>,
     pub scaling_setspeed: Option<String>,

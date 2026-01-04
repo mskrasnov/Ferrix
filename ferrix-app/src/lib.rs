@@ -46,17 +46,9 @@ use widgets::{icon_button, sidebar_button};
 
 use anyhow::Result;
 use ferrix_lib::{
-    battery::BatInfo,
-    cpu::{Processors, Stat},
-    drm::Video,
-    init::SystemdServices,
-    ram::{RAM, Swaps},
-    soft::InstalledPackages,
-    sys::{
-        Groups, KModules, Kernel, LoadAVG, OsRelease, Uptime, Users, get_current_desktop,
-        get_env_vars, get_hostname, get_lang,
-    },
-    vulnerabilities::Vulnerabilities,
+    battery::BatInfo, cpu::{Processors, Stat}, cpu_freq::CpuFreq, drm::Video, init::SystemdServices, ram::{Swaps, RAM}, soft::InstalledPackages, sys::{
+        get_current_desktop, get_env_vars, get_hostname, get_lang, Groups, KModules, Kernel, LoadAVG, OsRelease, Uptime, Users
+    }, vulnerabilities::Vulnerabilities
 };
 use iced::{
     Alignment::Center,
@@ -78,6 +70,7 @@ pub struct Ferrix {
     pub cpu_usage_chart: LineChart,
     pub show_cpus_chart: HashSet<usize>,
     pub show_chart_elements: usize,
+    pub cpu_freq: DataLoadingState<CpuFreq>,
     pub cpu_vulnerabilities: DataLoadingState<Vulnerabilities>,
     pub ram_data: DataLoadingState<RAM>,
     pub swap_data: DataLoadingState<Swaps>,
@@ -109,6 +102,7 @@ impl Default for Ferrix {
             cpu_usage_chart: LineChart::new().legend(true).fill_alpha(0.25).animated(1.),
             show_cpus_chart: HashSet::new(),
             show_chart_elements: 100,
+            cpu_freq: DataLoadingState::Loading,
             cpu_vulnerabilities: DataLoadingState::Loading,
             ram_data: DataLoadingState::Loading,
             swap_data: DataLoadingState::Loading,
@@ -189,6 +183,7 @@ fn sidebar<'a>(cur_page: Page) -> container::Container<'a, Message> {
         sidebar_button(Page::SystemMonitor, cur_page),
         text(fl!("sidebar-hardware")).style(text::secondary),
         sidebar_button(Page::Processors, cur_page),
+        sidebar_button(Page::CPUFrequency, cur_page),
         sidebar_button(Page::CPUVulnerabilities, cur_page),
         sidebar_button(Page::Memory, cur_page),
         sidebar_button(Page::Storage, cur_page),

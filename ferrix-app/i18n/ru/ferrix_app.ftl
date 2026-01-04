@@ -14,6 +14,7 @@ sidebar-manage = Обслуживание
 # PAGES
 page-dashboard = Обзор
 page-procs = Процессоры
+page-cpufreq = Частоты ЦП
 page-vuln = Уязвимости ЦП
 page-memory = Память
 page-storage = Накопители
@@ -125,6 +126,26 @@ cpu-cache-align = Выравнивание кеша
 cpu-address-size = Размер адресов
 cpu-power = Управление питанием
 cpu-processor_no = Процессор №{$proc_no}
+
+# CPU FREQUENCY PAGE
+cpufreq-tboost = Поддержка CPU Turbo Boost
+cpufreq-flist = Список частот ЦП
+cpufreq-notfound = Отсутствует информация о частотах ЦП.
+cpufreq-sum = Частота ЦП №{$cpu}
+cpufreq-summary = Обзор
+cpufreq-bios-limit = Лимит BIOS
+cpufreq-cpb = Core Performance Boost
+cpufreq-cpu_max_freq = Макс. аппаратная частота
+cpufreq-cpu_min_freq = Мин. аппаратная частота
+cpufreq-scaling_min = Мин. текущая частота
+cpufreq-scaling_max = Мкс. текущая частота
+cpufreq-scaling_cur = Текущая частота
+cpufreq-scaling_gov = Регулятор
+cpufreq-avail_gov = Доступные регуляторы
+cpufreq-scaling_drv = Драйвер
+cpufreq-trans_lat = Задержка переключения
+cpufreq-set_speed = Заданная частота
+cpufreq-policy = Управление частотами ЦП №{$cpu}
 
 # DASHBOARD PAGE
 dash-proc = Процессор

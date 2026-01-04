@@ -14,6 +14,7 @@ sidebar-manage = Management
 # PAGES
 page-dashboard = Dashboard
 page-procs = Processors
+page-cpufreq = CPU Frequencies
 page-vuln = CPU Vulnerabilities
 page-memory = Memory
 page-storage = Storage
@@ -125,6 +126,26 @@ cpu-cache-align = Cache alignment
 cpu-address-size = Addresses sizes
 cpu-power = Power management
 cpu-processor_no = Processor #{$proc_no}
+
+# CPU FREQUENCY PAGE
+cpufreq-tboost = CPU Turbo Boost support
+cpufreq-flist = CPU Frequency List
+cpufreq-notfound = No CPU policy list found.
+cpufreq-sum = CPU #{$cpu} frequency
+cpufreq-summary = Summary
+cpufreq-bios-limit = BIOS Limit
+cpufreq-cpb = Core Performance Boost
+cpufreq-cpu_max_freq = Hardware max. frequency
+cpufreq-cpu_min_freq = Hardware min. frequency
+cpufreq-scaling_min = Scaling min.
+cpufreq-scaling_max = Scaling max.
+cpufreq-scaling_cur = Current Frequency
+cpufreq-scaling_gov = Governor
+cpufreq-avail_gov = Available Governors
+cpufreq-scaling_drv = Scaling Driver
+cpufreq-trans_lat = Transition Latency
+cpufreq-set_speed = Set Speed
+cpufreq-policy = Frequency Policy for CPU #{$cpu}
 
 # DASHBOARD PAGE
 dash-proc = Processor

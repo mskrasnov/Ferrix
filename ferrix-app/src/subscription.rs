@@ -67,6 +67,7 @@ impl Ferrix {
                 .map(|inst| Message::DataReceiver(DataReceiverMessage::AnimationTick(inst))),
         ];
         let oscripts = [
+            self.cpu_freq_subscription(),
             self.cpu_vuln_subscription(),
             self.storage_subscription(),
             self.dmi_subscription(),
@@ -89,6 +90,22 @@ impl Ferrix {
 
     fn u(&self) -> u64 {
         self.settings.update_period as u64
+    }
+
+    fn cpu_freq_subscription(&self) -> OScript<Message> {
+        if self.current_page == Page::CPUFrequency && self.cpu_freq.is_none() {
+            Some(
+                time::every(Duration::from_millis(START_UPERIOD))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetCPUFrequency)),
+            )
+        } else if self.current_page == Page::CPUFrequency {
+            Some(
+                time::every(Duration::from_secs(self.u()))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetCPUFrequency)),
+            )
+        } else {
+            None
+        }
     }
 
     fn cpu_vuln_subscription(&self) -> OScript<Message> {

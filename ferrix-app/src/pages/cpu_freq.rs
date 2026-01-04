@@ -1,0 +1,133 @@
+/* ram.rs
+ *
+ * Copyright 2025 Michail Krasnov <mskrasnov07@ya.ru>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+//! CPU Frequency page
+
+use crate::{
+    Message, fl,
+    load_state::LoadState,
+    widgets::{
+        header,
+        table::{InfoRow, fmt_bool, fmt_val, fmt_vec, kv_info_table},
+    },
+};
+use ferrix_lib::cpu_freq::CpuFreq;
+use iced::widget::{column, container, scrollable, text};
+
+pub fn cpu_freq_page<'a>(cpu_freq: &'a LoadState<CpuFreq>) -> container::Container<'a, Message> {
+    match cpu_freq {
+        LoadState::Loaded(cpu_freq) => {
+            let mut policy_list = column![].spacing(5);
+            let rows = vec![InfoRow::new(
+                fl!("cpufreq-tboost"),
+                fmt_bool(cpu_freq.boost),
+            )];
+            policy_list = policy_list.push(
+                column![
+                    container(kv_info_table(rows)).style(container::rounded_box),
+                    header(fl!("cpufreq-flist")),
+                ]
+                .spacing(5),
+            );
+
+            if cpu_freq.policy.is_empty() {
+                policy_list = policy_list.push(text(fl!("cpufreq-notfound")).style(text::danger));
+                return container(scrollable(policy_list));
+            }
+
+            let mut idx = 0;
+            let mut rows = Vec::with_capacity(cpu_freq.policy.len());
+            for policy in &cpu_freq.policy {
+                rows.push(InfoRow::new(
+                    fl!("cpufreq-sum", cpu = idx),
+                    fmt_freq(policy.scaling_cur_freq),
+                ));
+                idx += 1;
+            }
+            let policy_view = column![
+                text(fl!("cpufreq-summary")).style(text::warning),
+                container(kv_info_table(rows)).style(container::rounded_box),
+            ]
+            .spacing(5);
+            policy_list = policy_list.push(policy_view);
+
+            idx = 0;
+            for policy in &cpu_freq.policy {
+                let rows = vec![
+                    InfoRow::new(fl!("cpufreq-bios-limit"), fmt_freq(policy.bios_limit)),
+                    InfoRow::new(fl!("cpufreq-cpb"), fmt_bool(policy.cpb)),
+                    InfoRow::new(fl!("cpufreq-cpu_max_freq"), fmt_freq(policy.cpu_max_freq)),
+                    InfoRow::new(fl!("cpufreq-cpu_min_freq"), fmt_freq(policy.cpu_min_freq)),
+                    InfoRow::new(
+                        fl!("cpufreq-scaling_min"),
+                        fmt_freq(policy.scaling_min_freq),
+                    ),
+                    InfoRow::new(
+                        fl!("cpufreq-scaling_max"),
+                        fmt_freq(policy.scaling_max_freq),
+                    ),
+                    InfoRow::new(
+                        fl!("cpufreq-scaling_cur"),
+                        fmt_freq(policy.scaling_cur_freq),
+                    ),
+                    InfoRow::new(fl!("cpufreq-scaling_gov"), policy.scaling_governor.clone()),
+                    InfoRow::new(
+                        fl!("cpufreq-avail_gov"),
+                        fmt_vec(&policy.scaling_available_governors),
+                    ),
+                    InfoRow::new(fl!("cpufreq-scaling_drv"), policy.scaling_driver.clone()),
+                    InfoRow::new(
+                        fl!("cpufreq-avail_gov"),
+                        fmt_vec(&policy.scaling_available_frequencies),
+                    ),
+                    InfoRow::new(
+                        fl!("cpufreq-trans_lat"),
+                        fmt_val(policy.cpuinfo_transition_latency),
+                    ),
+                    InfoRow::new(fl!("cpufreq-set_speed"), policy.scaling_setspeed.clone()),
+                ];
+                let policy_view = column![
+                    text(fl!("cpufreq-policy", cpu = idx)).style(text::warning),
+                    container(kv_info_table(rows)).style(container::rounded_box),
+                ]
+                .spacing(5);
+                policy_list = policy_list.push(policy_view);
+                idx += 1;
+            }
+
+            container(scrollable(policy_list))
+        }
+        LoadState::Error(why) => super::error_page(why),
+        LoadState::Loading => super::loading_page(),
+    }
+}
+
+fn fmt_freq(f: Option<u32>) -> Option<String> {
+    f.and_then(|f| {
+        let (freq, suf) = if f >= 1_000_000 {
+            (f as f32 / 1_000_000., "GHz")
+        } else if f >= 1_000 {
+            (f as f32 / 1_000., "MHz")
+        } else {
+            (f as f32, "kHz")
+        };
+        Some(format!("{freq:.3} {suf}"))
+    })
+}

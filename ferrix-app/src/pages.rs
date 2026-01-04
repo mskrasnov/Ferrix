@@ -34,6 +34,7 @@ use crate::{
 
 mod battery;
 mod cpu;
+mod cpu_freq;
 mod dashboard;
 mod distro;
 mod dmi;
@@ -61,6 +62,7 @@ pub enum Page {
     #[default]
     Dashboard,
     Processors,
+    CPUFrequency,
     CPUVulnerabilities,
     SystemMonitor,
     Memory,
@@ -106,6 +108,7 @@ impl<'a> Page {
         match self {
             Self::Dashboard => fl!("page-dashboard"),
             Self::Processors => fl!("page-procs"),
+            Self::CPUFrequency => fl!("page-cpufreq"),
             Self::CPUVulnerabilities => fl!("page-vuln"),
             Self::SystemMonitor => fl!("page-sysmon"),
             Self::Memory => fl!("page-memory"),
@@ -151,6 +154,7 @@ impl<'a> Page {
                     .into()
             }
             Self::Processors => cpu::proc_page(&state.proc_data).into(),
+            Self::CPUFrequency => cpu_freq::cpu_freq_page(&state.cpu_freq).into(),
             Self::CPUVulnerabilities => {
                 vulnerabilities::vulnerabilities_page(&state.cpu_vulnerabilities).into()
             }

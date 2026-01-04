@@ -23,6 +23,7 @@
 use ferrix_lib::{
     battery::BatInfo,
     cpu::{Processors, Stat},
+    cpu_freq::CpuFreq,
     drm::Video,
     init::{Connection, SystemdServices},
     ram::{RAM, Swaps},
@@ -89,6 +90,9 @@ pub enum DataReceiverMessage {
 
     GetProcStat,
     ProcStatReceived(DataLoadingState<Stat>),
+
+    GetCPUFrequency,
+    CPUFrequencyReceived(DataLoadingState<CpuFreq>),
 
     GetCPUVulnerabilities,
     CPUVulnerabilitiesReveived(DataLoadingState<Vulnerabilities>),
@@ -248,6 +252,20 @@ impl DataReceiverMessage {
 
                 Task::none()
             }
+            Self::CPUFrequencyReceived(state) => {
+                fx.cpu_freq = state;
+                Task::none()
+            }
+            Self::GetCPUFrequency => Task::perform(
+                async move {
+                    let cpu_freq = CpuFreq::new();
+                    match cpu_freq {
+                        Ok(cpu_freq) => DataLoadingState::Loaded(cpu_freq),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
+                    }
+                },
+                |val| Message::DataReceiver(DataReceiverMessage::CPUFrequencyReceived(val)),
+            ),
             Self::CPUVulnerabilitiesReveived(state) => {
                 fx.cpu_vulnerabilities = state;
                 Task::none()
