@@ -350,7 +350,7 @@ impl CpuUsage {
         let prev = prev.unwrap();
 
         let total_diff = self.total_time().wrapping_sub(prev.total_time()); // shitcode (see #50 issue)!
-        let active_diff = self.active_time() - prev.active_time();
+        let active_diff = self.active_time().wrapping_sub(prev.active_time());
 
         if total_diff > 0 {
             (active_diff as f32 / total_diff as f32) * 100.0
