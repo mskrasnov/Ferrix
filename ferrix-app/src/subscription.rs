@@ -48,15 +48,6 @@ impl Ferrix {
     pub fn subscription(&self) -> Script<Message> {
         let u = self.settings.update_period as u64;
         let mut scripts = vec![
-            // Basic data for dashboard and system monitor pages
-            time::every(Duration::from_secs(u))
-                .map(|_| Message::DataReceiver(DataReceiverMessage::GetCPUData)),
-            time::every(Duration::from_secs(u))
-                .map(|_| Message::DataReceiver(DataReceiverMessage::GetProcStat)),
-            time::every(Duration::from_secs(u))
-                .map(|_| Message::DataReceiver(DataReceiverMessage::GetRAMData)),
-            time::every(Duration::from_secs(u))
-                .map(|_| Message::DataReceiver(DataReceiverMessage::GetSwapData)),
             // Charts
             time::every(Duration::from_secs(u))
                 .map(|_| Message::DataReceiver(DataReceiverMessage::AddCPUCoreLineSeries)),
@@ -67,6 +58,10 @@ impl Ferrix {
                 .map(|inst| Message::DataReceiver(DataReceiverMessage::AnimationTick(inst))),
         ];
         let oscripts = [
+            self.cpu_basic_data(),
+            self.cpu_stat_data(),
+            self.ram_data(),
+            self.swap_data(),
             self.cpu_freq_subscription(),
             self.cpu_vuln_subscription(),
             self.storage_subscription(),
@@ -90,6 +85,70 @@ impl Ferrix {
 
     fn u(&self) -> u64 {
         self.settings.update_period as u64
+    }
+
+    fn cpu_basic_data(&self) -> OScript<Message> {
+        if (self.current_page == Page::Dashboard || self.current_page == Page::Processors)
+            && self.proc_data.is_none()
+        {
+            Some(
+                time::every(Duration::from_millis(START_UPERIOD))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetCPUData)),
+            )
+        } else {
+            Some(
+                time::every(Duration::from_secs(self.u()))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetCPUData)),
+            )
+        }
+    }
+
+    fn cpu_stat_data(&self) -> OScript<Message> {
+        if (self.current_page == Page::Dashboard || self.current_page == Page::SystemMonitor)
+            && self.curr_proc_stat.is_none()
+        {
+            Some(
+                time::every(Duration::from_millis(START_UPERIOD))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetProcStat)),
+            )
+        } else {
+            Some(
+                time::every(Duration::from_secs(self.u()))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetProcStat)),
+            )
+        }
+    }
+
+    fn ram_data(&self) -> OScript<Message> {
+        if (self.current_page == Page::Dashboard || self.current_page == Page::Memory)
+            && self.ram_data.is_none()
+        {
+            Some(
+                time::every(Duration::from_millis(START_UPERIOD))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetRAMData)),
+            )
+        } else {
+            Some(
+                time::every(Duration::from_secs(self.u()))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetRAMData)),
+            )
+        }
+    }
+
+    fn swap_data(&self) -> OScript<Message> {
+        if (self.current_page == Page::Dashboard || self.current_page == Page::Memory)
+            && self.swap_data.is_none()
+        {
+            Some(
+                time::every(Duration::from_millis(START_UPERIOD))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetSwapData)),
+            )
+        } else {
+            Some(
+                time::every(Duration::from_secs(self.u()))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetSwapData)),
+            )
+        }
     }
 
     fn cpu_freq_subscription(&self) -> OScript<Message> {
