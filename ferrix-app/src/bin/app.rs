@@ -32,12 +32,12 @@ pub fn main() -> iced::Result {
         .window(Settings {
             icon: Some(iced::window::icon::from_file_data(APP_LOGO, None).unwrap()),
             min_size: Some(Size {
-                width: 790.,
-                height: 480.,
+                width: 780.,
+                height: 470.,
             }),
             ..Default::default()
         })
-        .window_size((790., 480.))
+        .window_size((780., 470.))
         .antialiasing(true)
         .subscription(Ferrix::subscription)
         .theme(Ferrix::theme)
