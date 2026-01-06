@@ -95,7 +95,7 @@ pub fn cpu_freq_page<'a>(cpu_freq: &'a LoadState<CpuFreq>) -> container::Contain
                     InfoRow::new(fl!("cpufreq-scaling_drv"), policy.scaling_driver.clone()),
                     InfoRow::new(
                         fl!("cpufreq-avail_gov"),
-                        fmt_vec(&policy.scaling_available_frequencies),
+                        fmt_vec_freq(&policy.scaling_available_frequencies),
                     ),
                     InfoRow::new(
                         fl!("cpufreq-trans_lat"),
@@ -129,5 +129,15 @@ fn fmt_freq(f: Option<u32>) -> Option<String> {
             (f as f32, "kHz")
         };
         Some(format!("{freq:.3} {suf}"))
+    })
+}
+
+fn fmt_vec_freq(f: &Option<Vec<u32>>) -> Option<String> {
+    f.as_ref().and_then(|f| {
+        let mut s = String::new();
+        for freq in f {
+            s += &format!("{}; ", fmt_freq(Some(*freq)).unwrap());
+        }
+        Some(s.trim().strip_suffix(';').unwrap_or("").to_string())
     })
 }
