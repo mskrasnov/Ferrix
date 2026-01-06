@@ -155,6 +155,7 @@ pub struct LineChart {
     labels: Vec<String>,
     defined_axes: Vec<String>,
     show_legend: bool,
+    show_y_axis: bool,
 
     /********************
      *     Animation    *
@@ -190,6 +191,7 @@ impl LineChart {
             labels: vec![],
             defined_axes: vec![],
             show_legend: true,
+            show_y_axis: true,
             animation_speed: None,
             last_tick: None,
             current_stack_factor: 0.,
@@ -239,6 +241,11 @@ impl LineChart {
 
     pub const fn legend(mut self, show: bool) -> Self {
         self.show_legend = show;
+        self
+    }
+
+    pub const fn y_axis(mut self, show: bool) -> Self {
+        self.show_y_axis = show;
         self
     }
 
@@ -576,7 +583,14 @@ impl LineChart {
         }
 
         if !self.defined_axes.contains(&series.y_key) {
-            self.state.set_axis(series.y_key.clone(), y_axis(0., 1.));
+            self.state.set_axis(
+                series.y_key.clone(),
+                if self.show_y_axis {
+                    y_axis(0., 1.)
+                } else {
+                    y_axis_without_label(0., 1.)
+                },
+            );
             self.defined_axes.push(series.y_key.clone());
         }
     }
@@ -727,6 +741,16 @@ fn y_axis(min_y: f64, max_y: f64) -> Axis<f64> {
         //     label
         // }),
         0 => TickResult::default().label(format!("{:.2}", ctx.tick.value)),
+        _ => TickResult::new(),
+    })
+}
+
+fn y_axis_without_label(min_y: f64, max_y: f64) -> Axis<f64> {
+    Axis::new(Linear::new(min_y, max_y), axis::Position::Right).with_tick_renderer(|ctx| match ctx
+        .tick
+        .level
+    {
+        0 => TickResult::default(),
         _ => TickResult::new(),
     })
 }
