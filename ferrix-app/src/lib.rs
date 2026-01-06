@@ -46,9 +46,18 @@ use widgets::{icon_button, sidebar_button};
 
 use anyhow::Result;
 use ferrix_lib::{
-    battery::BatInfo, cpu::{Processors, Stat}, cpu_freq::CpuFreq, drm::Video, init::SystemdServices, ram::{Swaps, RAM}, soft::InstalledPackages, sys::{
-        get_current_desktop, get_env_vars, get_hostname, get_lang, Groups, KModules, Kernel, LoadAVG, OsRelease, Uptime, Users
-    }, vulnerabilities::Vulnerabilities
+    battery::BatInfo,
+    cpu::{Processors, Stat},
+    cpu_freq::CpuFreq,
+    drm::Video,
+    init::SystemdServices,
+    ram::{RAM, Swaps},
+    soft::InstalledPackages,
+    sys::{
+        Groups, KModules, Kernel, LoadAVG, OsRelease, Uptime, Users, get_current_desktop,
+        get_env_vars, get_hostname, get_lang,
+    },
+    vulnerabilities::Vulnerabilities,
 };
 use iced::{
     Alignment::Center,
@@ -101,7 +110,7 @@ impl Default for Ferrix {
             curr_proc_stat: DataLoadingState::Loading,
             cpu_usage_chart: LineChart::new().legend(true).fill_alpha(0.25).animated(1.),
             show_cpus_chart: HashSet::new(),
-            show_chart_elements: 100,
+            show_chart_elements: 45,
             cpu_freq: DataLoadingState::Loading,
             cpu_vulnerabilities: DataLoadingState::Loading,
             ram_data: DataLoadingState::Loading,

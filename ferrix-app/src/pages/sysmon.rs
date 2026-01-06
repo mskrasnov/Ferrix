@@ -45,7 +45,7 @@ pub fn usage_charts_page<'a>(
 
     let mx = row![
         text(fl!("sysmon-x-axis")),
-        slider(10.0..=100., fx.show_chart_elements as f64, |elems| {
+        slider(10.0..=60., fx.show_chart_elements as f64, |elems| {
             Message::DataReceiver(
                 crate::messages::DataReceiverMessage::ChangeShowCPUChartElements(elems as usize),
             )
