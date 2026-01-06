@@ -45,15 +45,16 @@
 
 pub mod battery;
 pub mod cpu;
+pub mod cpu_freq;
 pub mod dmi;
 pub mod drm;
 pub mod init;
 pub mod parts;
 pub mod ram;
-pub mod sys;
-pub mod vulnerabilities;
-pub mod cpu_freq;
 pub mod soft;
+pub mod sys;
+pub mod vmstat;
+pub mod vulnerabilities;
 
 pub mod traits;
 pub mod utils;

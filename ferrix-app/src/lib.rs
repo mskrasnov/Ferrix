@@ -73,6 +73,7 @@ const SETTINGS_PATH: &str = "./ferrix.conf";
 #[derive(Debug)]
 pub struct Ferrix {
     pub current_page: Page,
+
     pub proc_data: DataLoadingState<Processors>,
     pub prev_proc_stat: DataLoadingState<Stat>,
     pub curr_proc_stat: DataLoadingState<Stat>,
@@ -81,22 +82,27 @@ pub struct Ferrix {
     pub show_chart_elements: usize,
     pub cpu_freq: DataLoadingState<CpuFreq>,
     pub cpu_vulnerabilities: DataLoadingState<Vulnerabilities>,
+
     pub ram_data: DataLoadingState<RAM>,
     pub swap_data: DataLoadingState<Swaps>,
     pub show_mem_chart: HashSet<usize>,
     pub show_ram_chart: bool,
     pub ram_usage_chart: LineChart,
+
     pub dmi_data: DataLoadingState<DMIData>,
     pub bat_data: DataLoadingState<BatInfo>,
     pub drm_data: DataLoadingState<Video>,
     pub osrel_data: DataLoadingState<OsRelease>,
+
     pub kernel_data: DataLoadingState<Kernel>,
     pub kmods_data: DataLoadingState<KModules>,
+
     pub users_list: DataLoadingState<Users>,
     pub groups_list: DataLoadingState<Groups>,
     pub sysd_services_list: DataLoadingState<SystemdServices>,
     pub installed_pkgs_list: DataLoadingState<InstalledPackages>,
     pub system: DataLoadingState<System>,
+
     pub settings: FXSettings,
     pub is_polkit: bool,
 }
@@ -105,6 +111,7 @@ impl Default for Ferrix {
     fn default() -> Self {
         Self {
             current_page: Page::default(),
+
             proc_data: DataLoadingState::Loading,
             prev_proc_stat: DataLoadingState::Loading,
             curr_proc_stat: DataLoadingState::Loading,
