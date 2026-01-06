@@ -185,7 +185,7 @@ impl Ferrix {
     fn dmi_subscription(&self) -> OScript<Message> {
         if self.current_page == Page::DMI && !self.is_polkit && self.dmi_data.is_none() {
             Some(
-                time::every(Duration::from_secs(1))
+                time::every(Duration::from_millis(START_UPERIOD))
                     .map(|_| Message::DataReceiver(DataReceiverMessage::GetDMIData)),
             )
         } else {
