@@ -153,7 +153,7 @@ pub struct CPU {
 
 impl ToJson for CPU {}
 
-#[cfg(target_arch = "x86_64")]
+#[cfg(not(target_arch = "aarch64"))]
 impl ToPlainText for CPU {
     fn to_plain(&self) -> String {
         let mut s = match self.processor {
@@ -230,7 +230,7 @@ fn get_parts(s: &str) -> impl Iterator<Item = &str> {
     s.splitn(2, ':').map(|item| item.trim())
 }
 
-#[cfg(target_arch = "x86_64")]
+#[cfg(not(target_arch = "aarch64"))]
 fn parse_cpuinfo(cpu: &mut CPU, parts: &str) {
     let mut parts = get_parts(parts);
     match (parts.next(), parts.next()) {
