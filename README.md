@@ -86,6 +86,14 @@ make install # to install Ferrix.
 make uninstall # to uninstall Ferrix from your system.
 ```
 
+### Running in WSL
+
+```bash
+export XDG_SESSION_TYPE=xorg
+export DISPLAY=':0'
+ferrix-app
+```
+
 ### Cross compilation (Debian x86_64 glibc -> i686/AArch64 glibc)
 
 Install the cross-compilator:
