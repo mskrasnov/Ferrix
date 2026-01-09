@@ -34,26 +34,26 @@ Ferrix System Monitor is a Rust-crate and program for obtaining information abou
 
 | Function | FSM (`ferrix-app`) | Hardinfo2 |
 |----------|--------------------|-----------|
-| Processor info | + | + |
-| Memory usage | + | + |
-| Storage info | - (TODO) | **+** |
-| DMI Tables | **+** (TODO, but it already displays more data than Hardinfo) | + |
-| RAM SPD Data | - | **+** |
-| Battery | **+** (more correctly; without negative values) | + |
-| Connected screens | + | + |
-| Connected USB devices | - (TODO) | **+** |
-| Connected PCI devices | - (TODO) | **+** |
-| Installed distro | **+** (more data than Hardinfo) | + |
-| Users and groups | + | + |
-| systemd services | **+** | - |
-| Installed software | **+** | - |
-| Environment veriables | + | + |
-| Sensors | - (TODO) | **+** |
-| Network | - (TODO) | **+** |
-| Kernel and modules | + | + |
-| Printers | - | **+** |
-| System load | + (loadavg, uptime); **+** (CPU & RAM Usage Charts) | + (loadavg, uptime); - (CPU & RAM Usage Charts is ugly and incorrect) |
-| Hardware benchmarks | - | **+** |
+| Processor info | ✅ | ✅ |
+| Memory usage | ✅ | ✅ |
+| Storage info | ❌ (TODO) | **✅** |
+| DMI Tables | **✅** (TODO, but it already displays more data than Hardinfo) | ✅ |
+| RAM SPD Data | ❌ | **✅** |
+| Battery | **✅** (more correctly; without negative values) | ✅ |
+| Connected screens | ✅ | ✅ |
+| Connected USB devices | ❌ (TODO) | **✅** |
+| Connected PCI devices | ❌ (TODO) | **✅** |
+| Installed distro | **✅** (more data than Hardinfo) | ✅ |
+| Users and groups | ✅ | ✅ |
+| systemd services | **✅** | ❌ |
+| Installed software | **✅** | ❌ |
+| Environment veriables | ✅ | ✅ |
+| Sensors | ❌ (TODO) | **✅** |
+| Network | ❌ (TODO) | **✅** |
+| Kernel and modules | ✅ | ✅ |
+| Printers | ❌ | **✅** |
+| System load | ✅ (loadavg, uptime); **✅** (CPU & RAM Usage Charts) | ✅ (loadavg, uptime); ❌ (CPU & RAM Usage Charts is ugly and incorrect) |
+| Hardware benchmarks | ❌ | **✅** |
 
 ## Build & Install
 
