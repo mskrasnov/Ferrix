@@ -17,12 +17,14 @@ Ferrix System Monitor is a Rust-crate and program for obtaining information abou
 1. Get information about:
     - [X] CPU;
     - [X] RAM;
-    - [ ] Storage;
+    - [ ] [TODO] Storage;
     - [X] BIOS and PC Motherboard;
     - [X] Laptop battery;
     - [X] Installed Linux distribution;
     - [ ] Desktop environment;
+    - [ ] Network;
     - [X] systemd services;
+    - [X] `deb`, `rpm` packages;
     - [ ] flatpak packages;
 2. Convert collected data into:
     - [X] JSON;
@@ -30,7 +32,28 @@ Ferrix System Monitor is a Rust-crate and program for obtaining information abou
 
 ## Functions (`ferrix-app` crate)
 
-See [ferrix-app/README](ferrix-app/README.md).
+| Function | FSM (`ferrix-app`) | Hardinfo2 |
+|----------|--------------------|-----------|
+| Processor info | + | + |
+| Memory usage | + | + |
+| Storage info | - (TODO) | **+** |
+| DMI Tables | **+** (TODO, but it already displays more data than Hardinfo) | + |
+| RAM SPD Data | - | **+** |
+| Battery | **+** (more correctly; without negative values) | + |
+| Connected screens | + | + |
+| Connected USB devices | - (TODO) | **+** |
+| Connected PCI devices | - (TODO) | **+** |
+| Installed distro | **+** (more data than Hardinfo) | + |
+| Users and groups | + | + |
+| systemd services | **+** | - |
+| Installed software | **+** | - |
+| Environment veriables | + | + |
+| Sensors | - (TODO) | **+** |
+| Network | - (TODO) | **+** |
+| Kernel and modules | + | + |
+| Printers | - | **+** |
+| System load | + (loadavg, uptime); **+** (CPU & RAM Usage Charts) | + (loadavg, uptime); - (CPU & RAM Usage Charts is ugly and incorrect) |
+| Hardware benchmarks | - | **+** |
 
 ## Build & Install
 
