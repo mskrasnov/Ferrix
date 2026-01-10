@@ -21,7 +21,9 @@
 //! Get information about mounted partitions
 
 use anyhow::{Result, anyhow};
+use libc::statvfs;
 use serde::{Deserialize, Serialize};
+use std::ffi::{CString, c_char};
 use std::fs::read_to_string;
 use std::path::Path;
 
@@ -75,9 +77,10 @@ impl ToJson for Partitions {}
 pub struct Partition {
     pub major: usize,
     pub minor: usize,
-    pub blocks: usize,
+    pub blocks: u64,
     pub name: String,
     pub dev_info: DeviceInfo,
+    pub statvfs: Option<FileSystemStats>,
 }
 
 impl Partition {
@@ -102,7 +105,7 @@ impl TryFrom<&str> for Partition {
             (Some(major), Some(minor), Some(blocks), Some(name)) => {
                 let major = major.parse::<usize>().map_err(|err| format!("{err}"))?;
                 let minor = minor.parse::<usize>().map_err(|err| format!("{err}"))?;
-                let blocks = blocks.parse::<usize>().map_err(|err| format!("{err}"))?;
+                let blocks = blocks.parse::<u64>().map_err(|err| format!("{err}"))?;
 
                 Ok(Self {
                     major,
@@ -110,6 +113,7 @@ impl TryFrom<&str> for Partition {
                     blocks,
                     name: name.to_string(),
                     dev_info: DeviceInfo::get(name),
+                    statvfs: FileSystemStats::from_path(Path::new("/dev/").join(name)).ok(), // .map_err(|err| format!("Failed to get file system statistics for device {name}: {err}"))?,
                 })
             }
             _ => Err(format!("String '{value}' parsing error")),
@@ -122,7 +126,7 @@ pub struct DeviceInfo {
     pub model: Option<String>,
     pub vendor: Option<String>,
     pub serial: Option<String>,
-    pub logical_block_size: Option<usize>,
+    pub logical_block_size: Option<u64>,
 }
 
 impl DeviceInfo {
@@ -137,28 +141,121 @@ impl DeviceInfo {
 
         let logical_block_size = queue.join("logical_block_size");
         let logical_block_size = match read_to_string(logical_block_size) {
-            Ok(lbs) => lbs.trim().parse::<usize>().ok(),
+            Ok(lbs) => lbs.trim().parse::<u64>().ok(),
             Err(_) => None,
         };
 
         Self {
-            model: read_to_string(model).ok(),
-            vendor: read_to_string(vendor).ok(),
-            serial: read_to_string(serial).ok(),
+            model: read_to_string(model)
+                .ok()
+                .and_then(|m| Some(m.trim().to_string())),
+            vendor: read_to_string(vendor)
+                .ok()
+                .and_then(|v| Some(v.trim().to_string())),
+            serial: read_to_string(serial)
+                .ok()
+                .and_then(|s| Some(s.trim().to_string())),
             logical_block_size,
         }
+    }
+
+    pub fn is_none(&self) -> bool {
+        self.model.is_none()
+            && self.vendor.is_none()
+            && self.serial.is_none()
+            && self.logical_block_size.is_none()
     }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct FileSystemStats {
-    pub total: usize,
-    pub used: usize,
-    pub free: usize,
-    pub usage_percentage: f32,
+    pub block_size: u64,
+    pub fragment_size: u64,
+    pub total_blocks: u64,
+    pub free_blocks: u64,
+    pub available_blocks: u64,
+    pub total_inodes: u64,
+    pub free_inodes: u64,
 }
 
-impl FileSystemStats {}
+impl FileSystemStats {
+    pub fn from_path<P: AsRef<Path>>(path: P) -> Result<Self> {
+        let path_str = path
+            .as_ref()
+            .to_str()
+            .ok_or_else(|| anyhow!("Invalid characters in path ()"))?;
+        let c_path = CString::new(path_str)
+            .map_err(|err| anyhow!("Failed to convert Rust string into C string: {err}"))?;
+
+        unsafe { Self::statvfs(c_path.as_ptr()) }
+    }
+
+    unsafe fn statvfs(path: *const c_char) -> Result<Self> {
+        let mut stats: libc::statvfs = unsafe { std::mem::zeroed() };
+        let result = unsafe { statvfs(path, &mut stats) };
+
+        if result == 0 {
+            Ok(Self {
+                block_size: stats.f_bsize as u64,
+                fragment_size: stats.f_frsize as u64,
+                total_blocks: stats.f_blocks as u64,
+                free_blocks: stats.f_bfree,
+                available_blocks: stats.f_bavail,
+                total_inodes: stats.f_files,
+                free_inodes: stats.f_ffree,
+            })
+        } else {
+            Err(anyhow!(
+                "statvfs() failed: errno {}",
+                std::io::Error::last_os_error()
+            ))
+        }
+    }
+
+    pub fn total_bytes(&self) -> u64 {
+        self.total_blocks * self.fragment_size
+    }
+
+    pub fn total_size(&self) -> Size {
+        Size::B(self.total_bytes())
+    }
+
+    pub fn free_bytes(&self) -> u64 {
+        self.free_blocks * self.fragment_size
+    }
+
+    pub fn free_size(&self) -> Size {
+        Size::B(self.free_bytes())
+    }
+
+    pub fn avail_bytes(&self) -> u64 {
+        self.available_blocks * self.fragment_size
+    }
+
+    pub fn avail_size(&self) -> Size {
+        Size::B(self.avail_bytes())
+    }
+
+    pub fn used_bytes(&self) -> u64 {
+        if self.total_bytes() == 0 {
+            return 0;
+        }
+        self.total_bytes() - self.free_bytes()
+    }
+
+    pub fn used_size(&self) -> Size {
+        Size::B(self.used_bytes())
+    }
+
+    pub fn usage_percent(&self) -> f64 {
+        if self.total_bytes() == 0 {
+            return 0.;
+        }
+        let used = self.used_bytes() as f64;
+        let total = self.total_bytes() as f64;
+        (used / total) * 100.
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -187,6 +284,7 @@ mod tests {
         assert_eq!(parts.parts[0].major, 259);
         assert_eq!(parts.parts[0].minor, 0);
         assert_eq!(parts.parts[0].blocks, 250059096);
+        let _ = std::fs::write("./test-filesystems.json", parts.to_json_pretty().unwrap());
     }
 
     #[test]
