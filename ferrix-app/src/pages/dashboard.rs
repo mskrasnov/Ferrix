@@ -22,7 +22,7 @@
 
 use crate::{Message, Page, fl};
 use ferrix_lib::{
-    battery::BatInfo,
+    battery::{BatInfo, Status},
     cpu::{Processors, Stat},
     ram::{RAM, Swaps},
     sys::OsRelease,
@@ -147,8 +147,19 @@ pub fn dashboard<'a>(
         Some(bat) => {
             let mut bats = Vec::with_capacity(bat.bats.len());
             for b in &bat.bats {
+                let status = match &b.status {
+                    Some(status) => match status {
+                        Status::Charging => "⚡️",
+                        Status::Discharging => "🔋️",
+                        Status::NotCharging => "🚫️",
+                        Status::Full => "🟢️",
+                        _ => "❔️",
+                    },
+                    None => "❔️",
+                };
+
                 let name = match &b.name {
-                    Some(name) => name.to_string(),
+                    Some(name) => format!("{} {}", status, name),
                     None => fl!("dash-unk-bat"),
                 };
                 bats.push((name, b.capacity.unwrap_or(0)));
