@@ -603,7 +603,7 @@ impl TryFrom<&str> for Module {
                 Some(state),
                 Some(memory_addrs),
             ) => {
-                let size = size.parse::<usize>().map_err(|err| anyhow!("{err}"))?;
+                let size = size.parse::<u64>().map_err(|err| anyhow!("{err}"))?;
                 let instances = instances.parse::<usize>().map_err(|err| anyhow!("{err}"))?;
 
                 Ok(Self {

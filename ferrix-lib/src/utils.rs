@@ -27,12 +27,12 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone, Copy)]
 pub enum Size {
-    B(usize),
+    B(u64),
     KB(f32),
     MB(f32),
     GB(f32),
     TB(f32),
-    UnknownUnits(usize),
+    UnknownUnits(u64),
     #[default]
     None,
 }
@@ -93,24 +93,24 @@ impl Size {
         Some(size)
     }
 
-    pub fn get_bytes10(&self) -> Option<usize> {
+    pub fn get_bytes10(&self) -> Option<u64> {
         match self {
             Self::B(b) => Some(*b),
-            Self::KB(kb) => Some((*kb * 10f32.powi(3)) as usize),
-            Self::MB(mb) => Some((*mb * 10f32.powi(6)) as usize),
-            Self::GB(gb) => Some((*gb * 10f32.powi(9)) as usize),
-            Self::TB(tb) => Some((*tb * 10f32.powi(12)) as usize),
+            Self::KB(kb) => Some((*kb * 10f32.powi(3)) as u64),
+            Self::MB(mb) => Some((*mb * 10f32.powi(6)) as u64),
+            Self::GB(gb) => Some((*gb * 10f32.powi(9)) as u64),
+            Self::TB(tb) => Some((*tb * 10f32.powi(12)) as u64),
             _ => None,
         }
     }
 
-    pub fn get_bytes2(&self) -> Option<usize> {
+    pub fn get_bytes2(&self) -> Option<u64> {
         match self {
             Self::B(b) => Some(*b),
-            Self::KB(kb) => Some((*kb * 2f32.powi(10)) as usize),
-            Self::MB(mb) => Some((*mb * 2f32.powi(20)) as usize),
-            Self::GB(gb) => Some((*gb * 2f32.powi(30)) as usize),
-            Self::TB(tb) => Some((*tb * 2f32.powi(40)) as usize),
+            Self::KB(kb) => Some((*kb * 2f32.powi(10)) as u64),
+            Self::MB(mb) => Some((*mb * 2f32.powi(20)) as u64),
+            Self::GB(gb) => Some((*gb * 2f32.powi(30)) as u64),
+            Self::TB(tb) => Some((*tb * 2f32.powi(40)) as u64),
             _ => None,
         }
     }
@@ -128,11 +128,11 @@ impl TryFrom<&str> for Size {
                     "mb" | "mbytes" => Self::MB(num),
                     "gb" | "gbytes" => Self::GB(num),
                     "tb" | "tbytes" => Self::TB(num),
-                    _ => Self::B(num as usize),
+                    _ => Self::B(num as u64),
                 }
             }
             (Some(num), None) => {
-                let num = num.parse::<usize>()?;
+                let num = num.parse::<u64>()?;
                 Self::UnknownUnits(num)
             }
             _ => Self::None,
