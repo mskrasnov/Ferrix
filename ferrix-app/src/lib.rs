@@ -64,7 +64,7 @@ use iced::{
     Element, Length, Padding, Task, Theme,
     widget::{column, container, row, scrollable, text},
 };
-use std::collections::HashSet;
+use std::{collections::HashSet, env::args};
 
 use crate::{settings::FXSettings, utils::get_home, widgets::line_charts::LineChart};
 
@@ -109,8 +109,14 @@ pub struct Ferrix {
 
 impl Default for Ferrix {
     fn default() -> Self {
+        let a = args().nth(1);
+        let page = match &a {
+            Some(a) => Page::from(a as &str),
+            None => Page::default(),
+        };
+
         Self {
-            current_page: Page::default(),
+            current_page: page,
 
             proc_data: DataLoadingState::Loading,
             prev_proc_stat: DataLoadingState::Loading,

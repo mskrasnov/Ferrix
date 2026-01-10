@@ -99,6 +99,51 @@ pub enum Page {
     Todo,
 }
 
+impl From<&str> for Page {
+    fn from(value: &str) -> Self {
+        match value {
+            "dash" | "dashboard" => Self::Dashboard,
+            "sysmon" | "monitor" | "system" | "system-monitor" => Self::SystemMonitor,
+            "proc" | "cpu" | "processors" => Self::Processors,
+            "cpu-frequency" | "cpufreq" => Self::CPUFrequency,
+            "cpu-vuln" | "vulnerabilities" => Self::CPUVulnerabilities,
+            "memory" | "mem" | "ram" => Self::Memory,
+            "storage" => Self::Storage,
+            "dmi" => Self::DMI,
+            "battery" | "bat" => Self::Battery,
+            "edid" | "screen" => Self::Screen,
+            "distro" => Self::Distro,
+            "users" => Self::Users,
+            "groups" => Self::Groups,
+            "misc" => Self::SystemMisc,
+            "systemd" => Self::SystemManager,
+            "software" | "soft" | "pkg" | "pkgs" => Self::Software,
+            "env" => Self::Environment,
+            "sensors" => Self::Sensors,
+            "kernel" | "linux" => Self::Kernel,
+            "kmods" | "mod" | "modules" => Self::KModules,
+            "dev" => Self::Development,
+            "settings" => Self::Settings,
+            "about" | "version" | "--version" | "-V" | "-v" => {
+                println!("FSM (Ferrix System Monitor) v{}", env!("CARGO_PKG_VERSION"));
+
+                eprintln!(" *** If you are from Russia, you can send me a donation:");
+                eprintln!("     2202 2062 5233 5406\n Thank you!");
+
+                Self::About
+            }
+            "export" => Self::Export,
+            _ => {
+                eprintln!("ERROR: Unknown page name: \"{value}\"!\n");
+                eprintln!(" *** If you are from Russia, you can send me a donation:");
+                eprintln!("     2202 2062 5233 5406\n Thank you!");
+
+                Self::default()
+            }
+        }
+    }
+}
+
 impl<'a> Page {
     pub fn title(&'a self) -> iced::widget::Column<'a, Message> {
         header_text(self.title_str())
