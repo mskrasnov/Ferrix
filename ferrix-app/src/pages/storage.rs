@@ -137,7 +137,7 @@ fn storage_table<'a>(rows: Vec<TableRow<'a>>) -> Element<'a, Message> {
                     .girth(Length::Fixed(15.)), // NOTE: Some fonts may display incorrectly
                 center(
                     text(format!("{:.3}%", row.usage_percent)).style(move |s: &iced::Theme| {
-                        let color = if row.usage_percent >= 25. {
+                        let color = if row.usage_percent >= 40. {
                             Color::BLACK
                         } else {
                             s.palette().text
