@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="data/icons/hicolor/scalable/apps/com.mskrasnov.Ferrix.svg" width="200">
+  <img src="data/com.mskrasnov.Ferrix.svg" width="200">
   <h1>Ferrix System Monitor — Swiss Knife for Linux Hardware Diagnostics</h1>
   <p><b>A simple program for getting information about computer hardware and installed software.</b></p>
   <img src="../screens/screen1.png">
