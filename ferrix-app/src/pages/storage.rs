@@ -31,7 +31,7 @@ use ferrix_lib::{
 };
 use iced::{
     Alignment::Center,
-    Color, Element, Length,
+    Color, Element, Font, Length,
     widget::{center, container, progress_bar, row, scrollable, stack, table, text},
 };
 
@@ -112,14 +112,14 @@ fn storage_table<'a>(rows: Vec<TableRow<'a>>) -> Element<'a, Message> {
     let columns = [
         table::column(hdr_name(fl!("storage-dev")), |row: TableRow| {
             row![
-                text(row.device),
+                text(row.device).font(Font::MONOSPACE),
                 icon_tooltip("about", format!("{}\n{}", row.mount_point, row.options))
             ]
             .spacing(5)
             .align_y(Center)
         }),
         table::column(hdr_name(fl!("storage-fs")), |row: TableRow| {
-            text(row.filesystem)
+            text(row.filesystem).font(Font::MONOSPACE)
         }),
         table::column(hdr_name(fl!("storage-total")), |row: TableRow| {
             text(row.total_size.to_string())
