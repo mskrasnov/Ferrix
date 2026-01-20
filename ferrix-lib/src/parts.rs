@@ -168,6 +168,64 @@ impl DeviceInfo {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct Mounts {
+    pub mounts: Vec<MountEntry>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct MountEntry {
+    pub device: String,
+    pub mount_point: String,
+    pub filesystem: String,
+    pub options: String,
+    pub dump: u8,
+    pub pass: u8,
+    pub fstats: Option<FileSystemStats>,
+}
+
+impl TryFrom<&str> for MountEntry {
+    type Error = anyhow::Error;
+
+    fn try_from(value: &str) -> std::result::Result<Self, Self::Error> {
+        let values = value.split_whitespace().collect::<Vec<_>>();
+        if values.len() != 6 {
+            return Err(anyhow!(
+                "Format of mount string is incorrect\n(string: \"{value}\")",
+            ));
+        }
+
+        Ok(Self {
+            device: values[0].to_string(),
+            mount_point: values[1].to_string(),
+            filesystem: values[2].to_string(),
+            options: values[3].to_string(),
+            dump: values[4].parse()?,
+            pass: values[5].parse()?,
+            fstats: FileSystemStats::from_path(values[1]).ok(),
+        })
+    }
+}
+
+impl Mounts {
+    pub fn new() -> Result<Self> {
+        let contents = read_to_string("/proc/mounts")?;
+        let lines = contents.lines();
+        let mut mounts = vec![];
+
+        for line in lines {
+            if line.starts_with("/")
+                || line.starts_with("udev")
+                || line.starts_with("sysfs")
+                || line.starts_with("tmpfs")
+            {
+                mounts.push(MountEntry::try_from(line)?);
+            }
+        }
+        Ok(Self { mounts })
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Copy)]
 pub struct FileSystemStats {
     pub block_size: u64,
     pub fragment_size: u64,
@@ -199,8 +257,8 @@ impl FileSystemStats {
                 block_size: stats.f_bsize as u64,
                 fragment_size: stats.f_frsize as u64,
                 total_blocks: stats.f_blocks as u64,
-                free_blocks: stats.f_bfree,
-                available_blocks: stats.f_bavail,
+                free_blocks: stats.f_bfree as u64,
+                available_blocks: stats.f_bavail as u64,
                 total_inodes: stats.f_files,
                 free_inodes: stats.f_ffree,
             })

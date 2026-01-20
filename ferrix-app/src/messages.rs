@@ -26,6 +26,7 @@ use ferrix_lib::{
     cpu_freq::CpuFreq,
     drm::Video,
     init::{Connection, SystemdServices},
+    parts::Mounts,
     ram::{RAM, Swaps},
     soft::InstalledPackages,
     sys::{Groups, KModules, Kernel, OsRelease, Users},
@@ -104,6 +105,9 @@ pub enum DataReceiverMessage {
     SwapDataReceived(DataLoadingState<Swaps>),
 
     AddTotalRAMUsage,
+
+    GetStorageData,
+    StorageDataReceived(DataLoadingState<Mounts>),
 
     GetDMIData,
     DMIDataReceived(DataLoadingState<DMIData>),
@@ -279,6 +283,20 @@ impl DataReceiverMessage {
                     }
                 },
                 |val| Message::DataReceiver(Self::CPUVulnerabilitiesReveived(val)),
+            ),
+            Self::StorageDataReceived(state) => {
+                fx.storages = state;
+                Task::none()
+            }
+            Self::GetStorageData => Task::perform(
+                async move {
+                    let storage = Mounts::new();
+                    match storage {
+                        Ok(storage) => DataLoadingState::Loaded(storage),
+                        Err(why) => DataLoadingState::Error(why.to_string()),
+                    }
+                },
+                |val| Message::DataReceiver(DataReceiverMessage::StorageDataReceived(val)),
             ),
             Self::DMIDataReceived(state) => {
                 if state.some_value() && fx.is_polkit {

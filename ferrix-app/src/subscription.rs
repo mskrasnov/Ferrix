@@ -179,7 +179,19 @@ impl Ferrix {
     }
 
     fn storage_subscription(&self) -> OScript<Message> {
-        None
+        if self.current_page == Page::Storage && self.storages.is_none() {
+            Some(
+                time::every(Duration::from_millis(START_UPERIOD))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetStorageData)),
+            )
+        } else if self.current_page == Page::Storage {
+            Some(
+                time::every(Duration::from_secs(10))
+                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetStorageData)),
+            )
+        } else {
+            None
+        }
     }
 
     fn dmi_subscription(&self) -> OScript<Message> {

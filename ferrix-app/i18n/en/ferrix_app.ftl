@@ -279,6 +279,14 @@ settings-look-tip = The design style affects the interface and font colors. Choo
 settings-look-select = Select the needed style:
 settings-save = Save
 
+# STORAGES PAGE
+storage-dev = Device
+storage-fs = Filesystem
+storage-total = Total
+storage-free = Free
+storage-used = Used
+storage-usage = Usage
+
 # STYLE LABELS
 style-dark = Dark
 style-light = Light

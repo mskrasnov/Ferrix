@@ -24,6 +24,10 @@ use iced::{Size, window::Settings};
 const APP_LOGO: &[u8] = include_bytes!("../../data/icons/hicolor/scalable/apps/win_logo.png");
 
 pub fn main() -> iced::Result {
+    if &(std::env::var("USER").unwrap_or("".to_string())) == "root" {
+        panic!("Running this program as `root` is prohibited.");
+    }
+
     iced::application(Ferrix::default, Ferrix::update, Ferrix::view)
         .settings(iced::Settings {
             default_text_size: iced::Pixels(12.),

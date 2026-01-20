@@ -41,6 +41,7 @@ mod dmi;
 mod drm;
 mod env;
 mod export;
+mod storage;
 mod groups;
 mod kernel;
 mod ram;
@@ -204,6 +205,7 @@ impl<'a> Page {
                 vulnerabilities::vulnerabilities_page(&state.cpu_vulnerabilities).into()
             }
             Self::Memory => ram::ram_page(&state.ram_data, &state.swap_data).into(),
+            Self::Storage => storage::storage_page(&state.storages).into(),
             Self::DMI => dmi::dmi_page(&state.dmi_data).into(),
             Self::Battery => battery::bat_page(&state.bat_data).into(),
             Self::Screen => drm::drm_page(&state.drm_data).into(),

@@ -1,0 +1,154 @@
+/* storage.rs
+ *
+ * Copyright 2026 Michail Krasnov <mskrasnov07@ya.ru>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+//! Storage statistics page
+
+use crate::{
+    Message, fl,
+    load_state::LoadState,
+    widgets::{icon_tooltip, table::hdr_name},
+};
+use ferrix_lib::{
+    parts::{MountEntry, Mounts},
+    utils::Size,
+};
+use iced::{
+    Alignment::Center,
+    Color, Element, Length,
+    widget::{center, container, progress_bar, row, scrollable, stack, table, text},
+};
+
+pub fn storage_page<'a>(storages: &'a LoadState<Mounts>) -> container::Container<'a, Message> {
+    match storages {
+        LoadState::Loaded(storage) => {
+            let mut rows = Vec::with_capacity(storage.mounts.len());
+            for part in &storage.mounts {
+                rows.push(TableRow::from(part));
+            }
+            rows.sort_by(|r1, r2| {
+                let s1 = r1.total_size.get_bytes2().unwrap_or(0);
+                let s2 = r2.total_size.get_bytes2().unwrap_or(0);
+                s2.cmp(&s1)
+            });
+
+            container(scrollable(
+                container(storage_table(rows)).style(container::rounded_box),
+            ))
+        }
+        LoadState::Error(why) => super::error_page(why),
+        LoadState::Loading => super::loading_page(),
+    }
+}
+
+#[derive(Debug, Clone)]
+struct TableRow<'a> {
+    pub device: &'a str,
+    pub mount_point: &'a str,
+    pub filesystem: &'a str,
+    pub options: &'a str,
+    pub total_size: Size,
+    pub free_size: Size,
+    pub used_size: Size,
+    pub usage_percent: f32,
+}
+
+impl<'a> From<&'a MountEntry> for TableRow<'a> {
+    fn from(value: &'a MountEntry) -> Self {
+        let fstats = value.fstats;
+        let total_size = match fstats {
+            Some(fstats) => fstats.total_size(),
+            None => Size::None,
+        }
+        .round(2)
+        .unwrap_or_default();
+        let free_size = match fstats {
+            Some(fstats) => fstats.free_size(),
+            None => Size::None,
+        }
+        .round(2)
+        .unwrap_or_default();
+        let used_size = match fstats {
+            Some(fstats) => fstats.used_size(),
+            None => Size::None,
+        }
+        .round(2)
+        .unwrap_or_default();
+        let usage_percent = match fstats {
+            Some(fstats) => fstats.usage_percent() as f32,
+            None => 0.,
+        };
+
+        Self {
+            device: &value.device,
+            mount_point: &value.mount_point,
+            filesystem: &value.filesystem,
+            options: &value.options,
+            total_size,
+            free_size,
+            used_size,
+            usage_percent,
+        }
+    }
+}
+
+fn storage_table<'a>(rows: Vec<TableRow<'a>>) -> Element<'a, Message> {
+    let columns = [
+        table::column(hdr_name(fl!("storage-dev")), |row: TableRow| {
+            row![
+                text(row.device),
+                icon_tooltip("about", format!("{}\n\n{}", row.mount_point, row.options))
+            ]
+            .spacing(5)
+            .align_y(Center)
+        }),
+        table::column(hdr_name(fl!("storage-fs")), |row: TableRow| {
+            text(row.filesystem)
+        }),
+        table::column(hdr_name(fl!("storage-total")), |row: TableRow| {
+            text(row.total_size.to_string())
+        }),
+        table::column(hdr_name(fl!("storage-free")), |row: TableRow| {
+            text(row.free_size.to_string())
+        }),
+        table::column(hdr_name(fl!("storage-used")), |row: TableRow| {
+            text(row.used_size.to_string())
+        }),
+        table::column(hdr_name(fl!("storage-usage")), |row: TableRow| {
+            stack![
+                progress_bar(0.0..=100., row.usage_percent)
+                    .length(Length::FillPortion(2))
+                    .girth(Length::Fixed(15.)), // NOTE: Some fonts may display incorrectly
+                center(
+                    text(format!("{:.3}%", row.usage_percent)).style(move |s: &iced::Theme| {
+                        let color = if row.usage_percent >= 25. {
+                            Color::BLACK
+                        } else {
+                            s.palette().text
+                        };
+
+                        text::Style { color: Some(color) }
+                    })
+                ),
+            ]
+        })
+        .width(Length::FillPortion(1)),
+    ];
+    table(columns, rows).padding(2).width(Length::Fill).into()
+}

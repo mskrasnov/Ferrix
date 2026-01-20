@@ -46,18 +46,9 @@ use widgets::{icon_button, sidebar_button};
 
 use anyhow::Result;
 use ferrix_lib::{
-    battery::BatInfo,
-    cpu::{Processors, Stat},
-    cpu_freq::CpuFreq,
-    drm::Video,
-    init::SystemdServices,
-    ram::{RAM, Swaps},
-    soft::InstalledPackages,
-    sys::{
-        Groups, KModules, Kernel, LoadAVG, OsRelease, Uptime, Users, get_current_desktop,
-        get_env_vars, get_hostname, get_lang,
-    },
-    vulnerabilities::Vulnerabilities,
+    battery::BatInfo, cpu::{Processors, Stat}, cpu_freq::CpuFreq, drm::Video, init::SystemdServices, parts::Mounts, ram::{Swaps, RAM}, soft::InstalledPackages, sys::{
+        get_current_desktop, get_env_vars, get_hostname, get_lang, Groups, KModules, Kernel, LoadAVG, OsRelease, Uptime, Users
+    }, vulnerabilities::Vulnerabilities
 };
 use iced::{
     Alignment::Center,
@@ -89,6 +80,7 @@ pub struct Ferrix {
     pub show_ram_chart: bool,
     pub ram_usage_chart: LineChart,
 
+    pub storages: DataLoadingState<Mounts>,
     pub dmi_data: DataLoadingState<DMIData>,
     pub bat_data: DataLoadingState<BatInfo>,
     pub drm_data: DataLoadingState<Video>,
@@ -131,6 +123,7 @@ impl Default for Ferrix {
             ram_usage_chart: LineChart::new().legend(true).fill_alpha(0.25).animated(1.),
             show_mem_chart: HashSet::new(),
             show_ram_chart: true,
+            storages: DataLoadingState::Loading,
             dmi_data: DataLoadingState::Loading,
             bat_data: DataLoadingState::Loading,
             drm_data: DataLoadingState::Loading,

@@ -279,6 +279,14 @@ settings-look-tip = Стиль оформления влияет на цвета
 settings-look-select = Выберите нужный стиль оформления:
 settings-save = Сохранить
 
+# STORAGES PAGE
+storage-dev = Устройство
+storage-fs = ФС
+storage-total = Всего
+storage-free = Свободно
+storage-used = Использ.
+storage-usage = Использование
+
 # STYLE LABELS
 style-dark = Тёмный
 style-light = Светлый

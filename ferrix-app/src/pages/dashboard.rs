@@ -84,9 +84,9 @@ pub fn dashboard<'a>(
     let avail_ram_bytes = avail_ram.get_bytes2().unwrap_or(0) as f32;
 
     let used_ram_bytes = total_ram_bytes - avail_ram_bytes;
-    let used_ram = Size::B(used_ram_bytes as usize)
+    let used_ram = Size::B(used_ram_bytes as u64)
         .round(2)
-        .unwrap_or(Size::B(used_ram_bytes as usize));
+        .unwrap_or(Size::B(used_ram_bytes as u64));
 
     let swaps_usage = match swaps {
         Some(swaps) => {
