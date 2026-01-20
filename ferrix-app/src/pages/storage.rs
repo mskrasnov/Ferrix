@@ -113,7 +113,7 @@ fn storage_table<'a>(rows: Vec<TableRow<'a>>) -> Element<'a, Message> {
         table::column(hdr_name(fl!("storage-dev")), |row: TableRow| {
             row![
                 text(row.device),
-                icon_tooltip("about", format!("{}\n\n{}", row.mount_point, row.options))
+                icon_tooltip("about", format!("{}\n{}", row.mount_point, row.options))
             ]
             .spacing(5)
             .align_y(Center)
