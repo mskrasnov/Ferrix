@@ -29,7 +29,9 @@ use crate::{
         table::{InfoRow, fmt_bool, fmt_val, fmt_vec, hdr_name, text_fmt_val},
     },
 };
-use ferrix_lib::dmi::{Baseboard, Bios, Chassis, ChassisStateData, Processor};
+use ferrix_lib::dmi::{
+    Baseboard, Bios, Chassis, ChassisSecurityStatusData, ChassisStateData, Processor,
+};
 use iced::{
     Element, Length,
     widget::{column, container, scrollable, table, text},
@@ -396,6 +398,10 @@ fn chassis_table<'a>(c: &'a DataLoadingState<Chassis>) -> container::Container<'
                     fmt_val(c.contained_element_record_length),
                 ),
                 InfoRow::new("SKU Number", c.sku_number.clone()),
+                InfoRow::new("Bootup state", chassis_state(&c.bootup_state)),
+                InfoRow::new("Power Supply state", chassis_state(&c.power_supply_state)),
+                InfoRow::new("Thermal state", chassis_state(&c.thermal_state)),
+                InfoRow::new("Security status", security_status(&c.security_status)),
             ];
 
             let chassis_type = match &c.chassis_type {
@@ -416,45 +422,11 @@ fn chassis_table<'a>(c: &'a DataLoadingState<Chassis>) -> container::Container<'
                 None => container(text("Unknown chassis type").style(text::danger)),
             };
 
-            let bootup_state = match &c.bootup_state {
-                Some(bs) => chassis_state(bs, "Bootup state"),
-                None => container(text("Unknown bootup state").style(text::danger)),
-            };
-            let ps_state = match &c.power_supply_state {
-                Some(pss) => chassis_state(pss, "Power Supply state"),
-                None => container(text("Unknown power supply state").style(text::danger)),
-            };
-            let t_state = match &c.thermal_state {
-                Some(ts) => chassis_state(ts, "Thermal state"),
-                None => container(text("Unknown thermal state").style(text::danger)),
-            };
-
-            let security_status = match &c.security_status {
-                Some(ss) => {
-                    let rows = vec![
-                        InfoRow::new("Raw", fmt_val(Some(ss.raw))),
-                        InfoRow::new("Status", Some(ss.value.to_string())),
-                    ];
-                    container(
-                        column![
-                            text("Security status").style(text::warning),
-                            container(kv_info_table(rows)).style(container::rounded_box)
-                        ]
-                        .spacing(5),
-                    )
-                }
-                None => container(text("Unknown security status!").style(text::danger)),
-            };
-
             container(
                 column![
                     text("Summary").style(text::warning),
                     container(kv_info_table(rows)).style(container::rounded_box),
                     chassis_type,
-                    bootup_state,
-                    ps_state,
-                    t_state,
-                    security_status,
                 ]
                 .spacing(5),
             )
@@ -466,22 +438,16 @@ fn chassis_table<'a>(c: &'a DataLoadingState<Chassis>) -> container::Container<'
     container(chassis_view)
 }
 
-fn chassis_state<'a>(
-    state: &'a ChassisStateData,
-    hdr: &'a str,
-) -> container::Container<'a, Message> {
-    let rows = vec![
-        InfoRow::new("Raw", fmt_val(Some(state.raw))),
-        InfoRow::new("State", Some(state.value.to_string())),
-    ];
+fn chassis_state<'a>(state: &'a Option<ChassisStateData>) -> Option<String> {
+    state
+        .as_ref()
+        .and_then(|state| Some(format!("{} (raw: {})", &state.value, state.raw)))
+}
 
-    container(
-        column![
-            text(hdr).style(text::warning),
-            container(kv_info_table(rows)).style(container::rounded_box)
-        ]
-        .spacing(5),
-    )
+fn security_status<'a>(status: &'a Option<ChassisSecurityStatusData>) -> Option<String> {
+    status
+        .as_ref()
+        .and_then(|state| Some(format!("{} (raw: {})", &state.value, state.raw)))
 }
 
 fn processor_table<'a>(p: &'a DataLoadingState<Processor>) -> container::Container<'a, Message> {
