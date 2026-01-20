@@ -1,4 +1,4 @@
-# Ferrix Russian translation
+40 Ferrix Russian translation
 # (C) 2025 Michail Krasnov <mskrasnov07@ya.ru>
 
 # SIDEBAR
@@ -274,7 +274,7 @@ ram-swp-not-found = Не найдены файлы/разделы подкачк
 # SETTINGS PAGE
 settings-update-period = Период обновления
 settings-uperiod-tip = Укажите период обновления данных (в сек.). Чем выше период обновления, тем ниже нагрузка на ПК.
-settings-look = Оформления программы
+settings-look = Оформление программы
 settings-look-tip = Стиль оформления влияет на цвета интерфейса и шрифта. Выберите то, что нравится вам.
 settings-look-select = Выберите нужный стиль оформления:
 settings-save = Сохранить
