@@ -31,23 +31,22 @@
  * https://github.com/QuistHQ/iced_aksel/tree/main/examples/dashboard *
  ********************************************************
  * NOTE: refactoring!                                   *
- * NOTE: move the chart structures to the `widgets`     *
- * module.                                              *
  ********************************************************
  *            END WARNING WARNING WARNING               *
  ********************************************************/
 
 use iced::{
-    Color, Theme,
+    Color, Pixels, Theme,
     alignment::{Horizontal, Vertical},
     time::Instant,
 };
 use iced_aksel::{
     Axis, Chart, Measure, PlotPoint, State, Stroke,
-    axis::{self, TickLine, TickResult},
+    axis::{self, TickResult},
     plot::{Plot, PlotData},
     scale::Linear,
     shape::{Area, Label, Polygon, Polyline, Rectangle},
+    style::DashStyle,
 };
 use std::collections::{HashMap, VecDeque};
 
@@ -555,19 +554,21 @@ impl LineChart {
         let x_axis = self.state.axis_mut(&Self::X.to_string());
 
         x_axis.set_tick_renderer(move |ctx| {
-            let result = TickResult::new();
             let idx = ctx.tick.value.round();
             if (ctx.tick.value - idx).abs() > 0.001 {
-                return result;
+                return TickResult::default();
             }
             let idx = idx as usize;
-            if idx < labels.len() {
-                return result
-                    .label(labels[idx].clone())
-                    .tick_line(TickLine::default());
-            }
+            let valid_idx = idx < labels.len();
 
-            result
+            let label = valid_idx.then(|| ctx.label(labels[idx].clone()));
+            let tick_line = valid_idx.then(|| ctx.tickline());
+
+            TickResult {
+                label,
+                tick_line,
+                ..Default::default()
+            }
         });
     }
 
@@ -721,7 +722,7 @@ impl PlotData<f64> for LineChart {
                     plot.add_shape(
                         Label::new(&series.name, PlotPoint::new(x_pos + text_offset, y_pos))
                             .fill(palette.text)
-                            .size(12.0)
+                            .size(Measure::Screen(12.))
                             .align(Horizontal::Left, Vertical::Center),
                     );
                 }
@@ -731,26 +732,35 @@ impl PlotData<f64> for LineChart {
 }
 
 fn y_axis(min_y: f64, max_y: f64) -> Axis<f64> {
-    Axis::new(Linear::new(min_y, max_y), axis::Position::Right).with_tick_renderer(|ctx| match ctx
-        .tick
-        .level
-    {
-        // 0 => TickResult::default().label({
-        //     let mut label = iced_aksel::axis::Label::from(format!("{:.2}", ctx.tick.value));
-        //     label.size = Pixels::from(10.);
-        //     label
-        // }),
-        0 => TickResult::default().label(format!("{:.2}", ctx.tick.value)),
-        _ => TickResult::new(),
-    })
+    Axis::new(Linear::new(min_y, max_y), axis::Position::Right)
+        .with_tick_renderer(|ctx| {
+            let line_color = ctx.gridline().color;
+
+            match ctx.tick.level {
+                0 => TickResult {
+                    label: Some(ctx.label(format!("{}%", ctx.tick.value))),
+                    grid_line: Some(ctx.gridline()),
+                    tick_line: Some({
+                        let mut line = ctx.tickline();
+                        line.color = line_color;
+                        line.width = Pixels::ZERO;
+                        line.length = Pixels::ZERO;
+                        line
+                    }),
+                    ..Default::default()
+                },
+                _ => TickResult::default(),
+            }
+        })
+        .style(|s| {
+            s.spine.width = Pixels::ZERO;
+            s.tick.width = Pixels::ZERO;
+            s.label.size = Pixels::from(10.);
+            s.grid.dashed = Some(DashStyle::new(1., 2.));
+        })
 }
 
 fn y_axis_without_label(min_y: f64, max_y: f64) -> Axis<f64> {
-    Axis::new(Linear::new(min_y, max_y), axis::Position::Right).with_tick_renderer(|ctx| match ctx
-        .tick
-        .level
-    {
-        0 => TickResult::default(),
-        _ => TickResult::new(),
-    })
+    Axis::new(Linear::new(min_y, max_y), axis::Position::Right)
+        .with_tick_renderer(|_| TickResult::default())
 }
