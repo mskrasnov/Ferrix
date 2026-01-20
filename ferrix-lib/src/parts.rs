@@ -259,8 +259,8 @@ impl FileSystemStats {
                 total_blocks: stats.f_blocks as u64,
                 free_blocks: stats.f_bfree as u64,
                 available_blocks: stats.f_bavail as u64,
-                total_inodes: stats.f_files,
-                free_inodes: stats.f_ffree,
+                total_inodes: stats.f_files as u64,
+                free_inodes: stats.f_ffree as u64,
             })
         } else {
             Err(anyhow!(
