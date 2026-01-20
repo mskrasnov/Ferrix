@@ -31,16 +31,14 @@
      inkscape:window-y="0"
      inkscape:window-maximized="1"
      inkscape:current-layer="svg5" />
-  <!-- Фон-квадрат со скругленными углами -->
   <rect
      x="10"
      y="10"
      width="100"
      height="100"
      rx="12"
-     fill="#3584e4"
+     fill="#d79921"
      id="rect1" />
-  <!-- Внутренняя рамка -->
   <rect
      x="15"
      y="15"
