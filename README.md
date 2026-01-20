@@ -36,7 +36,7 @@ Ferrix System Monitor is a Rust-crate and program for obtaining information abou
 |----------|--------------------|-----------|
 | Processor info | ✅ | ✅ |
 | Memory usage | ✅ | ✅ |
-| Storage info | ❌ (TODO) | **✅** |
+| Storage info | ✅ | ✅ |
 | DMI Tables | **✅** (TODO, but it already displays more data than Hardinfo) | ✅ |
 | RAM SPD Data | ❌ | **✅** |
 | Battery | **✅** (more correctly; without negative values) | ✅ |
