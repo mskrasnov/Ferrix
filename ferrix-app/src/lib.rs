@@ -201,7 +201,7 @@ fn sidebar<'a>(cur_page: Page) -> container::Container<'a, Message> {
         sidebar_button(Page::CPUFrequency, cur_page),
         sidebar_button(Page::CPUVulnerabilities, cur_page),
         sidebar_button(Page::Memory, cur_page),
-        sidebar_button(Page::Storage, cur_page),
+        sidebar_button(Page::FileSystems, cur_page),
         sidebar_button(Page::DMI, cur_page),
         sidebar_button(Page::Battery, cur_page),
         sidebar_button(Page::Screen, cur_page),
