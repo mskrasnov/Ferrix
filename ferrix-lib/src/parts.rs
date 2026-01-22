@@ -208,6 +208,11 @@ pub struct Storage {
     /// Device serial number
     pub serial: Option<String>,
 
+    /// Firmware revision
+    pub revision: Option<String>,
+
+    pub wwid_eui: Option<String>,
+
     pub transport: Option<String>,
 }
 
@@ -245,9 +250,13 @@ impl Storage {
         let serial = read("device/serial")
             .and_then(|a| Ok(a.trim().to_string()))
             .ok();
+        let revision = read("device/firmware_rev")
+            .and_then(|a| Ok(a.trim().to_string()))
+            .ok();
         let transport = read("device/transport")
             .and_then(|a| Ok(a.trim().to_string()))
             .ok();
+        let wwid_eui = read("wwid").and_then(|a| Ok(a.replace("eui.", ""))).ok();
 
         Ok(Self {
             devname,
@@ -260,6 +269,8 @@ impl Storage {
             vendor,
             serial,
             transport,
+            wwid_eui,
+            revision,
         })
     }
 }
