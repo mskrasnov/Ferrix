@@ -29,7 +29,7 @@ use ferrix_lib::sys::{KModules, Kernel, Module};
 
 use iced::{
     Length, Padding,
-    widget::{column, container, scrollable, table, text},
+    widget::{center, column, container, scrollable, table, text},
 };
 
 fn modules_table<'a>(rows: &'a [Module]) -> table::Table<'a, Message> {
@@ -104,10 +104,18 @@ pub fn kernel_page<'a>(
 pub fn kmods_page<'a>(kmods: &'a DataLoadingState<KModules>) -> container::Container<'a, Message> {
     match kmods {
         DataLoadingState::Loaded(kmods) => {
-            let table = container(modules_table(&kmods.modules))
-                .style(container::rounded_box)
-                .padding(Padding::new(0.).right(10.));
-            container(scrollable(table))
+            if kmods.modules.is_empty() {
+                container(center(
+                    text(fl!("kernel-mods-is-empty"))
+                        .size(16)
+                        .style(text::secondary),
+                ))
+            } else {
+                let table = container(modules_table(&kmods.modules))
+                    .style(container::rounded_box)
+                    .padding(Padding::new(0.).right(10.));
+                container(scrollable(table))
+            }
         }
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),
