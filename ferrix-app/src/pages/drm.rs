@@ -28,18 +28,24 @@ use crate::{
     },
 };
 use ferrix_lib::drm::{DRM, EDID, Video, VideoInputParams};
-use iced::widget::{column, container, scrollable, text};
+use iced::widget::{center, column, container, scrollable, text};
 
 pub fn drm_page<'a>(video: &'a DataLoadingState<Video>) -> container::Container<'a, Message> {
     match video {
         DataLoadingState::Loaded(video) => {
-            let mut layout = column![].spacing(5);
-            let mut i = 1;
-            for device in &video.devices {
-                layout = layout.push(screen_subpage(device, i));
-                i += 1;
+            if video.devices.is_empty() {
+                container(center(
+                    text(fl!("drm-is-empty")).size(16).style(text::secondary),
+                ))
+            } else {
+                let mut layout = column![].spacing(5);
+                let mut i = 1;
+                for device in &video.devices {
+                    layout = layout.push(screen_subpage(device, i));
+                    i += 1;
+                }
+                container(scrollable(layout))
             }
-            container(scrollable(layout))
         }
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),
