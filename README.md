@@ -54,6 +54,7 @@ Ferrix System Monitor is a Rust-crate and program for obtaining information abou
 | Printers | ❌ | **✅** |
 | System load | ✅ (loadavg, uptime); **✅** (CPU & RAM Usage Charts) | ✅ (loadavg, uptime); ❌ (CPU & RAM Usage Charts is ugly and incorrect) |
 | Hardware benchmarks | ❌ | **✅** |
+| Copy to clipboard | ✅ [WIP] | Partial |
 
 ## Build & Install
 
