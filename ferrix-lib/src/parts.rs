@@ -24,8 +24,8 @@ use anyhow::{Result, anyhow};
 use libc::statvfs;
 use serde::{Deserialize, Serialize};
 use std::ffi::{CString, c_char};
-use std::fs::read_to_string;
-use std::path::Path;
+use std::fs::{read_dir, read_to_string};
+use std::path::{Path, PathBuf};
 
 use crate::traits::ToJson;
 use crate::utils::Size;
@@ -152,6 +152,115 @@ impl DeviceInfo {
             && self.vendor.is_none()
             && self.serial.is_none()
             && self.logical_block_size.is_none()
+    }
+}
+
+/// Physical disk drives from `/sys/block/` directory
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct Storages {
+    pub storages: Vec<Storage>,
+}
+
+impl Storages {
+    pub fn new() -> Result<Self> {
+        let dir_contents = read_dir("/sys/block")?.filter(|entry| {
+            if entry.is_err() {
+                false
+            } else {
+                let entry = entry.as_ref().unwrap();
+                let s = entry.path().to_string_lossy().to_string();
+                !(s.contains("loop") || s.contains("zram"))
+            }
+        });
+
+        let mut storages = vec![];
+        for dir in dir_contents {
+            let dir = dir?.path();
+            storages.push(Storage::from_pathbuf(&dir)?);
+        }
+        Ok(Self { storages })
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct Storage {
+    /// `/sys/block/` subdirectory name (e.g. `sda`, `mmcblk0`, `nvme0n1`, etc.)
+    pub devname: String,
+
+    pub removable: bool,
+
+    /// Readonly
+    pub ro: bool,
+
+    /// Total disk size, bytes
+    pub size: Size,
+
+    pub hidden: bool,
+
+    pub uuid: Option<String>,
+
+    /// Device model
+    pub model: Option<String>,
+
+    /// Device vendor
+    pub vendor: Option<String>,
+
+    /// Device serial number
+    pub serial: Option<String>,
+
+    pub transport: Option<String>,
+}
+
+impl Storage {
+    pub fn from_pathbuf(path: &PathBuf) -> Result<Self> {
+        let read = |file: &str| read_to_string(path.join(file));
+
+        let devname = path
+            .strip_prefix("/sys/block/")?
+            .to_string_lossy()
+            .to_string();
+        let removable = {
+            let data = read("removable")?;
+            if data.trim() == "0" { false } else { true }
+        };
+        let ro = {
+            let data = read("ro")?;
+            if data.trim() == "0" { false } else { true }
+        };
+        let hidden = {
+            let data = read("hidden")?;
+            if data.trim() == "0" { false } else { true }
+        };
+        let size = {
+            let data = read("size")?;
+            Size::B(data.trim().parse()?)
+        };
+        let uuid = read("uuid").and_then(|a| Ok(a.trim().to_string())).ok();
+        let model = read("device/model")
+            .and_then(|a| Ok(a.trim().to_string()))
+            .ok();
+        let vendor = read("device/vendor")
+            .and_then(|a| Ok(a.trim().to_string()))
+            .ok();
+        let serial = read("device/serial")
+            .and_then(|a| Ok(a.trim().to_string()))
+            .ok();
+        let transport = read("device/transport")
+            .and_then(|a| Ok(a.trim().to_string()))
+            .ok();
+
+        Ok(Self {
+            devname,
+            removable,
+            ro,
+            size,
+            hidden,
+            uuid,
+            model,
+            vendor,
+            serial,
+            transport,
+        })
     }
 }
 
