@@ -20,12 +20,14 @@
 
 //! systemd services list
 
-use crate::{Message, fl, load_state::DataLoadingState, widgets::table::hdr_name};
+use crate::{
+    Message, fl, load_state::DataLoadingState, messages::ButtonsMessage, widgets::table::hdr_name,
+};
 use ferrix_lib::init::{ActiveState, LoadState, ServiceInfo, SystemdServices, WorkState};
 
 use iced::{
     Length, Padding,
-    widget::{column, container, row, scrollable, table, text},
+    widget::{button, column, container, row, scrollable, table, text},
 };
 
 fn srv_table<'a>(rows: &'a [ServiceInfo]) -> table::Table<'a, Message> {
@@ -40,11 +42,21 @@ fn srv_table<'a>(rows: &'a [ServiceInfo]) -> table::Table<'a, Message> {
             // change the character wrapping logic./There are enough
             // words in the `text` widget so that everything fits,
             // regardless of the size of the window and the table cell.
-            text(&row.name).wrapping(text::Wrapping::WordOrGlyph)
+            button(text(&row.name).wrapping(text::Wrapping::WordOrGlyph))
+                .style(button::text)
+                .padding(0)
+                .on_press(Message::Buttons(ButtonsMessage::CopyButtonPressed(
+                    row.name.clone(),
+                )))
         })
         .width(Length::FillPortion(2)),
         table::column(hdr_name(fl!("sysd-hdr-descr")), |row: &ServiceInfo| {
-            text(&row.description).wrapping(text::Wrapping::WordOrGlyph)
+            button(text(&row.description).wrapping(text::Wrapping::WordOrGlyph))
+                .style(button::text)
+                .padding(0)
+                .on_press(Message::Buttons(ButtonsMessage::CopyButtonPressed(
+                    row.description.clone(),
+                )))
         })
         .width(Length::FillPortion(3)),
         table::column(hdr_name(fl!("sysd-hdr-load")), |row: &ServiceInfo| {

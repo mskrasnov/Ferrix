@@ -617,6 +617,7 @@ impl Ferrix {
 pub enum ButtonsMessage {
     LinkButtonPressed(String),
     SaveSettingsButtonPressed,
+    CopyButtonPressed(String),
 }
 
 impl ButtonsMessage {
@@ -624,6 +625,7 @@ impl ButtonsMessage {
         match self {
             Self::LinkButtonPressed(url) => fx.go_to_url(&url),
             Self::SaveSettingsButtonPressed => fx.save_settings(),
+            Self::CopyButtonPressed(s) => iced::clipboard::write(s),
         }
     }
 }

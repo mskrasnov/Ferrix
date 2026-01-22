@@ -20,12 +20,14 @@
 
 //! Custom table widget
 
+use iced::widget::button;
 use iced::widget::text::IntoFragment;
 use iced::{
     Element, Length,
     widget::{table, text},
 };
 
+use crate::messages::ButtonsMessage;
 use crate::{Message, fl, widgets::link_button};
 
 #[derive(Debug, Clone)]
@@ -70,7 +72,13 @@ where
 {
     match val {
         Some(val) if !val.to_string().is_empty() && !val.to_string().contains("http") => {
-            text(val.to_string()).into()
+            button(text(val.to_string()))
+                .style(button::text)
+                .padding(0)
+                .on_press(Message::Buttons(ButtonsMessage::CopyButtonPressed(
+                    val.to_string(),
+                )))
+                .into()
         }
         Some(val) if !val.to_string().is_empty() && val.to_string().contains("http") => {
             link_button(val.to_string(), val.to_string()).into()

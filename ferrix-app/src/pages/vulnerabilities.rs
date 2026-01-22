@@ -20,12 +20,12 @@
 
 //! CPU Vulnerabilities page
 
-use crate::{DataLoadingState, Message, fl, widgets::table::hdr_name};
+use crate::{DataLoadingState, Message, fl, messages::ButtonsMessage, widgets::table::hdr_name};
 use ferrix_lib::vulnerabilities::Vulnerabilities;
 
 use iced::{
     Length,
-    widget::{container, scrollable, table, text},
+    widget::{button, container, scrollable, table, text},
 };
 
 pub fn vulnerabilities_page<'a>(
@@ -91,19 +91,26 @@ fn vuln_table<'a>(rows: &'a [(String, String)]) -> table::Table<'a, Message> {
                 let vuln_type = VulnType::detect(s);
                 let vuln_str = vuln_type.format(s);
 
-                text(vuln_str).wrapping(text::Wrapping::WordOrGlyph).style(
-                    move |t: &iced::Theme| {
-                        let p = t.palette();
-                        text::Style {
-                            color: Some(match vuln_type {
-                                VulnType::Safe => p.success,
-                                VulnType::Warning => p.warning,
-                                VulnType::Danger => p.danger,
-                                VulnType::Unknown => p.text,
-                            }),
-                        }
-                    },
+                button(
+                    text(vuln_str.clone())
+                        .wrapping(text::Wrapping::WordOrGlyph)
+                        .style(move |t: &iced::Theme| {
+                            let p = t.palette();
+                            text::Style {
+                                color: Some(match vuln_type {
+                                    VulnType::Safe => p.success,
+                                    VulnType::Warning => p.warning,
+                                    VulnType::Danger => p.danger,
+                                    VulnType::Unknown => p.text,
+                                }),
+                            }
+                        }),
                 )
+                .style(button::text)
+                .padding(0)
+                .on_press(Message::Buttons(ButtonsMessage::CopyButtonPressed(
+                    vuln_str,
+                )))
             },
         )
         .width(Length::FillPortion(3)),

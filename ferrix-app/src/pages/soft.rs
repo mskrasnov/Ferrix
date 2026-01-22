@@ -20,12 +20,12 @@
 
 //! CPU page
 
-use crate::{DataLoadingState, Message, fl, widgets::table::hdr_name};
+use crate::{DataLoadingState, Message, fl, messages::ButtonsMessage, widgets::table::hdr_name};
 use ferrix_lib::soft::{InstalledPackages, Package};
 
 use iced::{
     Length, Padding,
-    widget::{column, container, row as _row, scrollable, space::horizontal, table, text},
+    widget::{button, column, container, row as _row, scrollable, space::horizontal, table, text},
 };
 
 pub fn soft_page<'a>(
@@ -62,7 +62,12 @@ fn soft_table<'a>(rows: &'a [Package]) -> table::Table<'a, Message> {
             |row: &'a Package| {
                 _row![
                     horizontal(),
-                    text(&row.name).wrapping(text::Wrapping::WordOrGlyph),
+                    button(text(&row.name).wrapping(text::Wrapping::WordOrGlyph))
+                        .style(button::text)
+                        .padding(0)
+                        .on_press(Message::Buttons(ButtonsMessage::CopyButtonPressed(
+                            format!("{} {}", &row.name, &row.version)
+                        ))),
                 ]
             },
         )
