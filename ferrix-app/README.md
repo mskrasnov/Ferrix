@@ -9,8 +9,6 @@
   <img src="../screens/screen2.png">
 </div>
 
-A lightweight, fast and modern system information tool for Linux, built with Rust and Iced.
-
 ## What is FSM?
 
 Ferrix System Monitor is a Rust-crate and program for obtaining information about computer hardware and software. It is designed to work in modern Linux OS distributions.
