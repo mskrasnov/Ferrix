@@ -107,6 +107,7 @@ pub struct Ferrix {
 
     pub settings: FXSettings,
     pub is_polkit: bool,
+    pub show_copy_toast: bool,
 }
 
 impl Default for Ferrix {
@@ -148,6 +149,7 @@ impl Default for Ferrix {
             settings: FXSettings::read(get_home().join(".config").join(SETTINGS_PATH))
                 .unwrap_or_default(),
             is_polkit: false,
+            show_copy_toast: false,
         }
     }
 }
@@ -189,10 +191,15 @@ impl Ferrix {
     }
 
     pub fn view<'a>(&'a self) -> Element<'a, Message> {
-        row![sidebar(self.current_page), self.current_page.page(&self)]
+        let win = row![sidebar(self.current_page), self.current_page.page(&self)]
             .spacing(5)
-            .padding(5)
-            .into()
+            .padding(5);
+
+        if self.show_copy_toast {
+            modals::toast(win, fl!("toast-copy")).into()
+        } else {
+            win.into()
+        }
     }
 }
 

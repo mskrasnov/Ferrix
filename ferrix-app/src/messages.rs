@@ -618,6 +618,7 @@ pub enum ButtonsMessage {
     LinkButtonPressed(String),
     SaveSettingsButtonPressed,
     CopyButtonPressed(String),
+    ShowToastToggle,
 }
 
 impl ButtonsMessage {
@@ -625,8 +626,17 @@ impl ButtonsMessage {
         match self {
             Self::LinkButtonPressed(url) => fx.go_to_url(&url),
             Self::SaveSettingsButtonPressed => fx.save_settings(),
-            Self::CopyButtonPressed(s) => iced::clipboard::write(s),
+            Self::CopyButtonPressed(s) => {
+                fx.show_copy_toast = true;
+                iced::clipboard::write(s)
+            },
+            Self::ShowToastToggle => self.show_toast_toggle(fx),
         }
+    }
+
+    fn show_toast_toggle<'a>(&self, fx: &'a mut Ferrix) -> Task<Message> {
+        fx.show_copy_toast = !fx.show_copy_toast;
+        Task::none()
     }
 }
 

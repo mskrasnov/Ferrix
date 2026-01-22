@@ -336,3 +336,7 @@ users-hdr = User #{$id}
 # CPU VULNERABILITY PAGE
 vuln-hdr-name = Name
 vuln-hdr-descr = Description
+
+# MODALS
+toast-copy = String is copied
+toast-close = Close
