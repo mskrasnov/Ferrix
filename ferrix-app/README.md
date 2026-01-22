@@ -2,10 +2,11 @@
   <img src="data/com.mskrasnov.Ferrix.svg" width="200">
   <h1>Ferrix System Monitor — Swiss Knife for Linux Hardware Diagnostics</h1>
   <p><b>A simple program for getting information about computer hardware and installed software.</b></p>
-  <img src="../screens/screen1.png">
-  <img src="../screens/screen22.png">
 
   [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![Rust](https://img.shields.io/badge/Made%20with-Rust-orange?logo=rust)](https://www.rust-lang.org/) [![GitHub Release](https://img.shields.io/github/v/release/mskrasnov/ferrix?logo=github)](https://github.com/mskrasnov/ferrix/releases)
+
+  <img src="../screens/screen1.png">
+  <img src="../screens/screen22.png">
 </div>
 
 A lightweight, fast and modern system information tool for Linux, built with Rust and Iced.
@@ -30,10 +31,11 @@ For Linux, there are a bunch of different console programs for getting informati
 
 ### Hardware Information
 
-- Processor details;
+- Processor details (model name, thread count, frequency, vulnerabilities, supported instructions, etc.);
 - Memory specifications;
 - Notebook's battery;
 - [TODO] Data from DMI tables;
+- Mounted filesystems;
 
 ### Software Information
 
@@ -41,11 +43,12 @@ For Linux, there are a bunch of different console programs for getting informati
 - Kernel information;
 - Users and groups;
 - `systemd` services;
+- Installed packages (`deb`, `rpm`);
 
 ### User Experience
 
 - **Modern, clean interface** based on [iced](https://iced.rs);
-- **Minimal dependencies** (`systemd`, `glibc`, `dbus`, `polkit`, `xdg`);
+- **Minimal dependencies** (`systemd`, `glibc`, `dbus`, `polkit`, `xdg`, `xorg`);
 - **Fast startup** and low memory footprint.
 
 ## Installation
@@ -71,7 +74,7 @@ sudo make install
 
 ## Technology stack
 
-- **OS:** Linux with `glibc`, `dbus`, `polkit` and `systemd`;
+- **OS:** Linux with `glibc`, `dbus`, `polkit`, `xorg` and `systemd`;
 - **Multilanguage:** English and Russian translations;
 - **Programming lang.:** [Rust](https://rust-lang.org);
 - **GUI:** [iced](https://iced.rs);
