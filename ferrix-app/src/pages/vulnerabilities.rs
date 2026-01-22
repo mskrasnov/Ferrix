@@ -109,7 +109,7 @@ fn vuln_table<'a>(rows: &'a [(String, String)]) -> table::Table<'a, Message> {
                 .style(button::text)
                 .padding(0)
                 .on_press(Message::Buttons(ButtonsMessage::CopyButtonPressed(
-                    vuln_str,
+                    format!("{}: {}", &row.0, &row.1),
                 )))
             },
         )
