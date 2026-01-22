@@ -92,6 +92,7 @@ make uninstall # to uninstall Ferrix from your system.
 ```bash
 export XDG_SESSION_TYPE=xorg
 export DISPLAY=':0'
+export WAYLAND_DISPLAY=
 ferrix-app
 ```
 
