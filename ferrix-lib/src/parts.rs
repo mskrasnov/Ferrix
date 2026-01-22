@@ -30,19 +30,7 @@ use std::path::Path;
 use crate::traits::ToJson;
 use crate::utils::Size;
 
-// #[derive(Debug, Deserialize, Serialize, Clone)]
-// pub struct StorageInfo {
-//     pub device: String,
-//     pub mnt_point: String,
-//     pub fs: String,
-//     pub total_size: Size,
-//     pub used: Size,
-//     pub available: Size,
-//     pub device_model: Option<String>,
-//     pub block_size: usize,
-// }
-
-/// List of partitions
+/// List of partitions from `/proc/partitions` file
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Partitions {
     pub parts: Vec<Partition>,
@@ -167,6 +155,7 @@ impl DeviceInfo {
     }
 }
 
+/// Mounted filesystems list from `/proc/mounts` file
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Mounts {
     pub mounts: Vec<MountEntry>,
