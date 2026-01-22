@@ -202,6 +202,7 @@ drm-digital = Цифровой
 drm-analog = Аналоговый
 drm-bit-depth = Глубина цвета
 drm-interface = Видеоинтерфейс
+drm-is-empty = Экраны не найдены
 
 # GROUPS PAGE
 groups-group = Группа №{$group_no}
@@ -227,6 +228,7 @@ kernel-user-evs = Макс. число user events
 kernel-avail-enthropy = Доступная энтропия
 kernel-summary-hdr = Информация о ядре
 kernel-mods-hdr = Загруженные модули ядра
+kernel-mods-is-empty = Модули ядра не загружены
 
 # RAM PAGE
 ram-total = Всего

@@ -202,6 +202,7 @@ drm-digital = Digital
 drm-analog = Analogue
 drm-bit-depth = Bit depth
 drm-interface = Video interface
+drm-is-empty = Screens not found
 
 # GROUPS PAGE
 groups-group = Group #{$group_no}
@@ -227,6 +228,7 @@ kernel-user-evs = User events, max.
 kernel-avail-enthropy = Available enthropy
 kernel-summary-hdr = Summary data
 kernel-mods-hdr = Loaded kernel modules
+kernel-mods-is-empty = Kernel modules are not loaded
 
 # RAM PAGE
 ram-total = Total
