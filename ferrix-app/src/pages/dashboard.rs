@@ -20,14 +20,8 @@
 
 //! Dashboard page
 
-use crate::{Message, Page, fl};
-use ferrix_lib::{
-    battery::{BatInfo, Status},
-    cpu::{Processors, Stat},
-    ram::{RAM, Swaps},
-    sys::OsRelease,
-    utils::Size,
-};
+use crate::{Ferrix, Message, Page, fl};
+use ferrix_lib::{battery::Status, utils::Size};
 
 use iced::{
     Element, Font, Length, Theme, Vector, color, never,
@@ -45,17 +39,9 @@ struct SwapUsage<'a> {
     used_b: f32,
 }
 
-pub fn dashboard<'a>(
-    proc: Option<&'a Processors>,
-    stat: (Option<&'a Stat>, Option<&'a Stat>),
-    ram: Option<&'a RAM>,
-    swaps: Option<&'a Swaps>,
-    osr: Option<&'a OsRelease>,
-    system: Option<&'a crate::System>,
-    bat: Option<&'a BatInfo>,
-) -> container::Container<'a, Message> {
+pub fn dashboard<'a>(fx: &'a Ferrix) -> container::Container<'a, Message> {
     let (proc_name, proc_threads) = {
-        match proc {
+        match fx.proc_data.to_option() {
             Some(proc) => {
                 let model = &proc.entries[0].model_name;
                 let vendor = match model {
@@ -70,7 +56,7 @@ pub fn dashboard<'a>(
         }
     };
     let (total_ram, avail_ram) = {
-        match ram {
+        match fx.ram_data.to_option() {
             Some(ram) => (
                 ram.total.round(2).unwrap_or(Size::None),
                 ram.available
@@ -88,7 +74,7 @@ pub fn dashboard<'a>(
         .round(2)
         .unwrap_or(Size::B(used_ram_bytes as u64));
 
-    let swaps_usage = match swaps {
+    let swaps_usage = match fx.swap_data.to_option() {
         Some(swaps) => {
             let mut usage = Vec::with_capacity(swaps.swaps.len());
             for swap in &swaps.swaps {
@@ -108,7 +94,7 @@ pub fn dashboard<'a>(
     };
 
     let os_name = {
-        match osr {
+        match fx.osrel_data.to_option() {
             Some(osr) => match &osr.pretty_name {
                 Some(pname) => pname,
                 None => &osr.name,
@@ -116,21 +102,21 @@ pub fn dashboard<'a>(
             None => "Generic Linux",
         }
     };
-    let hostname = match system {
+    let hostname = match fx.system.to_option() {
         Some(system) => match &system.hostname {
             Some(hostname) => hostname as &str,
             None => "Unknown hostname",
         },
         None => "Unknown hostname",
     };
-    let de = match system {
+    let de = match fx.system.to_option() {
         Some(system) => match &system.desktop {
             Some(de) => de as &str,
             None => "Unknown desktop",
         },
         None => "Unknown desktop",
     };
-    let (prev_stat, cur_stat) = stat;
+    let (prev_stat, cur_stat) = (fx.prev_proc_stat.to_option(), fx.curr_proc_stat.to_option());
     let cpu_usage = if prev_stat.is_none() || cur_stat.is_none() {
         0.0
     } else {
@@ -143,7 +129,7 @@ pub fn dashboard<'a>(
         }
     };
 
-    let battery = match bat {
+    let battery = match fx.bat_data.to_option() {
         Some(bat) => {
             let mut bats = Vec::with_capacity(bat.bats.len());
             for b in &bat.bats {

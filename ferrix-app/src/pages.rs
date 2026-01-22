@@ -41,12 +41,12 @@ mod dmi;
 mod drm;
 mod env;
 mod export;
-mod storage;
 mod groups;
 mod kernel;
 mod ram;
 mod settings;
 mod soft;
+mod storage;
 mod sysmon;
 mod system;
 mod systemd;
@@ -182,19 +182,7 @@ impl<'a> Page {
 
     pub fn page(&'a self, state: &'a Ferrix) -> Element<'a, Message> {
         let page = match self {
-            Self::Dashboard => dashboard::dashboard(
-                state.proc_data.to_option(),
-                (
-                    state.prev_proc_stat.to_option(),
-                    state.curr_proc_stat.to_option(),
-                ),
-                state.ram_data.to_option(),
-                state.swap_data.to_option(),
-                state.osrel_data.to_option(),
-                state.system.to_option(),
-                state.bat_data.to_option(),
-            )
-            .into(),
+            Self::Dashboard => dashboard::dashboard(state).into(),
             Self::SystemMonitor => {
                 sysmon::usage_charts_page(&state, &state.curr_proc_stat, &state.prev_proc_stat)
                     .into()
