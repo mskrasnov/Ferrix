@@ -24,7 +24,7 @@ use crate::{Ferrix, Message, Page, fl, load_state::LoadState};
 use ferrix_lib::{battery::Status, utils::Size};
 
 use iced::{
-    Element, Font, Length, Theme, Vector, color, never,
+    Element, Font, Length, Vector, color, never,
     widget::{
         button, column, container, grid, progress_bar, rich_text, scrollable, space, span, text,
     },
@@ -241,7 +241,7 @@ pub fn dashboard<'a>(fx: &'a Ferrix) -> container::Container<'a, Message> {
     if let LoadState::Loaded(storages) = &fx.storages {
         let storages = &storages.mounts;
         for storage in storages {
-            if &storage.mount_point == "/" {
+            if &storage.mount_point == "/" || &storage.mount_point == "/home" {
                 let (usage_percent, used, total) = match &storage.fstats {
                     Some(fstats) => (
                         fstats.usage_percent() as f32,
@@ -252,7 +252,11 @@ pub fn dashboard<'a>(fx: &'a Ferrix) -> container::Container<'a, Message> {
                 };
 
                 items.push(widget_card(
-                    "Root Partition",
+                    match &storage.mount_point as &str {
+                        "/" => fl!("dash-root-part"),
+                        "/home" => fl!("dash-home-part"),
+                        _ => fl!("dash-unk-part"),
+                    },
                     column![
                         column![
                             text(fl!("dash-mem-used", used = used.to_string())),

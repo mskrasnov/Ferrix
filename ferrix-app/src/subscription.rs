@@ -179,7 +179,9 @@ impl Ferrix {
     }
 
     fn storage_subscription(&self) -> OScript<Message> {
-        if self.current_page == Page::FileSystems && self.storages.is_none() {
+        if (self.current_page == Page::Dashboard || self.current_page == Page::FileSystems)
+            && self.storages.is_none()
+        {
             Some(
                 time::every(Duration::from_millis(START_UPERIOD))
                     .map(|_| Message::DataReceiver(DataReceiverMessage::GetStorageData)),
