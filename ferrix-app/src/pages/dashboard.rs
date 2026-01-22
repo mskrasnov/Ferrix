@@ -20,7 +20,7 @@
 
 //! Dashboard page
 
-use crate::{Ferrix, Message, Page, fl};
+use crate::{Ferrix, Message, Page, fl, load_state::LoadState};
 use ferrix_lib::{battery::Status, utils::Size};
 
 use iced::{
@@ -238,11 +238,40 @@ pub fn dashboard<'a>(fx: &'a Ferrix) -> container::Container<'a, Message> {
         ));
     }
 
+    if let LoadState::Loaded(storages) = &fx.storages {
+        let storages = &storages.mounts;
+        for storage in storages {
+            if &storage.mount_point == "/" {
+                let (usage_percent, used, total) = match &storage.fstats {
+                    Some(fstats) => (
+                        fstats.usage_percent() as f32,
+                        fstats.used_size().round(2).unwrap_or_default(),
+                        fstats.total_size().round(2).unwrap_or_default(),
+                    ),
+                    None => (0., Size::None, Size::None),
+                };
+
+                items.push(widget_card(
+                    "Root Partition",
+                    column![
+                        column![
+                            text(fl!("dash-mem-used", used = used.to_string())),
+                            text(fl!("dash-mem-total", total = total.to_string()))
+                        ],
+                        progress_bar(0.0..=100., usage_percent),
+                    ]
+                    .spacing(5),
+                    Message::SelectPage(Page::FileSystems),
+                ));
+            }
+        }
+    }
+
     let mut gr = grid([]).spacing(5).fluid(185.);
     for item in items {
         gr = gr.push(item);
     }
-    container(scrollable(gr))
+    container(scrollable(gr).spacing(5))
 }
 
 fn card<'a, H, C>(header: H, contents: C, on_press: Message) -> button::Button<'a, Message>
@@ -250,46 +279,7 @@ where
     H: text::IntoFragment<'a>,
     C: text::IntoFragment<'a>,
 {
-    button(
-        container(
-            column![
-                rich_text![
-                    span(header)
-                        .font(Font {
-                            weight: iced::font::Weight::Bold,
-                            ..Default::default()
-                        })
-                        .size(16),
-                ]
-                .on_link_click(never),
-                space().width(Length::Fill).height(Length::Fill),
-                iced::widget::text(contents),
-            ]
-            .spacing(5),
-        )
-        .width(135)
-        .max_width(135)
-        .height(135)
-        .max_height(135)
-        .style(|t: &Theme| container::Style {
-            shadow: iced::Shadow {
-                color: {
-                    if t.extended_palette().is_dark {
-                        color!(0x1d2021)
-                    } else {
-                        color!(0xebdbb2)
-                    }
-                },
-                offset: Vector::new(2., 2.),
-                blur_radius: 2.,
-            },
-            ..container::rounded_box(t)
-        })
-        .padding(5),
-    )
-    .style(button::text)
-    .padding(0)
-    .on_press(on_press)
+    widget_card(header, text(contents), on_press)
 }
 
 fn widget_card<'a, H, C>(header: H, contents: C, on_press: Message) -> button::Button<'a, Message>
