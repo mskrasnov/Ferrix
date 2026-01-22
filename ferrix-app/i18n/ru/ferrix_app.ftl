@@ -160,6 +160,9 @@ dash-proc-usg_label = Общая: {$usage}%
 dash-swap = Подкачка
 dash-bat = Аккумулятор
 dash-unk-bat = Без имени
+dash-root-part = Корневой раздел
+dash-home-part = Домашний раздел
+dash-unk-part = Неизвестный раздел
 
 # DISTRO PAGE
 distro-name = Имя ОС

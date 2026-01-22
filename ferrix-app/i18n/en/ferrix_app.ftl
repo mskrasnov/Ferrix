@@ -160,6 +160,9 @@ dash-proc-usg_label = Total usage: {$usage}%
 dash-swap = Swap
 dash-bat = Battery
 dash-unk-bat = No name
+dash-root-part = Root Partition
+dash-home-part = Home Partition
+dash-unk-part = Unknown Partition
 
 # DISTRO PAGE
 distro-name = OS Name
