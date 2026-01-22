@@ -46,9 +46,19 @@ use widgets::{icon_button, sidebar_button};
 
 use anyhow::Result;
 use ferrix_lib::{
-    battery::BatInfo, cpu::{Processors, Stat}, cpu_freq::CpuFreq, drm::Video, init::SystemdServices, parts::Mounts, ram::{Swaps, RAM}, soft::InstalledPackages, sys::{
-        get_current_desktop, get_env_vars, get_hostname, get_lang, Groups, KModules, Kernel, LoadAVG, OsRelease, Uptime, Users
-    }, vulnerabilities::Vulnerabilities
+    battery::BatInfo,
+    cpu::{Processors, Stat},
+    cpu_freq::CpuFreq,
+    drm::Video,
+    init::SystemdServices,
+    parts::Mounts,
+    ram::{RAM, Swaps},
+    soft::InstalledPackages,
+    sys::{
+        Groups, KModules, Kernel, LoadAVG, OsRelease, Uptime, Users, get_current_desktop,
+        get_env_vars, get_hostname, get_lang,
+    },
+    vulnerabilities::Vulnerabilities,
 };
 use iced::{
     Alignment::Center,
@@ -168,6 +178,10 @@ impl System {
 impl Ferrix {
     pub fn theme(&self) -> Theme {
         self.settings.style.to_theme()
+    }
+
+    pub fn title(&self) -> String {
+        format!("Ferrix System Monitor — {}", self.current_page.title_str())
     }
 
     pub fn update(&mut self, message: Message) -> Task<Message> {

@@ -23,12 +23,6 @@ use iced::{Size, window::Settings};
 
 const APP_LOGO: &[u8] = include_bytes!("../../data/icons/hicolor/scalable/apps/win_logo.png");
 
-#[cfg(debug_assertions)]
-const TITLE: &str = "Ferrix System Monitor [DEBUG]";
-
-#[cfg(not(debug_assertions))]
-const TITLE: &str = "Ferrix System Monitor";
-
 pub fn main() -> iced::Result {
     if &(std::env::var("USER").unwrap_or("".to_string())) == "root" {
         panic!("Running this program as `root` is prohibited.");
@@ -51,6 +45,6 @@ pub fn main() -> iced::Result {
         .antialiasing(true)
         .subscription(Ferrix::subscription)
         .theme(Ferrix::theme)
-        .title(TITLE)
+        .title(Ferrix::title)
         .run()
 }
