@@ -78,7 +78,7 @@ pub fn bat_page<'a>(bat_info: &'a DataLoadingState<BatInfo>) -> container::Conta
                 );
                 bat_list = bat_list.push(bat_table(bat));
             }
-            container(scrollable(bat_list))
+            container(scrollable(bat_list).spacing(5))
         }
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),

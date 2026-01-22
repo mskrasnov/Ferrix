@@ -48,9 +48,9 @@ pub fn storage_page<'a>(storages: &'a LoadState<Mounts>) -> container::Container
                 s2.cmp(&s1)
             });
 
-            container(scrollable(
-                container(storage_table(rows)).style(container::rounded_box),
-            ))
+            container(
+                scrollable(container(storage_table(rows)).style(container::rounded_box)).spacing(5),
+            )
         }
         LoadState::Error(why) => super::error_page(why),
         LoadState::Loading => super::loading_page(),

@@ -36,7 +36,7 @@ pub fn main() -> iced::Result {
         .window(Settings {
             icon: Some(iced::window::icon::from_file_data(APP_LOGO, None).unwrap()),
             min_size: Some(Size {
-                width: 780.,
+                width: 785.,
                 height: 470.,
             }),
             ..Default::default()

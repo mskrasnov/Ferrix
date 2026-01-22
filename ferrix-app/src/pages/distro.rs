@@ -60,7 +60,7 @@ pub fn distro_page<'a>(
             ];
 
             os_data = os_data.push(container(kv_info_table(rows)).style(container::rounded_box));
-            container(scrollable(os_data))
+            container(scrollable(os_data).spacing(5))
         }
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),

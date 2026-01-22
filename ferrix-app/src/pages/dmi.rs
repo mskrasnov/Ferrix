@@ -45,9 +45,7 @@ pub fn dmi_page<'a>(dmi: &'a DataLoadingState<DMIData>) -> container::Container<
             let chassis = chassis_table(&data.chassis);
             let proc = processor_table(&data.processor);
 
-            container(scrollable(
-                column![bios, baseboard, chassis, proc,].spacing(5),
-            ))
+            container(scrollable(column![bios, baseboard, chassis, proc,].spacing(5)).spacing(5))
         }
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),

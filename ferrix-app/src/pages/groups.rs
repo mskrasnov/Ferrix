@@ -46,7 +46,7 @@ pub fn groups_page<'a>(groups: &'a DataLoadingState<Groups>) -> container::Conta
                 .spacing(5);
                 groups_list = groups_list.push(grp_view);
             }
-            container(scrollable(groups_list))
+            container(scrollable(groups_list).spacing(5))
         }
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),

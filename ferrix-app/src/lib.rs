@@ -62,7 +62,7 @@ use ferrix_lib::{
 };
 use iced::{
     Alignment::Center,
-    Element, Length, Padding, Task, Theme,
+    Element, Length, Task, Theme,
     widget::{column, container, row, scrollable, text},
 };
 use std::{collections::HashSet, env::args};
@@ -243,10 +243,9 @@ fn sidebar<'a>(cur_page: Page) -> container::Container<'a, Message> {
         sidebar_button(Page::Settings, cur_page),
         sidebar_button(Page::About, cur_page),
     ]
-    .padding(Padding::new(0.).right(5.))
     .spacing(3);
 
-    container(column![buttons_bar, scrollable(pages_bar)].spacing(5))
+    container(column![buttons_bar, scrollable(pages_bar).spacing(5)].spacing(5))
         .padding(5)
         .style(container::bordered_box)
         .height(Length::Fill)

@@ -28,7 +28,7 @@ use crate::{
 use ferrix_lib::sys::{KModules, Kernel, Module};
 
 use iced::{
-    Length, Padding,
+    Length,
     widget::{center, column, container, scrollable, table, text},
 };
 
@@ -88,9 +88,6 @@ pub fn kernel_page<'a>(
             let layout = column![
                 text(fl!("kernel-summary-hdr")).style(text::warning),
                 container(kv_info_table(rows)).style(container::rounded_box),
-                // kern_summary_data,
-                // text(fl!("kernel-mods-hdr")).style(text::warning),
-                // kern_modules,
             ]
             .spacing(5);
 
@@ -111,10 +108,8 @@ pub fn kmods_page<'a>(kmods: &'a DataLoadingState<KModules>) -> container::Conta
                         .style(text::secondary),
                 ))
             } else {
-                let table = container(modules_table(&kmods.modules))
-                    .style(container::rounded_box)
-                    .padding(Padding::new(0.).right(10.));
-                container(scrollable(table))
+                let table = container(modules_table(&kmods.modules)).style(container::rounded_box);
+                container(scrollable(table).spacing(5))
             }
         }
         DataLoadingState::Error(why) => super::error_page(why),

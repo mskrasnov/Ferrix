@@ -44,7 +44,7 @@ pub fn drm_page<'a>(video: &'a DataLoadingState<Video>) -> container::Container<
                     layout = layout.push(screen_subpage(device, i));
                     i += 1;
                 }
-                container(scrollable(layout))
+                container(scrollable(layout).spacing(5))
             }
         }
         DataLoadingState::Error(why) => super::error_page(why),

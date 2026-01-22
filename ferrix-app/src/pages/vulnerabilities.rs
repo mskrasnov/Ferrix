@@ -35,7 +35,7 @@ pub fn vulnerabilities_page<'a>(
         DataLoadingState::Loaded(vulns) => {
             let vulns = &vulns.list;
             let table = container(vuln_table(vulns)).style(container::rounded_box);
-            container(scrollable(table))
+            container(scrollable(table).spacing(5))
         }
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),

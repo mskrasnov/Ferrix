@@ -38,7 +38,7 @@ pub fn env_page<'a>(
                 rows.push(InfoRow::new(&var.0, Some(var.1.to_string())));
             }
             let table = container(kv_info_table(rows)).style(container::rounded_box);
-            container(scrollable(table))
+            container(scrollable(table).spacing(5))
         }
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),

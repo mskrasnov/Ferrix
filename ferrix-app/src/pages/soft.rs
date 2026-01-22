@@ -24,18 +24,14 @@ use crate::{DataLoadingState, Message, fl, messages::ButtonsMessage, widgets::ta
 use ferrix_lib::soft::{InstalledPackages, Package};
 
 use iced::{
-    Length, Padding,
+    Length,
     widget::{button, column, container, row as _row, scrollable, space::horizontal, table, text},
 };
 
 pub fn soft_page<'a>(
     software: &'a DataLoadingState<InstalledPackages>,
 ) -> container::Container<'a, Message> {
-    container(scrollable(
-        column![soft_list(software),]
-            .padding(Padding::new(0.).right(15.))
-            .spacing(5),
-    ))
+    container(scrollable(column![soft_list(software),].spacing(5)).spacing(5))
 }
 
 fn soft_list<'a>(

@@ -112,7 +112,7 @@ pub fn cpu_freq_page<'a>(cpu_freq: &'a LoadState<CpuFreq>) -> container::Contain
                 idx += 1;
             }
 
-            container(scrollable(policy_list))
+            container(scrollable(policy_list).spacing(5))
         }
         LoadState::Error(why) => super::error_page(why),
         LoadState::Loading => super::loading_page(),

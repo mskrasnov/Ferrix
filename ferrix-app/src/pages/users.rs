@@ -49,7 +49,7 @@ pub fn users_page<'a>(users: &'a DataLoadingState<Users>) -> container::Containe
                 .spacing(5);
                 users_list = users_list.push(usr_view);
             }
-            container(scrollable(users_list))
+            container(scrollable(users_list).spacing(5))
         }
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),
