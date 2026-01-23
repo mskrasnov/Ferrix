@@ -1,11 +1,11 @@
 <div align="center">
-  <img src="ferrix-app/data/com.mskrasnov.Ferrix.svg" width="200">
+  <img src="https://raw.githubusercontent.com/mskrasnov/FSM/refs/heads/master/ferrix-app/data/com.mskrasnov.Ferrix.svg" width="200">
   <h1>Ferrix System Monitor — Swiss Knife for Linux Hardware Diagnostics</h1>
   <p><b>A simple program for getting information about computer hardware and installed software.</b></p>
 
   [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![Rust](https://img.shields.io/badge/Made%20with-Rust-orange?logo=rust)](https://www.rust-lang.org/) [![GitHub Release](https://img.shields.io/github/v/release/mskrasnov/ferrix?logo=github)](https://github.com/mskrasnov/ferrix/releases)
 
-  <img src="./screens/screen2.png"> <img src="./screens/screen5.png">
+  <img src="https://raw.githubusercontent.com/mskrasnov/FSM/refs/heads/master/screens/screen2.png"> <img src="https://raw.githubusercontent.com/mskrasnov/FSM/refs/heads/master/screens/screen5.png">
 </div>
 
 ## What is Ferrix?
