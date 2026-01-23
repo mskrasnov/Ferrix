@@ -30,6 +30,7 @@ use std::path::{Path, PathBuf};
 use crate::traits::ToJson;
 use crate::utils::Size;
 
+// NOTE: Is this structure really necessary, since there are `Mounts`?
 /// List of partitions from `/proc/partitions` file
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Partitions {
