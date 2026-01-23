@@ -30,32 +30,6 @@ Ferrix System Monitor is a Rust-crate and program for obtaining information abou
     - [X] JSON;
     - [X] XML;
 
-## Functions (`ferrix-app` crate)
-
-| Function | FSM (`ferrix-app`) | Hardinfo2 |
-|----------|--------------------|-----------|
-| Processor info | ✅ | ✅ |
-| Memory usage | ✅ | ✅ |
-| Storage info | ✅ | ✅ |
-| DMI Tables | **✅** (TODO, but it already displays more data than Hardinfo) | ✅ |
-| RAM SPD Data | ❌ | **✅** |
-| Battery | **✅** (more correctly; without negative values) | ✅ |
-| Connected screens | ✅ | ✅ |
-| Connected USB devices | ❌ (TODO) | **✅** |
-| Connected PCI devices | ❌ (TODO) | **✅** |
-| Installed distro | **✅** (more data than Hardinfo) | ✅ |
-| Users and groups | ✅ | ✅ |
-| systemd services | **✅** | ❌ |
-| Installed software | **✅** | ❌ |
-| Environment veriables | ✅ | ✅ |
-| Sensors | ❌ (TODO) | **✅** |
-| Network | ❌ (TODO) | **✅** |
-| Kernel and modules | ✅ | ✅ |
-| Printers | ❌ | **✅** |
-| System load | ✅ (loadavg, uptime); **✅** (CPU & RAM Usage Charts) | ✅ (loadavg, uptime); ❌ (CPU & RAM Usage Charts is ugly and incorrect) |
-| Hardware benchmarks | ❌ | **✅** |
-| Copy to clipboard | ✅ [WIP] | Partial |
-
 ## Build & Install
 
 ```bash
@@ -116,7 +90,7 @@ rustup target add i686-unknown-linux-gnu
 Build Ferrix:
 
 ```bash
-cargo build [--release] --target={i686,aarch64}-unknown-linux-gnu
+cargo build [--release] --target={i686/aarch64}-unknown-linux-gnu
 # or:
 make TARGET={i686/aarch64}-unknown-linux-gnu build
 ```
