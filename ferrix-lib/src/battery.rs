@@ -22,7 +22,10 @@
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use std::{fs::{read_to_string, read_dir}, path::Path};
+use std::{
+    fs::{read_dir, read_to_string},
+    path::Path,
+};
 
 use crate::traits::ToJson;
 
@@ -73,7 +76,7 @@ pub struct Battery {
     pub model_name: Option<String>,
     pub manufacturer: Option<String>,
     pub serial_number: Option<String>,
-    pub health: Option<u32>,
+    pub health: Option<f32>,
     pub discharge_time: Option<f32>,
     pub charge_time: Option<f32>,
 }
@@ -148,7 +151,7 @@ fn calculate_health(bat: &mut Battery) {
     if bat.energy_full.is_some() && bat.energy_full_design.is_some() {
         let (energy_full, energy_full_design) =
             (bat.energy_full.unwrap(), bat.energy_full_design.unwrap());
-        bat.health = Some(energy_full as u32 / energy_full_design as u32 * 100);
+        bat.health = Some(energy_full / energy_full_design * 100.);
     }
 }
 

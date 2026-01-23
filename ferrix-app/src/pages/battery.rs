@@ -118,7 +118,10 @@ fn bat_table<'a>(bat: &'a Battery) -> container::Container<'a, Message> {
                 }
             )),
         ),
-        InfoRow::new(fl!("bat-health"), fmt_val(bat.health)),
+        InfoRow::new(
+            fl!("bat-health"),
+            bat.health.and_then(|h| Some(format!("{h:.3}%"))),
+        ),
         InfoRow::new(fl!("bat-tech"), bat.technology.clone()),
         InfoRow::new(fl!("bat-cycle-cnt"), fmt_val(bat.cycle_count)),
         InfoRow::new(fl!("bat-volt-min-des"), fmt_val(bat.voltage_min_design)),
