@@ -3,13 +3,13 @@ members=["ferrix-app", "ferrix-lib"]
 resolver="2"
 
 [workspace.package]
-version = "0.4.0"
+version = "0.5.1"
 edition = "2024"
 authors = ["Michail Krasnov <mskrasnov07@ya.ru>"]
 license = "GPL-3.0"
 repository = "https://github.com/mskrasnov/FSM"
 readme = "README.md"
-exclude = ["README_RU.md", "example.*", "TODO.md"]
+exclude = ["example.*", "TODO.md", "screens"]
 
 [profile.release]
 lto = true
