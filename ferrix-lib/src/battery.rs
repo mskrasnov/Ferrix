@@ -151,11 +151,12 @@ fn calculate_health(bat: &mut Battery) {
     if bat.energy_full.is_some() && bat.energy_full_design.is_some() {
         let (energy_full, energy_full_design) =
             (bat.energy_full.unwrap(), bat.energy_full_design.unwrap());
-        bat.health = Some(energy_full / energy_full_design * 100.);
+        bat.health = Some((energy_full / energy_full_design * 100.).min(100.));
     }
 }
 
 fn calculate_time(bat: &mut Battery) {
+    // FIXME!
     if let (Some(energy_now), Some(power)) = (bat.energy_now, bat.power_now) {
         if power > 0.001 {
             bat.discharge_time = Some((energy_now / power).max(0.).min(999.))
