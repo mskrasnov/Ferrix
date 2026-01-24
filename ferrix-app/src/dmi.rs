@@ -24,13 +24,33 @@ use anyhow::Result;
 use async_std::task;
 use ferrix_lib::dmi::{Baseboard, Bios, Chassis, Processor};
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use std::{path::Path, process::Command};
 
 use crate::load_state::{LoadState, ToLoadState};
 
+fn auth_app() -> Option<&'static str> {
+    let apps = ["pkexec", "gksudo"];
+    let bin_dirs = ["/usr/sbin", "/sbin", "/usr/bin", "/bin"];
+
+    for a in apps {
+        for b in bin_dirs {
+            if Path::new(b).join(a).exists() {
+                return Some(a);
+            }
+        }
+    }
+
+    None
+}
+
 pub async fn get_dmi_data() -> LoadState<DMIData> {
-    let output = task::spawn_blocking(|| {
-        Command::new("pkexec")
+    let auth_app = match auth_app() {
+        Some(auth_app) => auth_app,
+        None => return LoadState::Error("No authentication software found".to_string()),
+    };
+
+    let output = task::spawn_blocking(move || {
+        Command::new(auth_app)
             .arg("ferrix-polkit")
             .arg("dmi")
             .output()
