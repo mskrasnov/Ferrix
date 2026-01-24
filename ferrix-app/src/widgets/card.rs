@@ -43,6 +43,11 @@ impl Card {
         }
     }
 
+    pub fn set_transparent(mut self, trans: bool) -> Self {
+        self.is_transparent = trans;
+        self
+    }
+
     pub fn widget<'a, C>(&self, contents: C) -> Element<'a, Message>
     where
         C: Into<Element<'a, Message>>,
