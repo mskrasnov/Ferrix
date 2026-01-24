@@ -21,7 +21,8 @@
 //! Program settings page
 
 use crate::{
-    Ferrix, fl,
+    ferrix::Ferrix,
+    fl,
     messages::{ButtonsMessage, Message, SettingsMessage},
     settings::Style,
     widgets::icon_tooltip,
