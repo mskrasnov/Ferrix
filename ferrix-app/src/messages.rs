@@ -36,9 +36,10 @@ use ferrix_lib::{
 use iced::{Task, color, time::Instant};
 
 use crate::{
-    DataLoadingState, Ferrix, Page, SETTINGS_PATH, System,
+    DataLoadingState, Page, SETTINGS_PATH, System,
     dmi::DMIData,
     export::{ExportData, ExportFormat, ExportMode},
+    ferrix::{Ferrix, FerrixData},
     settings::Style,
     styles::CPU_CHARTS_COLORS,
     utils::get_home,
@@ -59,7 +60,7 @@ pub enum Message {
 impl Message {
     pub fn update<'a>(self, state: &'a mut Ferrix) -> Task<Message> {
         match self {
-            Self::DataReceiver(data) => data.update(state),
+            Self::DataReceiver(data) => data.update(&mut state.data, state.current_page),
             Self::ExportManager(export) => export.update(state),
             Self::Settings(settings) => settings.update(state),
             Self::Buttons(buttons) => buttons.update(state),
@@ -144,7 +145,7 @@ pub enum DataReceiverMessage {
 }
 
 impl DataReceiverMessage {
-    pub fn update<'a>(self, fx: &'a mut Ferrix) -> Task<Message> {
+    pub fn update<'a>(self, fx: &'a mut FerrixData, cur_page: Page) -> Task<Message> {
         match self {
             Self::CPUDataReceived(state) => {
                 fx.proc_data = state;
@@ -161,10 +162,10 @@ impl DataReceiverMessage {
                 |val| Message::DataReceiver(Self::CPUDataReceived(val)),
             ),
             Self::AnimationTick(now) => {
-                if let Page::SystemMonitor = fx.current_page {
-                    fx.cpu_usage_chart.set_max_y(100.);
-                    fx.ram_usage_chart.set_max_y(100.);
-                }
+                // if cur_page == Page::SystemMonitor {
+                fx.cpu_usage_chart.set_max_y(100.);
+                fx.ram_usage_chart.set_max_y(100.);
+                // }
                 fx.cpu_usage_chart.tick(now);
                 fx.ram_usage_chart.tick(now);
 
@@ -307,7 +308,7 @@ impl DataReceiverMessage {
                 Task::none()
             }
             Self::GetDMIData => {
-                if !fx.is_polkit && fx.dmi_data.is_none() && fx.current_page == Page::DMI {
+                if !fx.is_polkit && fx.dmi_data.is_none() && cur_page == Page::DMI {
                     fx.is_polkit = true;
                     Task::perform(async move { crate::dmi::get_dmi_data().await }, |val| {
                         Message::DataReceiver(Self::DMIDataReceived(val))
@@ -618,7 +619,6 @@ pub enum ButtonsMessage {
     LinkButtonPressed(String),
     SaveSettingsButtonPressed,
     CopyButtonPressed(String),
-    ShowToastToggle,
 }
 
 impl ButtonsMessage {
@@ -626,17 +626,8 @@ impl ButtonsMessage {
         match self {
             Self::LinkButtonPressed(url) => fx.go_to_url(&url),
             Self::SaveSettingsButtonPressed => fx.save_settings(),
-            Self::CopyButtonPressed(s) => {
-                fx.show_copy_toast = true;
-                iced::clipboard::write(s)
-            },
-            Self::ShowToastToggle => self.show_toast_toggle(fx),
+            Self::CopyButtonPressed(s) => iced::clipboard::write(s),
         }
-    }
-
-    fn show_toast_toggle<'a>(&self, fx: &'a mut Ferrix) -> Task<Message> {
-        fx.show_copy_toast = !fx.show_copy_toast;
-        Task::none()
     }
 }
 

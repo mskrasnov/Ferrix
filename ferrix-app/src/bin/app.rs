@@ -18,7 +18,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-use ferrix_app::Ferrix;
+use ferrix_app::ferrix::Ferrix;
 use iced::{Size, window::Settings};
 
 const APP_LOGO: &[u8] = include_bytes!("../../data/icons/hicolor/scalable/apps/win_logo.png");

@@ -27,7 +27,9 @@ use iced::{
 };
 
 use crate::{
-    Ferrix, Message, fl,
+    Message,
+    ferrix::Ferrix,
+    fl,
     icons::ERROR_ICON,
     widgets::{header_text, link_button},
 };
@@ -182,30 +184,33 @@ impl<'a> Page {
 
     pub fn page(&'a self, state: &'a Ferrix) -> Element<'a, Message> {
         let page = match self {
-            Self::Dashboard => dashboard::dashboard(state).into(),
-            Self::SystemMonitor => {
-                sysmon::usage_charts_page(&state, &state.curr_proc_stat, &state.prev_proc_stat)
-                    .into()
-            }
-            Self::Processors => cpu::proc_page(&state.proc_data).into(),
-            Self::CPUFrequency => cpu_freq::cpu_freq_page(&state.cpu_freq).into(),
+            Self::Dashboard => dashboard::dashboard(&state.data).into(),
+            Self::SystemMonitor => sysmon::usage_charts_page(
+                &state.data,
+                &state.data.curr_proc_stat,
+                &state.data.prev_proc_stat,
+            )
+            .into(), // TODO: cur_stat and proc_stat - ???
+            // TODO: replace multiple arguments!
+            Self::Processors => cpu::proc_page(&state.data.proc_data).into(),
+            Self::CPUFrequency => cpu_freq::cpu_freq_page(&state.data.cpu_freq).into(),
             Self::CPUVulnerabilities => {
-                vulnerabilities::vulnerabilities_page(&state.cpu_vulnerabilities).into()
+                vulnerabilities::vulnerabilities_page(&state.data.cpu_vulnerabilities).into()
             }
-            Self::Memory => ram::ram_page(&state.ram_data, &state.swap_data).into(),
-            Self::FileSystems => storage::storage_page(&state.storages).into(),
-            Self::DMI => dmi::dmi_page(&state.dmi_data).into(),
-            Self::Battery => battery::bat_page(&state.bat_data).into(),
-            Self::Screen => drm::drm_page(&state.drm_data).into(),
-            Self::Distro => distro::distro_page(&state.osrel_data).into(),
-            Self::Kernel => kernel::kernel_page(&state.kernel_data).into(),
-            Self::KModules => kernel::kmods_page(&state.kmods_data).into(),
-            Self::SystemMisc => system::system_page(&state.system).into(),
-            Self::Users => users::users_page(&state.users_list).into(),
-            Self::Groups => groups::groups_page(&state.groups_list).into(),
-            Self::SystemManager => systemd::services_page(&state.sysd_services_list).into(),
-            Self::Software => soft::soft_page(&state.installed_pkgs_list).into(),
-            Self::Environment => env::env_page(&state.system).into(),
+            Self::Memory => ram::ram_page(&state.data.ram_data, &state.data.swap_data).into(),
+            Self::FileSystems => storage::storage_page(&state.data.storages).into(),
+            Self::DMI => dmi::dmi_page(&state.data.dmi_data).into(),
+            Self::Battery => battery::bat_page(&state.data.bat_data).into(),
+            Self::Screen => drm::drm_page(&state.data.drm_data).into(),
+            Self::Distro => distro::distro_page(&state.data.osrel_data).into(),
+            Self::Kernel => kernel::kernel_page(&state.data.kernel_data).into(),
+            Self::KModules => kernel::kmods_page(&state.data.kmods_data).into(),
+            Self::SystemMisc => system::system_page(&state.data.system).into(),
+            Self::Users => users::users_page(&state.data.users_list).into(),
+            Self::Groups => groups::groups_page(&state.data.groups_list).into(),
+            Self::SystemManager => systemd::services_page(&state.data.sysd_services_list).into(),
+            Self::Software => soft::soft_page(&state.data.installed_pkgs_list).into(),
+            Self::Environment => env::env_page(&state.data.system).into(),
             Self::Settings => settings::settings_page(&state).into(),
             Self::Export => export::export_page().into(),
             Self::About => self.about_page().into(),

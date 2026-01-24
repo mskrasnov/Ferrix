@@ -132,20 +132,20 @@ pub struct ExportData<'a> {
     pub misc: Option<ExportMember<'a, crate::System>>,
 }
 
-impl<'a> From<&'a mut crate::Ferrix> for ExportData<'a> {
-    fn from(value: &'a mut crate::Ferrix) -> Self {
+impl<'a> From<&'a mut crate::ferrix::Ferrix> for ExportData<'a> {
+    fn from(value: &'a mut crate::ferrix::Ferrix) -> Self {
         Self {
-            cpu: get_data(&value.proc_data),
-            ram: get_data(&value.ram_data),
-            battery: get_data(&value.bat_data),
-            drm: get_data(&value.drm_data),
-            os_release: get_data(&value.osrel_data),
-            kernel: get_data(&value.kernel_data),
-            kmods: get_data(&value.kmods_data),
-            users: get_data(&value.users_list),
-            groups: get_data(&value.groups_list),
-            systemd: get_data(&value.sysd_services_list),
-            misc: get_data(&value.system),
+            cpu: get_data(&value.data.proc_data),
+            ram: get_data(&value.data.ram_data),
+            battery: get_data(&value.data.bat_data),
+            drm: get_data(&value.data.drm_data),
+            os_release: get_data(&value.data.osrel_data),
+            kernel: get_data(&value.data.kernel_data),
+            kmods: get_data(&value.data.kmods_data),
+            users: get_data(&value.data.users_list),
+            groups: get_data(&value.data.groups_list),
+            systemd: get_data(&value.data.sysd_services_list),
+            misc: get_data(&value.data.system),
         }
     }
 }

@@ -20,7 +20,7 @@
 
 //! CPU usage charts
 
-use crate::{DataLoadingState, Ferrix, Message, fl, widgets::glassy_container};
+use crate::{DataLoadingState, Message, ferrix::FerrixData, fl, widgets::glassy_container};
 use ferrix_lib::cpu::Stat;
 
 use iced::{
@@ -29,7 +29,7 @@ use iced::{
 };
 
 pub fn usage_charts_page<'a>(
-    fx: &'a Ferrix,
+    fx: &'a FerrixData,
     cur_stat: &'a DataLoadingState<Stat>,
     prev_stat: &'a DataLoadingState<Stat>,
 ) -> container::Container<'a, Message> {
