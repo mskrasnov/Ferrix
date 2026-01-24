@@ -1,6 +1,6 @@
 /* dashboard.rs
  *
- * Copyright 2025 Michail Krasnov <mskrasnov07@ya.ru>
+ * Copyright 2025-2026 Michail Krasnov <mskrasnov07@ya.ru>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,15 +20,9 @@
 
 //! Dashboard page
 
-use crate::{Ferrix, Message, Page, fl, load_state::LoadState};
+use crate::{Message, Page, ferrix::FerrixData, fl, load_state::LoadState, widgets::card::Card};
 use ferrix_lib::{battery::Status, utils::Size};
-
-use iced::{
-    Element, Font, Length, Vector, color, never,
-    widget::{
-        button, column, container, grid, progress_bar, rich_text, scrollable, space, span, text,
-    },
-};
+use iced::widget::{column, container, grid, progress_bar, scrollable, text};
 
 #[derive(Debug, Clone, Copy)]
 struct SwapUsage<'a> {
@@ -39,7 +33,7 @@ struct SwapUsage<'a> {
     used_b: f32,
 }
 
-pub fn dashboard<'a>(fx: &'a Ferrix) -> container::Container<'a, Message> {
+pub fn dashboard<'a>(fx: &'a FerrixData) -> container::Container<'a, Message> {
     let (proc_name, proc_threads) = {
         match fx.proc_data.to_option() {
             Some(proc) => {
@@ -156,13 +150,16 @@ pub fn dashboard<'a>(fx: &'a Ferrix) -> container::Container<'a, Message> {
     };
 
     let mut items = vec![
-        card(
-            fl!("dash-proc"),
-            fl!("dash-proc-info", name = proc_name, threads = proc_threads),
-            Message::SelectPage(Page::Processors),
-        ),
-        widget_card(
+        Card::new(fl!("dash-proc"), Message::SelectPage(Page::Processors)).widget(text(fl!(
+            "dash-proc-info",
+            name = proc_name,
+            threads = proc_threads
+        ))),
+        Card::new(
             fl!("dash-proc-usage"),
+            Message::SelectPage(Page::SystemMonitor),
+        )
+        .widget(
             column![
                 text(fl!(
                     "dash-proc-usg_label",
@@ -171,10 +168,8 @@ pub fn dashboard<'a>(fx: &'a Ferrix) -> container::Container<'a, Message> {
                 progress_bar(0.0..=100., cpu_usage),
             ]
             .spacing(5),
-            Message::SelectPage(Page::SystemMonitor),
         ),
-        widget_card(
-            fl!("dash-mem"),
+        Card::new(fl!("dash-mem"), Message::SelectPage(Page::Memory)).widget(
             column![
                 column![
                     text(fl!("dash-mem-used", used = used_ram.to_string())),
@@ -183,15 +178,10 @@ pub fn dashboard<'a>(fx: &'a Ferrix) -> container::Container<'a, Message> {
                 progress_bar(0.0..=total_ram_bytes, used_ram_bytes),
             ]
             .spacing(5),
-            Message::SelectPage(Page::Memory),
         ),
-        card(fl!("dash-sys"), os_name, Message::SelectPage(Page::Distro)),
-        card(
-            fl!("dash-host"),
-            hostname,
-            Message::SelectPage(Page::SystemMisc),
-        ),
-        card(fl!("misc-de"), de, Message::SelectPage(Page::SystemMisc)),
+        Card::new(fl!("dash-sys"), Message::SelectPage(Page::Distro)).widget(text(os_name)),
+        Card::new(fl!("dash-host"), Message::SelectPage(Page::SystemMisc)).widget(text(hostname)),
+        Card::new(fl!("misc-de"), Message::SelectPage(Page::SystemMisc)).widget(text(de)),
     ];
 
     /* 0 - CPU,
@@ -203,8 +193,7 @@ pub fn dashboard<'a>(fx: &'a Ferrix) -> container::Container<'a, Message> {
     for swap in swaps_usage {
         items.insert(
             offset,
-            widget_card(
-                fl!("dash-swap"),
+            Card::new(fl!("dash-swap"), Message::SelectPage(Page::Memory)).widget(
                 column![
                     column![
                         text(swap.name),
@@ -220,22 +209,21 @@ pub fn dashboard<'a>(fx: &'a Ferrix) -> container::Container<'a, Message> {
                     progress_bar(0.0..=swap.size_b, swap.used_b),
                 ]
                 .spacing(5),
-                Message::SelectPage(Page::Memory),
             ),
         );
         offset += 1;
     }
 
     for bat in battery {
-        items.push(widget_card(
-            fl!("dash-bat"),
-            column![
-                text(format!("{}: {}%", bat.0, bat.1)),
-                progress_bar(0.0..=100., bat.1 as f32)
-            ]
-            .spacing(5),
-            Message::SelectPage(Page::Battery),
-        ));
+        items.push(
+            Card::new(fl!("dash-bat"), Message::SelectPage(Page::Battery)).widget(
+                column![
+                    text(format!("{}: {}%", bat.0, bat.1)),
+                    progress_bar(0.0..=100., bat.1 as f32)
+                ]
+                .spacing(5),
+            ),
+        );
     }
 
     if let LoadState::Loaded(storages) = &fx.storages {
@@ -251,22 +239,26 @@ pub fn dashboard<'a>(fx: &'a Ferrix) -> container::Container<'a, Message> {
                     None => (0., Size::None, Size::None),
                 };
 
-                items.push(widget_card(
-                    match &storage.mount_point as &str {
-                        "/" => fl!("dash-root-part"),
-                        "/home" => fl!("dash-home-part"),
-                        _ => fl!("dash-unk-part"),
-                    },
-                    column![
+                items.push(
+                    Card::new(
+                        match &storage.mount_point as &str {
+                            "/" => fl!("dash-root-part"),
+                            "/home" => fl!("dash-home-part"),
+                            _ => fl!("dash-unk-part"),
+                        },
+                        Message::SelectPage(Page::FileSystems),
+                    )
+                    .widget(
                         column![
-                            text(fl!("dash-mem-used", used = used.to_string())),
-                            text(fl!("dash-mem-total", total = total.to_string()))
-                        ],
-                        progress_bar(0.0..=100., usage_percent),
-                    ]
-                    .spacing(5),
-                    Message::SelectPage(Page::FileSystems),
-                ));
+                            column![
+                                text(fl!("dash-mem-used", used = used.to_string())),
+                                text(fl!("dash-mem-total", total = total.to_string()))
+                            ],
+                            progress_bar(0.0..=100., usage_percent),
+                        ]
+                        .spacing(5),
+                    ),
+                );
             }
         }
     }
@@ -276,59 +268,4 @@ pub fn dashboard<'a>(fx: &'a Ferrix) -> container::Container<'a, Message> {
         gr = gr.push(item);
     }
     container(scrollable(gr).spacing(5))
-}
-
-fn card<'a, H, C>(header: H, contents: C, on_press: Message) -> button::Button<'a, Message>
-where
-    H: text::IntoFragment<'a>,
-    C: text::IntoFragment<'a>,
-{
-    widget_card(header, text(contents), on_press)
-}
-
-fn widget_card<'a, H, C>(header: H, contents: C, on_press: Message) -> button::Button<'a, Message>
-where
-    H: text::IntoFragment<'a>,
-    C: Into<Element<'a, Message>>,
-{
-    button(
-        container(
-            column![
-                rich_text![
-                    span(header)
-                        .font(Font {
-                            weight: iced::font::Weight::Bold,
-                            ..Default::default()
-                        })
-                        .size(16),
-                ]
-                .on_link_click(never),
-                space().width(Length::Fill).height(Length::Fill),
-                contents.into(),
-            ]
-            .spacing(5),
-        )
-        .width(135)
-        .max_width(135)
-        .height(135)
-        .max_height(135)
-        .style(|t| container::Style {
-            shadow: iced::Shadow {
-                color: {
-                    if t.extended_palette().is_dark {
-                        color!(0x1d2021)
-                    } else {
-                        color!(0xebdbb2)
-                    }
-                },
-                offset: Vector::new(2., 2.),
-                blur_radius: 2.,
-            },
-            ..container::rounded_box(t)
-        })
-        .padding(5),
-    )
-    .style(button::text)
-    .padding(0)
-    .on_press(on_press)
 }

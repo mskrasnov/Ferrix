@@ -1,6 +1,6 @@
 /* widgets.rs
  *
- * Copyright 2025 Michail Krasnov <mskrasnov07@ya.ru>
+ * Copyright 2025-2026 Michail Krasnov <mskrasnov07@ya.ru>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@ use iced::{
     widget::{button, column, container, svg, text, tooltip::Position},
 };
 
+pub mod card;
 pub mod line_charts;
 pub mod table;
 
