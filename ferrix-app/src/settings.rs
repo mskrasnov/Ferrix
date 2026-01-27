@@ -72,6 +72,7 @@ impl Style {
                 palette.danger = color!(0xaf3a03);
                 palette.warning = color!(0xb57614);
                 palette.primary = color!(0xd79921);
+                palette.background = color!(0xebdbb2);
 
                 Theme::custom("Ferrix Light Theme", palette)
             }

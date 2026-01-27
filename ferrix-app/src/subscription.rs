@@ -46,16 +46,12 @@ impl<T> PushMaybe<T> for Vec<T> {
 
 impl Ferrix {
     pub fn subscription(&self) -> Script<Message> {
-        let u = self.settings.update_period as u64;
         let mut scripts = vec![
             // Charts
-            time::every(Duration::from_secs(u))
+            time::every(Duration::from_secs_f32(0.5))
                 .map(|_| Message::DataReceiver(DataReceiverMessage::AddCPUCoreLineSeries)),
-            time::every(Duration::from_secs(u))
+            time::every(Duration::from_secs_f32(0.5))
                 .map(|_| Message::DataReceiver(DataReceiverMessage::AddTotalRAMUsage)),
-            // Charts update
-            iced::window::frames()
-                .map(|inst| Message::DataReceiver(DataReceiverMessage::AnimationTick(inst))),
         ];
         let oscripts = [
             self.cpu_basic_data(),

@@ -23,8 +23,15 @@
 use std::collections::HashSet;
 
 use crate::{
-    SETTINGS_PATH, dmi::DMIData, load_state::LoadState, messages::Message, pages::Page,
-    settings::FXSettings, sidebar::sidebar, utils::get_home, widgets::line_charts::LineChart,
+    SETTINGS_PATH,
+    dmi::DMIData,
+    load_state::LoadState,
+    messages::Message,
+    pages::Page,
+    settings::{FXSettings, Style},
+    sidebar::sidebar,
+    utils::get_home,
+    widgets::line_charts::LineChart,
 };
 use ferrix_lib::{
     battery::BatInfo,
@@ -53,12 +60,14 @@ impl Default for Ferrix {
             Some(a) => Page::from(a as &str),
             None => Page::default(),
         };
+        let settings = FXSettings::read(get_home().join(".config").join(SETTINGS_PATH))
+                .unwrap_or_default();
+        let style = settings.style.clone();
 
         Self {
             current_page: page,
-            settings: FXSettings::read(get_home().join(".config").join(SETTINGS_PATH))
-                .unwrap_or_default(),
-            data: FerrixData::default(),
+            settings,
+            data: FerrixData::new(&style),
         }
     }
 }
@@ -124,10 +133,10 @@ impl Default for FerrixData {
         Self {
             is_polkit: false,
 
-            cpu_usage_chart: LineChart::new().legend(true).fill_alpha(0.25).animated(1.),
+            cpu_usage_chart: LineChart::new(),
             show_cpus_chart: HashSet::new(),
-            show_chart_elements: 45,
-            ram_usage_chart: LineChart::new().legend(true).fill_alpha(0.25).animated(1.),
+            show_chart_elements: 100,
+            ram_usage_chart: LineChart::new(),
             show_mem_chart: HashSet::new(),
             show_ram_chart: true,
 
@@ -150,6 +159,21 @@ impl Default for FerrixData {
             sysd_services_list: LoadState::default(),
             installed_pkgs_list: LoadState::default(),
             system: LoadState::default(),
+        }
+    }
+}
+
+impl FerrixData {
+    pub fn new(style: &Style) -> Self {
+        let mut cpu_usage_chart = LineChart::new();
+        cpu_usage_chart.set_style(&style.to_theme());
+        let mut ram_usage_chart = LineChart::new();
+        ram_usage_chart.set_style(&style.to_theme());
+
+        Self {
+            cpu_usage_chart,
+            ram_usage_chart,
+            ..Default::default()
         }
     }
 }

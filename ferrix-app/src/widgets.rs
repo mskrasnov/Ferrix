@@ -20,14 +20,13 @@
 
 //! Custom widgets for UI
 
-use iced::Alignment::Center;
-use iced::widget::svg::Handle;
-use iced::widget::text::IntoFragment;
-use iced::widget::{Column, row, rule, tooltip};
-use iced::{Border, Element, Theme};
 use iced::{
-    Color,
-    widget::{button, column, container, svg, text, tooltip::Position},
+    Alignment::Center,
+    Color, Element, Theme,
+    widget::{
+        Column, button, column, container, row, rule, svg, svg::Handle, text, text::IntoFragment,
+        tooltip, tooltip::Position,
+    },
 };
 
 pub mod card;
@@ -195,15 +194,5 @@ where
 {
     container(column![category_header(header), content.into()].spacing(5))
         .padding(5)
-        .style(|t| {
-            let palette = t.palette();
-            let bg = palette.text.scale_alpha(0.03);
-            let border_color = palette.text.scale_alpha(0.08);
-
-            container::Style::default().background(bg).border(Border {
-                color: border_color,
-                width: 1.,
-                radius: 5.0.into(),
-            })
-        })
+        .style(container::rounded_box)
 }

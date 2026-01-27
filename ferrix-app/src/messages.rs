@@ -33,7 +33,7 @@ use ferrix_lib::{
     traits::ToJson,
     vulnerabilities::Vulnerabilities,
 };
-use iced::{Task, color, time::Instant};
+use iced::{Task, color};
 
 use crate::{
     DataLoadingState, Page, SETTINGS_PATH, System,
@@ -82,9 +82,6 @@ impl Ferrix {
 pub enum DataReceiverMessage {
     GetCPUData,
     CPUDataReceived(DataLoadingState<Processors>),
-
-    AnimationTick(Instant),
-    ToggleStacked,
 
     // AddTotalCPUUsage,
     AddCPUCoreLineSeries,
@@ -161,22 +158,6 @@ impl DataReceiverMessage {
                 },
                 |val| Message::DataReceiver(Self::CPUDataReceived(val)),
             ),
-            Self::AnimationTick(now) => {
-                // if cur_page == Page::SystemMonitor {
-                fx.cpu_usage_chart.set_max_y(100.);
-                fx.ram_usage_chart.set_max_y(100.);
-                // }
-                fx.cpu_usage_chart.tick(now);
-                fx.ram_usage_chart.tick(now);
-
-                Task::none()
-            }
-            Self::ToggleStacked => {
-                fx.cpu_usage_chart.toggle_stacked();
-                fx.ram_usage_chart.toggle_stacked();
-
-                Task::none()
-            }
             Self::ProcStatReceived(state) => {
                 if fx.curr_proc_stat.is_some() {
                     fx.prev_proc_stat = fx.curr_proc_stat.clone();
@@ -223,6 +204,9 @@ impl DataReceiverMessage {
 
                 let colors = CPU_CHARTS_COLORS;
                 for id in 0..len {
+                    let percent =
+                        curr_proc.cpus[id].usage_percentage(Some(prev_proc.cpus[id])) as f64;
+
                     if fx.show_cpus_chart.get(&id).is_none() {
                         let color = {
                             if colors.len() - 1 < id {
@@ -233,17 +217,12 @@ impl DataReceiverMessage {
                         };
                         let mut line =
                             LineSeries::new(format!("CPU #{id}"), color, fx.show_chart_elements);
-                        line.push(
-                            curr_proc.cpus[id].usage_percentage(Some(prev_proc.cpus[id])) as f64,
-                        );
+                        line.push(percent);
+
                         fx.cpu_usage_chart.push_series(line);
                         fx.show_cpus_chart.insert(id);
                     } else {
-                        fx.cpu_usage_chart.push_to(
-                            id,
-                            "",
-                            curr_proc.cpus[id].usage_percentage(Some(prev_proc.cpus[id])) as f64,
-                        );
+                        fx.cpu_usage_chart.push_to(id, percent);
                     }
                 }
 
@@ -386,12 +365,16 @@ impl DataReceiverMessage {
                 let ram_usage = ram.usage_percentage().unwrap_or(0.);
 
                 if fx.ram_usage_chart.series_count() == 0 {
-                    let mut ram_line =
-                        LineSeries::new(format!("RAM"), ram_color, fx.show_chart_elements);
+                    let mut ram_line = LineSeries::new(
+                        format!("RAM"),
+                        ram_color,
+                        fx.show_chart_elements,
+                        // fx.show_chart_elements,
+                    );
                     ram_line.push(ram_usage);
                     fx.ram_usage_chart.push_series(ram_line);
                 } else {
-                    fx.ram_usage_chart.push_to(0, "", ram_usage);
+                    fx.ram_usage_chart.push_to(0, ram_usage);
                 }
 
                 if let Some(swap) = swap.to_option() {
@@ -411,7 +394,7 @@ impl DataReceiverMessage {
                                 colors[id]
                             };
                             let mut line = LineSeries::new(
-                                &swap.swaps[id].filename,
+                                swap.swaps[id].filename.clone(),
                                 color,
                                 fx.show_chart_elements,
                             );
@@ -419,7 +402,7 @@ impl DataReceiverMessage {
 
                             fx.ram_usage_chart.push_series(line);
                         } else {
-                            fx.ram_usage_chart.push_to(series_idx, "", swap_usage);
+                            fx.ram_usage_chart.push_to(series_idx, swap_usage);
                         }
                     }
                 }
@@ -605,6 +588,8 @@ impl SettingsMessage {
 impl Ferrix {
     fn change_style(&mut self, style: Style) -> Task<Message> {
         self.settings.style = style;
+        self.data.cpu_usage_chart.set_style(&style.to_theme());
+        self.data.ram_usage_chart.set_style(&style.to_theme());
         Task::none()
     }
 

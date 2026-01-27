@@ -25,7 +25,8 @@ use ferrix_lib::cpu::Stat;
 
 use iced::{
     Alignment::Center,
-    widget::{button, column, container, row, slider, text},
+    Length,
+    widget::{column, container, row, slider, space, text},
 };
 
 pub fn usage_charts_page<'a>(
@@ -45,7 +46,7 @@ pub fn usage_charts_page<'a>(
 
     let mx = row![
         text(fl!("sysmon-x-axis")),
-        slider(10.0..=60., fx.show_chart_elements as f64, |elems| {
+        slider(10.0..=120., fx.show_chart_elements as f64, |elems| {
             Message::DataReceiver(
                 crate::messages::DataReceiverMessage::ChangeShowCPUChartElements(elems as usize),
             )
@@ -57,21 +58,13 @@ pub fn usage_charts_page<'a>(
 
     let line_widget = column![
         row![
-            button(text(fl!("sysmon-toggle"))).on_press(Message::DataReceiver(
-                crate::messages::DataReceiverMessage::ToggleStacked
-            )),
-            mx
+            space::horizontal().width(Length::FillPortion(1)),
+            mx.width(Length::FillPortion(2))
         ]
         .align_y(Center)
         .spacing(5),
-        glassy_container(
-            fl!("sysmon-cpu-hdr"),
-            fx.cpu_usage_chart.chart().padding(3.into()),
-        ),
-        glassy_container(
-            fl!("sysmon-ram-hdr"),
-            fx.ram_usage_chart.chart().padding(3.into()),
-        ),
+        glassy_container(fl!("sysmon-cpu-hdr"), fx.cpu_usage_chart.view()),
+        glassy_container(fl!("sysmon-ram-hdr"), fx.ram_usage_chart.view()),
     ]
     .spacing(5);
 
