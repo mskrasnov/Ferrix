@@ -196,7 +196,7 @@ impl Chart<Message> for LineChart {
                         0.,
                         plotters::style::TRANSPARENT,
                     )
-                    .border_style(ShapeStyle::from(series.color).stroke_width(1)),
+                    .border_style(ShapeStyle::from(series.color).stroke_width(2)),
                 )
                 .expect("Failed to draw chart data")
                 .label(&series.name)
