@@ -22,7 +22,7 @@
 
 use iced::{
     Alignment::Center,
-    Color, Element, Theme,
+    Color, Element, Theme, Border,
     widget::{
         Column, button, column, container, row, rule, svg, svg::Handle, text, text::IntoFragment,
         tooltip, tooltip::Position,
@@ -194,5 +194,27 @@ where
 {
     container(column![category_header(header), content.into()].spacing(5))
         .padding(5)
-        .style(container::rounded_box)
+        .style(|theme: &iced::Theme| {
+            let is_dark = theme.extended_palette().is_dark;
+            let text_color = theme.palette().text;
+
+            let base_color = match is_dark {
+                true => text_color,
+                false => theme.extended_palette().background.strong.color,
+            };
+            let background_color = base_color.scale_alpha(match is_dark {
+                true => 0.03,
+                false => 0.7,
+            });
+            let border_color = match is_dark {
+                true => base_color,
+                false => iced::Color::BLACK,
+            }.scale_alpha(0.08);
+
+            container::Style::default().background(background_color).border(Border {
+                color: border_color,
+                width: 1.,
+                radius: 5.0.into(),
+            })
+        })
 }
