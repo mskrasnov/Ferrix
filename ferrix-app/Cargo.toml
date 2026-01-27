@@ -50,7 +50,7 @@ i18n-embed = { version = "0.16.0", features = ["fluent-system", "desktop-request
 i18n-embed-fl = "0.10.0"
 iced = { version = "0.14.0", features = ["tokio", "svg", "image", "canvas"] }
 lazy_static = "1.5.0"
-plotters = "0.3.7"
+plotters = { version = "0.3.7", default-features = false, features = ["bitmap_backend", "svg_backend", "line_series", "area_series"] }
 plotters-iced2 = "0.14.0"
 rust-embed = "8.8.0"
 serde = { version = "1.0.228", features = ["derive"] }
