@@ -142,6 +142,7 @@ cpufreq-scaling_max = Scaling max.
 cpufreq-scaling_cur = Current Frequency
 cpufreq-scaling_gov = Governor
 cpufreq-avail_gov = Available Governors
+cpufreq-avail_freq = Available Frequencies
 cpufreq-scaling_drv = Scaling Driver
 cpufreq-trans_lat = Transition Latency
 cpufreq-set_speed = Set Speed

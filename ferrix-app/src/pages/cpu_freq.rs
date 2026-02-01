@@ -94,7 +94,7 @@ pub fn cpu_freq_page<'a>(cpu_freq: &'a LoadState<CpuFreq>) -> container::Contain
                     ),
                     InfoRow::new(fl!("cpufreq-scaling_drv"), policy.scaling_driver.clone()),
                     InfoRow::new(
-                        fl!("cpufreq-avail_gov"),
+                        fl!("cpufreq-avail_freq"),
                         fmt_vec_freq(&policy.scaling_available_frequencies),
                     ),
                     InfoRow::new(

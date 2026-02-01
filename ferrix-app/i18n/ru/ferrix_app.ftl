@@ -142,6 +142,7 @@ cpufreq-scaling_max = Мкс. текущая частота
 cpufreq-scaling_cur = Текущая частота
 cpufreq-scaling_gov = Регулятор
 cpufreq-avail_gov = Доступные регуляторы
+cpufreq-avail_freq = Доступные частоты
 cpufreq-scaling_drv = Драйвер
 cpufreq-trans_lat = Задержка переключения
 cpufreq-set_speed = Заданная частота
