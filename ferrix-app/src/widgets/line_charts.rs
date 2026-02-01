@@ -165,7 +165,7 @@ impl LineChart {
             );
         }
 
-        let mut gr = grid([]).spacing(5).columns(8).fluid(150.).height(30.);
+        let mut gr = grid([]).spacing(5).columns(8).fluid(125.).height(35.);
         for item in items {
             gr = gr.push(item);
         }
