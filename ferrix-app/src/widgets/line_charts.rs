@@ -209,7 +209,7 @@ impl Chart<Message> for LineChart {
                 .expect("Failed to draw chart data")
                 .label(&series.name)
                 .legend(|(x, y)| {
-                    Rectangle::new([(x - 5, y - 5), (x + 5, y + 5)], series.color.filled())
+                    Rectangle::new([(x - 5, y - 3), (x + 15, y + 8)], series.color.filled())
                 });
         }
 
