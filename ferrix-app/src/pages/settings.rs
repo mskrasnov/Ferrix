@@ -20,67 +20,147 @@
 
 //! Program settings page
 
+use std::ops::RangeInclusive;
+
 use crate::{
     ferrix::Ferrix,
     fl,
     messages::{ButtonsMessage, Message, SettingsMessage},
-    settings::Style,
+    settings::{ChartLineThickness, Style},
     widgets::icon_tooltip,
 };
 use iced::{
     Alignment::Center,
-    widget::{button, center, column, container, pick_list, row, rule, slider, text},
+    Element, Pixels,
+    widget::{button, center, column, container, pick_list, row, rule, slider, space, text},
 };
 
-pub fn settings_page<'a>(state: &'a Ferrix) -> container::Container<'a, Message> {
-    let update_sec = slider(1..=10, state.settings.update_period, |per| {
-        Message::Settings(SettingsMessage::ChangeUpdatePeriod(per))
-    });
-    let update_changer = column![
-        row![
-            text(fl!("settings-update-period")).size(16),
-            icon_tooltip("about", fl!("settings-uperiod-tip"),),
-            rule::horizontal(1.)
+pub fn settings_page<'a>(state: &'a Ferrix) -> Element<'a, Message> {
+    let update_changer = settings_group(
+        column![
+            settings_item(
+                fl!("settings-uper-main"),
+                time_slider(
+                    1..=15,
+                    state.settings.update_period,
+                    state.settings.update_period,
+                    |per| { Message::Settings(SettingsMessage::ChangeUpdatePeriod(per)) }
+                ),
+            ),
+            settings_item(
+                fl!("page-sysmon"),
+                time_slider(
+                    1..=15,
+                    state.settings.charts_update_period_nsecs,
+                    format!(
+                        "{:.1}",
+                        state.settings.charts_update_period_nsecs as f32 * 0.1,
+                    ),
+                    |per| { Message::Settings(SettingsMessage::ChangeChartsUpdatePeriod(per)) },
+                ),
+            ),
         ]
-        .spacing(5)
-        .align_y(Center),
-        row![
-            update_sec,
-            container(center(text(state.settings.update_period).size(14)))
-                .style(container::rounded_box)
-                .width(22)
-                .height(22),
-        ]
-        .spacing(5)
-        .align_y(Center),
-    ]
-    .spacing(5);
+        .spacing(5),
+    );
 
     let theme_selector = pick_list(Style::ALL, Some(state.settings.style), |style| {
         Message::Settings(SettingsMessage::ChangeStyle(style))
     });
-    let theme_changer = column![
-        row![
-            text(fl!("settings-look")).size(16),
-            icon_tooltip("about", fl!("settings-look-tip")),
-            rule::horizontal(1.)
-        ]
-        .spacing(5)
-        .align_y(Center),
-        row![text(fl!("settings-look-select")), theme_selector]
-            .spacing(5)
-            .align_y(Center),
-    ]
-    .spacing(5);
+    let chart_line_thick_selector = pick_list(
+        ChartLineThickness::ALL,
+        Some(state.settings.chart_line_thickness),
+        |thickness| Message::Settings(SettingsMessage::ChangeChartLineThickness(thickness)),
+    );
 
-    let layout = container(
+    let theme_changer = settings_group(
         column![
+            settings_item(fl!("settings-look-select"), theme_selector),
+            settings_item(fl!("settings-look-thick"), chart_line_thick_selector),
+        ]
+        .spacing(5),
+    );
+
+    let layout = settings_container(
+        column![
+            settings_header(fl!("settings-update-period"), fl!("settings-uperiod-tip")),
             update_changer,
+            settings_header(fl!("settings-look"), fl!("settings-look-tip")),
             theme_changer,
-            button(text(fl!("settings-save")))
-                .on_press(Message::Buttons(ButtonsMessage::SaveSettingsButtonPressed)),
+            row![
+                space::horizontal(),
+                button(text(fl!("settings-save")))
+                    .on_press(Message::Buttons(ButtonsMessage::SaveSettingsButtonPressed)),
+            ],
         ]
         .spacing(5),
     );
     layout
+}
+
+fn settings_container<'a, Message: Clone + 'a>(
+    contents: impl Into<Element<'a, Message>>,
+) -> Element<'a, Message> {
+    row![
+        space::horizontal(),
+        container(contents.into())
+            .width(450)
+            .max_width(Pixels(550.)),
+        space::horizontal(),
+    ]
+    .align_y(Center)
+    .into()
+}
+
+fn settings_group<'a, Message: Clone + 'a>(
+    contents: impl Into<Element<'a, Message>>,
+) -> Element<'a, Message> {
+    container(contents.into())
+        .style(container::bordered_box)
+        .padding(5)
+        .into()
+}
+
+fn settings_item<'a, T, C, Message>(header: T, contents: C) -> Element<'a, Message>
+where
+    T: text::IntoFragment<'a>,
+    C: Into<Element<'a, Message>>,
+    Message: Clone + 'a,
+{
+    row![text(header), space::horizontal(), contents.into()]
+        .align_y(Center)
+        .into()
+}
+
+fn settings_header<'a, T>(header: T, tooltip: T) -> row::Row<'a, Message>
+where
+    T: text::IntoFragment<'a>,
+{
+    row![
+        text(header).size(16),
+        icon_tooltip("about", tooltip),
+        rule::horizontal(1.)
+    ]
+    .spacing(5)
+    .align_y(Center)
+}
+
+fn time_slider<'a, D, Message>(
+    range: RangeInclusive<u8>,
+    val: u8,
+    txt: D,
+    on_change: impl Fn(u8) -> Message + 'a,
+) -> Element<'a, Message>
+where
+    D: text::IntoFragment<'a>,
+    Message: Clone + 'a,
+{
+    row![
+        slider(range, val, on_change).width(250),
+        container(center(text(txt).size(12)))
+            .style(container::rounded_box)
+            .width(25)
+            .height(22),
+    ]
+    .spacing(5)
+    .into()
 }

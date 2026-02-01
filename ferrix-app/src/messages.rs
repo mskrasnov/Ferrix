@@ -40,7 +40,7 @@ use crate::{
     dmi::DMIData,
     export::{ExportData, ExportFormat, ExportMode},
     ferrix::{Ferrix, FerrixData},
-    settings::Style,
+    settings::{ChartLineThickness, Style},
     styles::CPU_CHARTS_COLORS,
     utils::get_home,
     widgets::line_charts::LineSeries,
@@ -574,6 +574,8 @@ impl Ferrix {
 pub enum SettingsMessage {
     ChangeStyle(Style),
     ChangeUpdatePeriod(u8),
+    ChangeChartsUpdatePeriod(u8),
+    ChangeChartLineThickness(ChartLineThickness),
 }
 
 impl SettingsMessage {
@@ -581,6 +583,8 @@ impl SettingsMessage {
         match self {
             Self::ChangeStyle(style) => fx.change_style(style),
             Self::ChangeUpdatePeriod(secs) => fx.change_update_period(secs),
+            Self::ChangeChartsUpdatePeriod(secs) => fx.change_charts_update_period(secs),
+            Self::ChangeChartLineThickness(thick) => fx.change_line_thickness(thick),
         }
     }
 }
@@ -595,6 +599,19 @@ impl Ferrix {
 
     fn change_update_period(&mut self, per: u8) -> Task<Message> {
         self.settings.update_period = per;
+        Task::none()
+    }
+
+    fn change_charts_update_period(&mut self, per: u8) -> Task<Message> {
+        self.settings.charts_update_period_nsecs = per;
+        Task::none()
+    }
+
+    fn change_line_thickness(&mut self, thick: ChartLineThickness) -> Task<Message> {
+        self.settings.chart_line_thickness = thick;
+        self.data.cpu_usage_chart.set_line_thickness(thick);
+        self.data.ram_usage_chart.set_line_thickness(thick);
+
         Task::none()
     }
 }

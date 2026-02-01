@@ -280,9 +280,11 @@ ram-swp-not-found = Не найдены файлы/разделы подкачк
 # SETTINGS PAGE
 settings-update-period = Период обновления
 settings-uperiod-tip = Укажите период обновления данных (в сек.). Чем выше период обновления, тем ниже нагрузка на ПК.
+settings-uper-main = Основные данные
 settings-look = Оформление программы
 settings-look-tip = Стиль оформления влияет на цвета интерфейса и шрифта. Выберите то, что нравится вам.
-settings-look-select = Выберите нужный стиль оформления:
+settings-look-thick = Толщина линий графика, пикс.
+settings-look-select = Стиль оформления
 settings-save = Сохранить
 
 # STORAGES PAGE
@@ -343,6 +345,6 @@ users-hdr = Пользователь №{$id}
 vuln-hdr-name = Имя
 vuln-hdr-descr = Описание
 
-# MODALS
-toast-copy = Строка скопирована
-toast-close = Закрыть
+# LINE THICKNESS LABELS
+lthick-one = Один
+lthick-two = Два

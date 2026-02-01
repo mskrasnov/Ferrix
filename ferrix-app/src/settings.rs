@@ -28,7 +28,9 @@ use crate::fl;
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct FXSettings {
     pub update_period: u8,
+    pub charts_update_period_nsecs: u8,
     pub style: Style,
+    pub chart_line_thickness: ChartLineThickness,
 }
 
 impl FXSettings {
@@ -49,7 +51,9 @@ impl Default for FXSettings {
     fn default() -> Self {
         Self {
             update_period: 1,
+            charts_update_period_nsecs: 5,
             style: Style::default(),
+            chart_line_thickness: ChartLineThickness::default(),
         }
     }
 }
@@ -97,6 +101,38 @@ impl Display for Style {
             match self {
                 Self::Light => fl!("style-light"),
                 Self::Dark => fl!("style-dark"),
+            }
+        )
+    }
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Default, Deserialize, Serialize)]
+pub enum ChartLineThickness {
+    OnePixel,
+
+    #[default]
+    TwoPixel,
+}
+
+impl ChartLineThickness {
+    pub const ALL: &[Self] = &[Self::OnePixel, Self::TwoPixel];
+
+    pub fn to_u32(&self) -> u32 {
+        match self {
+            Self::OnePixel => 1,
+            Self::TwoPixel => 2,
+        }
+    }
+}
+
+impl Display for ChartLineThickness {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::OnePixel => fl!("lthick-one"),
+                Self::TwoPixel => fl!("lthick-two"),
             }
         )
     }

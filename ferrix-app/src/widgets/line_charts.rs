@@ -31,7 +31,7 @@ use plotters::prelude::*;
 use plotters_iced2::{Chart, ChartBuilder, ChartWidget, DrawingBackend};
 use std::collections::VecDeque;
 
-use crate::messages::Message;
+use crate::{messages::Message, settings::ChartLineThickness};
 
 #[derive(Debug, Clone)]
 pub struct LineChart {
@@ -54,6 +54,7 @@ pub struct Style {
     pub text_color: IColor,
     pub y_axis_color: IColor,
     pub legend_background_color: IColor,
+    pub line_thickness: u32,
 }
 
 impl Default for Style {
@@ -63,6 +64,7 @@ impl Default for Style {
             text_color: IColor::WHITE,
             y_axis_color: IColor::WHITE,
             legend_background_color: IColor::BLACK,
+            line_thickness: ChartLineThickness::default().to_u32(),
         }
     }
 }
@@ -111,8 +113,13 @@ impl LineChart {
             text_color: theme.palette().text,
             y_axis_color: theme.palette().text,
             legend_background_color: theme.palette().background,
+            line_thickness: self.style.line_thickness,
         };
         self.style = style;
+    }
+
+    pub fn set_line_thickness(&mut self, thickness: ChartLineThickness) {
+        self.style.line_thickness = thickness.to_u32();
     }
 
     pub fn set_max_values(&mut self, value: usize) {
@@ -204,7 +211,7 @@ impl Chart<Message> for LineChart {
                         0.,
                         plotters::style::TRANSPARENT,
                     )
-                    .border_style(ShapeStyle::from(series.color).stroke_width(2)),
+                    .border_style(ShapeStyle::from(series.color).stroke_width(self.style.line_thickness)),
                 )
                 .expect("Failed to draw chart data")
                 .label(&series.name)

@@ -23,15 +23,8 @@
 use std::collections::HashSet;
 
 use crate::{
-    SETTINGS_PATH,
-    dmi::DMIData,
-    load_state::LoadState,
-    messages::Message,
-    pages::Page,
-    settings::{FXSettings, Style},
-    sidebar::sidebar,
-    utils::get_home,
-    widgets::line_charts::LineChart,
+    SETTINGS_PATH, dmi::DMIData, load_state::LoadState, messages::Message, pages::Page,
+    settings::FXSettings, sidebar::sidebar, utils::get_home, widgets::line_charts::LineChart,
 };
 use ferrix_lib::{
     battery::BatInfo,
@@ -60,14 +53,13 @@ impl Default for Ferrix {
             Some(a) => Page::from(a as &str),
             None => Page::default(),
         };
-        let settings = FXSettings::read(get_home().join(".config").join(SETTINGS_PATH))
-                .unwrap_or_default();
-        let style = settings.style.clone();
+        let settings =
+            FXSettings::read(get_home().join(".config").join(SETTINGS_PATH)).unwrap_or_default();
 
         Self {
             current_page: page,
-            settings,
-            data: FerrixData::new(&style),
+            settings: settings.clone(),
+            data: FerrixData::new(&settings),
         }
     }
 }
@@ -164,11 +156,17 @@ impl Default for FerrixData {
 }
 
 impl FerrixData {
-    pub fn new(style: &Style) -> Self {
+    pub fn new(settings: &FXSettings) -> Self {
+        let style = &settings.style;
+        let thickness = settings.chart_line_thickness;
+
         let mut cpu_usage_chart = LineChart::new();
         cpu_usage_chart.set_style(&style.to_theme());
+        cpu_usage_chart.set_line_thickness(thickness);
+
         let mut ram_usage_chart = LineChart::new();
         ram_usage_chart.set_style(&style.to_theme());
+        ram_usage_chart.set_line_thickness(thickness);
 
         Self {
             cpu_usage_chart,

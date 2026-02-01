@@ -46,11 +46,12 @@ impl<T> PushMaybe<T> for Vec<T> {
 
 impl Ferrix {
     pub fn subscription(&self) -> Script<Message> {
+        let charts_uperiod = self.settings.charts_update_period_nsecs as f32 * 0.1;
         let mut scripts = vec![
             // Charts
-            time::every(Duration::from_secs_f32(0.5))
+            time::every(Duration::from_secs_f32(charts_uperiod))
                 .map(|_| Message::DataReceiver(DataReceiverMessage::AddCPUCoreLineSeries)),
-            time::every(Duration::from_secs_f32(0.5))
+            time::every(Duration::from_secs_f32(charts_uperiod))
                 .map(|_| Message::DataReceiver(DataReceiverMessage::AddTotalRAMUsage)),
         ];
         let oscripts = [
@@ -108,8 +109,9 @@ impl Ferrix {
                     .map(|_| Message::DataReceiver(DataReceiverMessage::GetProcStat)),
             )
         } else {
+            let uperiod = self.settings.charts_update_period_nsecs as f32 * 0.1;
             Some(
-                time::every(Duration::from_secs(self.u()))
+                time::every(Duration::from_secs_f32(uperiod))
                     .map(|_| Message::DataReceiver(DataReceiverMessage::GetProcStat)),
             )
         }
@@ -124,8 +126,9 @@ impl Ferrix {
                     .map(|_| Message::DataReceiver(DataReceiverMessage::GetRAMData)),
             )
         } else {
+            let uperiod = self.settings.charts_update_period_nsecs as f32 * 0.1;
             Some(
-                time::every(Duration::from_secs(self.u()))
+                time::every(Duration::from_secs_f32(uperiod))
                     .map(|_| Message::DataReceiver(DataReceiverMessage::GetRAMData)),
             )
         }
@@ -140,8 +143,9 @@ impl Ferrix {
                     .map(|_| Message::DataReceiver(DataReceiverMessage::GetSwapData)),
             )
         } else {
+            let uperiod = self.settings.charts_update_period_nsecs as f32 * 0.1;
             Some(
-                time::every(Duration::from_secs(self.u()))
+                time::every(Duration::from_secs_f32(uperiod))
                     .map(|_| Message::DataReceiver(DataReceiverMessage::GetSwapData)),
             )
         }

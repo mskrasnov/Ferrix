@@ -280,9 +280,11 @@ ram-swp-not-found = No swaps files/partitions found.
 # SETTINGS PAGE
 settings-update-period = Update period
 settings-uperiod-tip = Specify the data update period (in secs). The higher the update period, the lower the load on the PC.
+settings-uper-main = Main data
 settings-look = Look and feel
 settings-look-tip = The design style affects the interface and font colors. Choose what you like.
-settings-look-select = Select the needed style:
+settings-look-thick = Chart line thickness, px.
+settings-look-select = Style
 settings-save = Save
 
 # STORAGES PAGE
@@ -343,6 +345,6 @@ users-hdr = User #{$id}
 vuln-hdr-name = Name
 vuln-hdr-descr = Description
 
-# MODALS
-toast-copy = String is copied
-toast-close = Close
+# LINE THICKNESS LABELS
+lthick-one = One
+lthick-two = Two
