@@ -24,16 +24,23 @@ use anyhow::Result;
 use async_std::task;
 use ferrix_lib::dmi::{Baseboard, Bios, Chassis, Processor};
 use serde::{Deserialize, Serialize};
-use std::{path::Path, process::Command};
+use std::{env, path::Path, process::Command};
 
 use crate::load_state::{LoadState, ToLoadState};
 
+fn path() -> Vec<String> {
+    env::var("PATH")
+        .ok()
+        .and_then(|pth| Some(pth.split(':').map(|p| p.to_string()).collect::<Vec<_>>()))
+        .unwrap_or(vec!["/usr/bin".to_string()])
+}
+
 fn auth_app() -> Option<&'static str> {
     let apps = ["pkexec", "gksudo"];
-    let bin_dirs = ["/usr/sbin", "/sbin", "/usr/bin", "/bin"];
+    let bin_dirs = path();
 
     for a in apps {
-        for b in bin_dirs {
+        for b in &bin_dirs {
             if Path::new(b).join(a).exists() {
                 return Some(a);
             }
