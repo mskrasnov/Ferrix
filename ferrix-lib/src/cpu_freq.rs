@@ -26,6 +26,7 @@ use std::{
     ffi::OsString,
     fs::{read_dir, read_to_string},
     path::{Path, PathBuf},
+    str::FromStr,
 };
 
 use crate::traits::ToJson;
@@ -41,6 +42,13 @@ const CPU_FREQ_DIR: &str = "/sys/devices/system/cpu/cpufreq/";
 impl CpuFreq {
     pub fn new() -> Result<Self> {
         let pth = Path::new(CPU_FREQ_DIR);
+        if !pth.exists() {
+            return Err(anyhow!(
+                "The directory '{CPU_FREQ_DIR}' was not found. Is \
+                 your system able to manage CPU frequencies for sure?",
+            ));
+        }
+
         let boost = match read_to_string(pth.join("boost")).ok() {
             Some(boost) => Some(&boost == "1"),
             None => None,
@@ -99,6 +107,13 @@ pub struct Policy {
 }
 
 impl Policy {
+    fn get_data<T>(data: Option<String>) -> Option<T>
+    where
+        T: FromStr,
+    {
+        data.and_then(|d| d.trim().parse::<T>().ok())
+    }
+
     pub fn new(policy: OsString) -> Result<Self> {
         let dir = Path::new(CPU_FREQ_DIR);
         let tgt = dir.join(policy);
@@ -113,40 +128,42 @@ impl Policy {
         };
 
         Ok(Self {
-            bios_limit: read(&tgt, "bios_limit")?.trim().parse().ok(),
-            cpb: get_bool(read(&tgt, "cpb")?.trim().parse().ok()),
-            cpu_max_freq: read(&tgt, "cpuinfo_max_freq")?.trim().parse().ok(),
-            cpu_min_freq: read(&tgt, "cpuinfo_min_freq")?.trim().parse().ok(),
+            bios_limit: Self::get_data(read(&tgt, "bios_limit").ok()),
+            cpb: get_bool(Self::get_data(read(&tgt, "cpb").ok())),
+            cpu_max_freq: Self::get_data(read(&tgt, "cpuinfo_max_freq").ok()),
+            cpu_min_freq: Self::get_data(read(&tgt, "cpuinfo_min_freq").ok()),
             cpuinfo_transition_latency: get_bool(
-                read(&tgt, "cpuinfo_transition_latency")?
-                    .trim()
-                    .parse()
+                read(&tgt, "cpuinfo_transition_latency")
+                    .and_then(|d| Ok(d.trim().parse::<u8>().unwrap_or(0)))
                     .ok(),
             ),
-            scaling_available_frequencies: Some(
-                read(&tgt, "scaling_available_frequencies")?
-                    .split_whitespace()
-                    .map(|freq| freq.parse::<u32>().ok())
-                    .filter(|freq| freq.is_some())
-                    .map(|freq| freq.unwrap())
-                    .collect::<Vec<_>>(),
-            ),
-            scaling_available_governors: Some(
-                read(&tgt, "scaling_available_governors")?
-                    .trim()
-                    .split_whitespace()
-                    .map(|gov| gov.to_string())
-                    .collect(),
-            ),
-            scaling_cur_freq: read(&tgt, "scaling_cur_freq")?.trim().parse().ok(),
+            scaling_available_frequencies: read(&tgt, "scaling_available_frequencies")
+                .and_then(|d| {
+                    Ok(d.trim()
+                        .split_whitespace()
+                        .map(|freq| freq.parse::<u32>().ok())
+                        .filter(|freq| freq.is_some())
+                        .map(|freq| freq.unwrap())
+                        .collect::<Vec<_>>())
+                })
+                .ok(),
+            scaling_available_governors: read(&tgt, "scaling_available_governors")
+                .and_then(|d| {
+                    Ok(d.trim()
+                        .split_whitespace()
+                        .map(|gov| gov.to_string())
+                        .collect::<Vec<_>>())
+                })
+                .ok(),
+            scaling_cur_freq: Self::get_data(read(&tgt, "scaling_cur_freq").ok()),
             scaling_driver: read(&tgt, "scaling_driver")
                 .ok()
                 .and_then(|s| Some(s.trim().to_string())),
             scaling_governor: read(&tgt, "scaling_governor")
                 .ok()
                 .and_then(|s| Some(s.trim().to_string())),
-            scaling_max_freq: read(&tgt, "scaling_max_freq")?.trim().parse().ok(),
-            scaling_min_freq: read(&tgt, "scaling_min_freq")?.trim().parse().ok(),
+            scaling_max_freq: Self::get_data(read(&tgt, "scaling_max_freq").ok()),
+            scaling_min_freq: Self::get_data(read(&tgt, "scaling_min_freq").ok()),
             scaling_setspeed: read(&tgt, "scaling_setspeed")
                 .ok()
                 .and_then(|s| Some(s.trim().to_string())),
