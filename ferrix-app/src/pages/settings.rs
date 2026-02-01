@@ -160,6 +160,7 @@ where
             .width(25)
             .height(22),
     ]
+    .align_y(Center)
     .spacing(5)
     .into()
 }
