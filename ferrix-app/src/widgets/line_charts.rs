@@ -24,7 +24,7 @@ use iced::{
     Color as IColor, Element, Size, Theme,
     widget::{
         canvas::{Cache, Frame, Geometry},
-        container,
+        column, container, grid, row, text,
     },
 };
 use plotters::prelude::*;
@@ -50,20 +50,14 @@ pub struct LineSeries {
 
 #[derive(Debug, Clone)]
 pub struct Style {
-    pub text_size: usize,
-    pub text_color: IColor,
     pub y_axis_color: IColor,
-    pub legend_background_color: IColor,
     pub line_thickness: u32,
 }
 
 impl Default for Style {
     fn default() -> Self {
         Self {
-            text_size: 11,
-            text_color: IColor::WHITE,
             y_axis_color: IColor::WHITE,
-            legend_background_color: IColor::BLACK,
             line_thickness: ChartLineThickness::default().to_u32(),
         }
     }
@@ -74,9 +68,9 @@ fn to_rgbcolor(color: IColor) -> RGBColor {
     RGBColor(oc[0], oc[1], oc[2])
 }
 
-fn to_rgbacolor(color: IColor) -> RGBAColor {
-    let oc = color.into_rgba8();
-    RGBAColor(oc[0], oc[1], oc[2], color.a as f64)
+fn to_icolor(color: RGBColor) -> IColor {
+    let (r, g, b) = (color.0, color.1, color.2);
+    IColor::from_rgb8(r, g, b)
 }
 
 impl LineSeries {
@@ -109,10 +103,7 @@ impl LineChart {
 
     pub fn set_style(&mut self, theme: &Theme) {
         let style = Style {
-            text_size: 12,
-            text_color: theme.palette().text,
             y_axis_color: theme.palette().text,
-            legend_background_color: theme.palette().background,
             line_thickness: self.style.line_thickness,
         };
         self.style = style;
@@ -153,9 +144,37 @@ impl LineChart {
         self.data[idx].data.push_back(value);
     }
 
+    pub fn legend_parameters<'a>(&'a self) -> Element<'a, Message> {
+        let mut items = Vec::with_capacity(self.data.len());
+        let bold_font = {
+            let mut font = iced::Font::default();
+            font.weight = iced::font::Weight::Bold;
+            font
+        };
+
+        for line in &self.data {
+            let last = line.data.len() - 1;
+            items.push(
+                row![
+                    text(format!("{}:", &line.name))
+                        .color(to_icolor(line.color))
+                        .font(bold_font),
+                    text(format!("{:.2}%", line.data[last])),
+                ]
+                .spacing(3),
+            );
+        }
+
+        let mut gr = grid([]).spacing(5).columns(8).fluid(150.).height(30.);
+        for item in items {
+            gr = gr.push(item);
+        }
+        container(gr).into()
+    }
+
     pub fn view<'a>(&'a self) -> Element<'a, Message> {
         let chart = ChartWidget::new(self);
-        container(chart).into()
+        container(column![chart, self.legend_parameters()]).into()
     }
 
     fn update_axis(&mut self) {
@@ -211,35 +230,15 @@ impl Chart<Message> for LineChart {
                         0.,
                         plotters::style::TRANSPARENT,
                     )
-                    .border_style(ShapeStyle::from(series.color).stroke_width(self.style.line_thickness)),
+                    .border_style(
+                        ShapeStyle::from(series.color).stroke_width(self.style.line_thickness),
+                    ),
                 )
                 .expect("Failed to draw chart data")
                 .label(&series.name)
                 .legend(|(x, y)| {
                     Rectangle::new([(x - 5, y - 3), (x + 15, y + 8)], series.color.filled())
                 });
-        }
-
-        if !self.data.is_empty() {
-            chart
-                .configure_series_labels()
-                .label_font(
-                    ("sans-serif", self.style.text_size as i32)
-                        .into_font()
-                        .color(&to_rgbcolor(self.style.text_color)),
-                )
-                .position(SeriesLabelPosition::UpperRight)
-                .background_style(
-                    {
-                        let mut color = self.style.legend_background_color;
-                        color.a = 0.8;
-                        to_rgbacolor(color)
-                    }
-                    .filled(),
-                )
-                .margin(10)
-                .draw()
-                .expect("Failed to draw chart");
         }
     }
 }
