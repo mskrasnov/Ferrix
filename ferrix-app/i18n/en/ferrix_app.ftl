@@ -1,5 +1,5 @@
 # Ferrix English translation
-# (C) 2025 Michail Krasnov <mskrasnov07@ya.ru>
+# (C) 2025-2026 Michail Krasnov <mskrasnov07@ya.ru>
 
 # SIDEBAR
 sidebar-export = Export
