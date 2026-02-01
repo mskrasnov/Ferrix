@@ -9,6 +9,7 @@ repository.workspace = true
 readme = "README.md"
 keywords = ["ferrix", "hardware", "dmi", "smbios", "linux"]
 categories = ["os"]
+exclude = ["assets"]
 
 [[bin]]
 name = "ferrix-app"
