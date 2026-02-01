@@ -1,6 +1,6 @@
 /* settings.rs
  *
- * Copyright 2025 Michail Krasnov <mskrasnov07@ya.ru>
+ * Copyright 2025-2026 Michail Krasnov <mskrasnov07@ya.ru>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,8 +20,6 @@
 
 //! Program settings page
 
-use std::ops::RangeInclusive;
-
 use crate::{
     ferrix::Ferrix,
     fl,
@@ -34,6 +32,7 @@ use iced::{
     Element, Pixels,
     widget::{button, center, column, container, pick_list, row, rule, slider, space, text},
 };
+use std::ops::RangeInclusive;
 
 pub fn settings_page<'a>(state: &'a Ferrix) -> Element<'a, Message> {
     let update_changer = settings_group(
