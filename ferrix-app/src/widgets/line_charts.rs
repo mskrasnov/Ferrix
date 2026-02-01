@@ -53,6 +53,7 @@ pub struct Style {
     pub text_size: usize,
     pub text_color: IColor,
     pub y_axis_color: IColor,
+    pub legend_background_color: IColor,
 }
 
 impl Default for Style {
@@ -61,6 +62,7 @@ impl Default for Style {
             text_size: 11,
             text_color: IColor::WHITE,
             y_axis_color: IColor::WHITE,
+            legend_background_color: IColor::BLACK,
         }
     }
 }
@@ -68,6 +70,11 @@ impl Default for Style {
 fn to_rgbcolor(color: IColor) -> RGBColor {
     let oc = color.into_rgba8();
     RGBColor(oc[0], oc[1], oc[2])
+}
+
+fn to_rgbacolor(color: IColor) -> RGBAColor {
+    let oc = color.into_rgba8();
+    RGBAColor(oc[0], oc[1], oc[2], color.a as f64)
 }
 
 impl LineSeries {
@@ -103,6 +110,7 @@ impl LineChart {
             text_size: 12,
             text_color: theme.palette().text,
             y_axis_color: theme.palette().text,
+            legend_background_color: theme.palette().background,
         };
         self.style = style;
     }
@@ -173,7 +181,7 @@ impl Chart<Message> for LineChart {
         let mut chart = builder
             .x_label_area_size(0)
             .y_label_area_size(0)
-            .margin(20)
+            .margin(5)
             .build_cartesian_2d(0..(self.max_points), 0.0..100.0)
             .expect("Failed to build chart");
 
@@ -213,6 +221,16 @@ impl Chart<Message> for LineChart {
                         .into_font()
                         .color(&to_rgbcolor(self.style.text_color)),
                 )
+                .position(SeriesLabelPosition::UpperRight)
+                .background_style(
+                    {
+                        let mut color = self.style.legend_background_color;
+                        color.a = 0.8;
+                        to_rgbacolor(color)
+                    }
+                    .filled(),
+                )
+                .margin(10)
                 .draw()
                 .expect("Failed to draw chart");
         }
