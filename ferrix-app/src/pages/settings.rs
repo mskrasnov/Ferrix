@@ -64,12 +64,14 @@ pub fn settings_page<'a>(state: &'a Ferrix) -> Element<'a, Message> {
 
     let theme_selector = pick_list(Style::ALL, Some(state.settings.style), |style| {
         Message::Settings(SettingsMessage::ChangeStyle(style))
-    });
+    })
+    .padding(3);
     let chart_line_thick_selector = pick_list(
         ChartLineThickness::ALL,
         Some(state.settings.chart_line_thickness),
         |thickness| Message::Settings(SettingsMessage::ChangeChartLineThickness(thickness)),
-    );
+    )
+    .padding(3);
 
     let theme_changer = settings_group(
         column![
