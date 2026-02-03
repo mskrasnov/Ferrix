@@ -119,17 +119,40 @@ fn bat_table<'a>(bat: &'a Battery) -> container::Container<'a, Message> {
             )),
         ),
         InfoRow::new(
+            fl!("bat-estimated"),
+            bat.estimated_time
+                .and_then(|h| Some(format!("{h:.2} {}", fl!("bat-es-hours")))),
+        ),
+        InfoRow::new(
             fl!("bat-health"),
-            bat.health.and_then(|h| Some(format!("{h:.3}%"))),
+            bat.health.and_then(|h| Some(format!("{h:.2}%"))),
         ),
         InfoRow::new(fl!("bat-tech"), bat.technology.clone()),
         InfoRow::new(fl!("bat-cycle-cnt"), fmt_val(bat.cycle_count)),
-        InfoRow::new(fl!("bat-volt-min-des"), fmt_val(bat.voltage_min_design)),
-        InfoRow::new(fl!("bat-volt-now"), fmt_val(bat.voltage_now)),
-        InfoRow::new(fl!("bat-power-now"), fmt_val(bat.power_now)),
-        InfoRow::new(fl!("bat-energy-full-des"), fmt_val(bat.energy_full_design)),
-        InfoRow::new(fl!("bat-energy-full"), fmt_val(bat.energy_full)),
-        InfoRow::new(fl!("bat-energy-now"), fmt_val(bat.energy_now)),
+        InfoRow::new(
+            fl!("bat-volt-min-des"),
+            bat.voltage_min_design.and_then(|v| Some(format!("{v} V"))),
+        ),
+        InfoRow::new(
+            fl!("bat-volt-now"),
+            bat.voltage_now.and_then(|v| Some(format!("{v} V"))),
+        ),
+        InfoRow::new(
+            fl!("bat-power-now"),
+            bat.power_now.and_then(|p| Some(format!("{p} W"))),
+        ),
+        InfoRow::new(
+            fl!("bat-energy-full-des"),
+            bat.energy_full_design.and_then(|e| Some(format!("{e} Wh"))),
+        ),
+        InfoRow::new(
+            fl!("bat-energy-full"),
+            bat.energy_full.and_then(|e| Some(format!("{e} Wh"))),
+        ),
+        InfoRow::new(
+            fl!("bat-energy-now"),
+            bat.energy_now.and_then(|e| Some(format!("{e} Wh"))),
+        ),
         InfoRow::new(fl!("bat-model"), bat.model_name.clone()),
         InfoRow::new(fl!("bat-manufact"), bat.manufacturer.clone()),
         InfoRow::new(fl!("bat-serial"), bat.serial_number.clone()),

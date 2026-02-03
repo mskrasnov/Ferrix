@@ -77,7 +77,7 @@ pub struct Battery {
     pub manufacturer: Option<String>,
     pub serial_number: Option<String>,
     pub health: Option<f32>,
-    pub discharge_time: Option<f32>,
+    pub estimated_time: Option<f32>,
     pub charge_time: Option<f32>,
 }
 
@@ -96,9 +96,9 @@ impl Battery {
                 _ => continue,
             }
         }
-        polish_values(&mut bat);
-        calculate_health(&mut bat);
         calculate_time(&mut bat);
+        calculate_health(&mut bat);
+        polish_values(&mut bat);
 
         Ok(bat)
     }
@@ -156,23 +156,21 @@ fn calculate_health(bat: &mut Battery) {
 }
 
 fn calculate_time(bat: &mut Battery) {
-    // FIXME!
-    if let (Some(energy_now), Some(power)) = (bat.energy_now, bat.power_now) {
-        if power > 0.001 {
-            bat.discharge_time = Some((energy_now / power).max(0.).min(999.))
+    bat.estimated_time = match (
+        bat.status.as_ref(),
+        bat.energy_now,
+        bat.energy_full,
+        bat.power_now,
+    ) {
+        (Some(Status::Discharging) | Some(Status::NotCharging), Some(now), _, Some(p))
+            if p > 0.001 =>
+        {
+            Some((now / p).clamp(0., 999.))
         }
-    }
-
-    if let (Some(energy_now), Some(energy_full), Some(power)) =
-        (bat.energy_now, bat.energy_full, bat.power_now)
-    {
-        if power > 0.001 && energy_full > energy_now {
-            let delta = energy_full - energy_now;
-            let efficiency = 0.85;
-            let eff_power = power * efficiency;
-
-            bat.charge_time = Some((delta / eff_power).max(0.).min(999.));
+        (Some(Status::Charging), Some(now), Some(full), Some(p)) if p > 0.001 => {
+            Some(((full - now) / p).clamp(0., 999.))
         }
+        _ => None,
     }
 }
 
