@@ -4,5 +4,10 @@
 /example.*
 /TODO.md
 
+# AppImage build files
+/AppDir
+/*.AppImage*
+/appimage-build
+
 # Directory with local crates
 /vendor/
