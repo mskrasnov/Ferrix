@@ -24,9 +24,11 @@ use anyhow::Result;
 use async_std::task;
 use ferrix_lib::dmi::{Baseboard, Bios, Chassis, Processor};
 use serde::{Deserialize, Serialize};
-use std::{env, path::Path, process::Command};
+use std::{env, path::Path, process::Command, sync::LazyLock};
 
 use crate::load_state::{LoadState, ToLoadState};
+
+static PATH: LazyLock<Vec<String>> = LazyLock::new(|| path());
 
 fn path() -> Vec<String> {
     env::var("PATH")
@@ -37,10 +39,10 @@ fn path() -> Vec<String> {
 
 fn auth_app() -> Option<&'static str> {
     let apps = ["pkexec", "gksudo"];
-    let bin_dirs = path();
+    let bin_dirs = &PATH;
 
     for a in apps {
-        for b in &bin_dirs {
+        for b in bin_dirs.as_slice() {
             if Path::new(b).join(a).exists() {
                 return Some(a);
             }
@@ -50,19 +52,33 @@ fn auth_app() -> Option<&'static str> {
     None
 }
 
+fn fx_polkit_app() -> Option<String> {
+    let app = "ferrix-polkit";
+    let bin_dirs = &PATH;
+    for b in bin_dirs.as_slice() {
+        let s = Path::new(b).join(app);
+        if s.exists() {
+            return Some(s.display().to_string());
+        }
+    }
+    None
+}
+
 pub async fn get_dmi_data() -> LoadState<DMIData> {
     let auth_app = match auth_app() {
         Some(auth_app) => auth_app,
         None => return LoadState::Error("No authentication software found".to_string()),
     };
+    let fx_app = match fx_polkit_app() {
+        Some(fx_app) => fx_app,
+        None => return LoadState::Error("No `ferrix-app` program found".to_string()),
+    };
 
-    let output = task::spawn_blocking(move || {
-        Command::new(auth_app)
-            .arg("ferrix-polkit")
-            .arg("dmi")
-            .output()
-    })
-    .await;
+    dbg!(&auth_app, &fx_app);
+
+    let output =
+        task::spawn_blocking(move || Command::new(auth_app).arg(fx_app).arg("dmi").output()).await;
+    dbg!(&output);
 
     if let Err(why) = output {
         return LoadState::Error(why.to_string());
