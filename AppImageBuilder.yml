@@ -1,6 +1,7 @@
 # appimage-builder recipe see https://appimage-builder.readthedocs.io for details
 version: 1
 AppDir:
+  # NOTE: REPLACE THIS PATH TO CORRECT IN YOUR SYSTEM
   path: /home/misha/Ferrix/AppDir
   app_info:
     id: com.mskrasnov.FSM
