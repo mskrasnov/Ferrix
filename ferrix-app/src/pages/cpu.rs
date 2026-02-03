@@ -41,6 +41,7 @@ pub fn proc_page<'a>(
     ))
 }
 
+#[cfg(not(target_arch = "aarch64"))]
 fn proc_info<'a>(
     processors: &'a DataLoadingState<Processors>,
 ) -> container::Container<'a, Message> {
@@ -73,6 +74,40 @@ fn proc_info<'a>(
                     InfoRow::new(fl!("cpu-cache-align"), fmt_val(proc.cache_alignment)),
                     InfoRow::new(fl!("cpu-address-size"), proc.address_sizes.clone()),
                     InfoRow::new(fl!("cpu-power"), proc.power_management.clone()),
+                ];
+
+                let proc_view = column![
+                    text(fl!(
+                        "cpu-processor_no",
+                        proc_no = proc.processor.unwrap_or(0)
+                    ))
+                    .style(text::warning),
+                    container(kv_info_table(rows)).style(container::rounded_box),
+                ]
+                .spacing(5);
+                proc_list = proc_list.push(proc_view);
+            }
+            container(proc_list)
+        }
+        DataLoadingState::Error(why) => super::error_page(why),
+        DataLoadingState::Loading => super::loading_page(),
+    }
+}
+
+#[cfg(target_arch = "aarch64")]
+fn proc_info<'a>(
+    processors: &'a DataLoadingState<Processors>,
+) -> container::Container<'a, Message> {
+    match processors {
+        DataLoadingState::Loaded(proc) => {
+            let mut proc_list = column![].spacing(5);
+            for proc in &proc.entries {
+                let rows = vec![
+                    InfoRow::new("CPU Implementer", proc.cpu_implementer.clone()),
+                    InfoRow::new("Architecture", fmt_val(proc.cpu_architecture)),
+                    InfoRow::new("Variant", proc.cpu_variant.clone()),
+                    InfoRow::new("Part", proc.cpu_part.clone()),
+                    InfoRow::new("Revision", fmt_val(proc.cpu_revision)),
                 ];
 
                 let proc_view = column![
