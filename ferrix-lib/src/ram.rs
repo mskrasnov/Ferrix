@@ -35,6 +35,7 @@
 use anyhow::{Result, anyhow};
 use serde::Serialize;
 use std::fs::read_to_string;
+use std::path::Path;
 
 use crate::traits::ToJson;
 use crate::utils::Size;
@@ -390,3 +391,71 @@ impl TryFrom<&str> for Swap {
     }
 }
 impl ToJson for Swap {}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct Zswap {
+    pub accept_threshold_percent: Option<u8>,
+    pub compressor: Option<String>,
+    pub enabled: Option<bool>,
+    pub max_pool_percent: Option<u8>,
+    pub non_same_filled_pages_enabled: Option<bool>,
+    pub same_filled_pages_enabled: Option<bool>,
+    pub zpool: Option<String>,
+    pub pool_total_size: Option<Size>,
+    pub stored_pages_size: Option<Size>,
+    pub compression_ratio: Option<f32>,
+}
+
+fn get_page_size() -> u64 {
+    unsafe { libc::sysconf(libc::_SC_PAGESIZE) as u64 }
+}
+
+impl Zswap {
+    pub fn new() -> Self {
+        let rdbg = |f: &str| read_to_string(Path::new("/sys/kernel/debug/zswap/").join(f)).ok();
+        let fcnf =
+            |f: &str| read_to_string(Path::new("/sys/module/zswap/parameters/").join(f)).ok();
+        let get_bool = |content: &str| {
+            if content.trim() == "Y" || content != "0" {
+                true
+            } else {
+                false
+            }
+        };
+
+        let accept_threshold_percent =
+            fcnf("accept_threshold_percent").and_then(|atp| atp.trim().parse::<u8>().ok());
+        let compressor = fcnf("compressor");
+        let enabled = fcnf("enabled").and_then(|e| Some(get_bool(e.trim())));
+        let max_pool_percent =
+            fcnf("max_pool_percent").and_then(|mpp| mpp.trim().parse::<u8>().ok());
+        let non_same_filled_pages_enabled =
+            fcnf("non_same_filled_pages_enabled").and_then(|nsfpe| Some(get_bool(nsfpe.trim())));
+        let same_filled_pages_enabled =
+            fcnf("same_filled_pages_enabled").and_then(|sfpe| Some(get_bool(sfpe.trim())));
+        let zpool = fcnf("zpool");
+
+        let pool_total_size =
+            rdbg("pool_total_size").and_then(|pts| pts.trim().parse::<u64>().ok()); // bytes
+        let stored_page_size =
+            rdbg("stored_page_size").and_then(|sps| sps.trim().parse::<u64>().ok()); // bytes
+        let compression_ratio = match (pool_total_size, stored_page_size) {
+            (Some(pts), Some(sps)) => Some(sps as f32 / pts as f32),
+            _ => None,
+        };
+
+        Self {
+            accept_threshold_percent,
+            compressor,
+            enabled,
+            max_pool_percent,
+            non_same_filled_pages_enabled,
+            same_filled_pages_enabled,
+            zpool,
+            pool_total_size: pool_total_size.and_then(|pts| Some(Size::B(pts))),
+            stored_pages_size: stored_page_size
+                .and_then(|sps| Some(Size::B(sps * get_page_size()))),
+            compression_ratio,
+        }
+    }
+}
