@@ -33,7 +33,7 @@ use ferrix_lib::cpu::Processors;
 
 use iced::{
     Length,
-    widget::{Column, button, container, text},
+    widget::{Column, button, column, container, text},
 };
 
 pub fn proc_page<'a>(
@@ -43,8 +43,8 @@ pub fn proc_page<'a>(
     match processors {
         LoadState::Loaded(proc) => {
             let proc_names = get_proc_names(proc);
-            let proc_names = {
-                let mut buttons = vec![];
+            let proc_list = {
+                let mut elements = Vec::with_capacity(proc.entries.len());
                 for p in proc_names {
                     let b = button(text(p.1))
                         .on_press(Message::Buttons(ButtonsMessage::ProcessorSelected(p.0)))
@@ -56,11 +56,18 @@ pub fn proc_page<'a>(
                         .height(Length::Fill)
                         .padding(2)
                         .into();
-                    buttons.push(b);
+                    elements.push(b);
                 }
-                buttons
+                elements
             };
-            let first_panel = Column::from_vec(proc_names).padding(5);
+            let first_panel = container(
+                column![
+                    text(fl!("page-procs")).style(text::secondary),
+                    Column::from_vec(proc_list),
+                ]
+                .spacing(5),
+            )
+            .padding(2);
             let second_panel = proc_info(proc, id);
 
             let view = SeparatedView::new(first_panel, second_panel);
