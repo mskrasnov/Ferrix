@@ -128,6 +128,11 @@ cpu-cache-align = Cache alignment
 cpu-address-size = Addresses sizes
 cpu-power = Power management
 cpu-processor_no = Processor #{$proc_no}
+cpu-impl = CPU Implementer
+cpu-arch = Architecture
+cpu-var = Variant
+cpu-part = Part
+cpu-rev = Revision
 
 # CPU FREQUENCY PAGE
 cpufreq-tboost = CPU Turbo Boost support

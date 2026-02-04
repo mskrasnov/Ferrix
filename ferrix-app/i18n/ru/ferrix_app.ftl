@@ -128,6 +128,11 @@ cpu-cache-align = Выравнивание кеша
 cpu-address-size = Размер адресов
 cpu-power = Управление питанием
 cpu-processor_no = Процессор №{$proc_no}
+cpu-impl = Разработчик ЦП
+cpu-arch = Архитектура
+cpu-var = Вариант
+cpu-part = Тип ядра
+cpu-rev = Ревизия
 
 # CPU FREQUENCY PAGE
 cpufreq-tboost = Поддержка CPU Turbo Boost

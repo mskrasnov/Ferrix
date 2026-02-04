@@ -134,11 +134,11 @@ fn proc_info<'a>(proc: &'a Processors, id: usize) -> container::Container<'a, Me
 fn proc_info<'a>(proc: &'a Processors, id: usize) -> container::Container<'a, Message> {
     let proc = &proc.entries[id];
     let rows = vec![
-        InfoRow::new("CPU Implementer", proc.cpu_implementer.clone()),
-        InfoRow::new("Architecture", fmt_val(proc.cpu_architecture)),
-        InfoRow::new("Variant", proc.cpu_variant.clone()),
-        InfoRow::new("Part", proc.cpu_part.clone()),
-        InfoRow::new("Revision", fmt_val(proc.cpu_revision)),
+        InfoRow::new(fl!("cpu-impl"), proc.cpu_implementer.clone()),
+        InfoRow::new(fl!("cpu-arch"), fmt_val(proc.cpu_architecture)),
+        InfoRow::new(fl!("cpu-var"), proc.cpu_variant.clone()),
+        InfoRow::new(fl!("cpu-part"), proc.cpu_part.clone()),
+        InfoRow::new(fl!("cpu-rev"), fmt_val(proc.cpu_revision)),
     ];
     container(kv_info_table(rows))
 }
