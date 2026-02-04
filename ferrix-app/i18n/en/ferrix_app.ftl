@@ -317,7 +317,7 @@ misc-lang = Language
 
 # SYSTEM MONITOR PAGE
 sysmon-x-axis = Number of counts on the X-axis:
-sysmon-toggle = Enable/Disable stacked charts
+sysmon-toggle = Show legend
 sysmon-cpu-hdr = CPU Usage
 sysmon-ram-hdr = RAM Usage
 sysmon-cpu-unk = CPU usage statistics are unknown!

@@ -622,6 +622,7 @@ pub enum ButtonsMessage {
     SaveSettingsButtonPressed,
     CopyButtonPressed(String),
 
+    ChangeLegendShow(bool),
     ProcessorSelected(usize),
 }
 
@@ -631,6 +632,7 @@ impl ButtonsMessage {
             Self::LinkButtonPressed(url) => fx.go_to_url(&url),
             Self::SaveSettingsButtonPressed => fx.save_settings(),
             Self::CopyButtonPressed(s) => iced::clipboard::write(s),
+            Self::ChangeLegendShow(show) => fx.set_show_charts_legend(show),
             Self::ProcessorSelected(id) => fx.proc_selected(id),
         }
     }
@@ -648,6 +650,13 @@ impl Ferrix {
         let _ = self
             .settings
             .write(get_home().join(".config").join(SETTINGS_PATH));
+        Task::none()
+    }
+
+    fn set_show_charts_legend(&mut self, show: bool) -> Task<Message> {
+        self.data.cpu_usage_chart.set_show_legend(show);
+        self.data.ram_usage_chart.set_show_legend(show);
+        self.data.show_charts_legend = show;
         Task::none()
     }
 

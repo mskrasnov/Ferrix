@@ -317,7 +317,7 @@ misc-lang = Язык
 
 # SYSTEM MONITOR PAGE
 sysmon-x-axis = Число отсчётов по оси X:
-sysmon-toggle = Вкл/выкл сложенные графики
+sysmon-toggle = Показывать легенду
 sysmon-cpu-hdr = Использование ЦП
 sysmon-ram-hdr = Использование ОЗУ
 sysmon-cpu-unk = Статистика использования ЦП неизвестна!

@@ -96,6 +96,7 @@ pub struct FerrixData {
     pub cpu_usage_chart: LineChart,
     pub show_cpus_chart: HashSet<usize>,
     pub show_chart_elements: usize,
+    pub show_charts_legend: bool,
     pub cpu_freq: LoadState<CpuFreq>,
     pub cpu_vulnerabilities: LoadState<Vulnerabilities>,
 
@@ -133,6 +134,7 @@ impl Default for FerrixData {
             ram_usage_chart: LineChart::new(),
             show_mem_chart: HashSet::new(),
             show_ram_chart: true,
+            show_charts_legend: true,
 
             proc_data: LoadState::default(),
             prev_proc_stat: LoadState::default(),

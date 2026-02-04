@@ -20,13 +20,15 @@
 
 //! CPU usage charts
 
-use crate::{DataLoadingState, Message, ferrix::FerrixData, fl, widgets::glassy_container};
+use crate::{
+    DataLoadingState, Message, ferrix::FerrixData, fl, messages::ButtonsMessage,
+    widgets::glassy_container,
+};
 use ferrix_lib::cpu::Stat;
 
 use iced::{
     Alignment::Center,
-    Length,
-    widget::{column, container, row, slider, space, text},
+    widget::{column, container, row, slider, space, text, toggler},
 };
 
 pub fn usage_charts_page<'a>(
@@ -50,7 +52,8 @@ pub fn usage_charts_page<'a>(
             Message::DataReceiver(
                 crate::messages::DataReceiverMessage::ChangeShowCPUChartElements(elems as usize),
             )
-        }),
+        })
+        .width(200.),
         text(format!("{}", fx.show_chart_elements))
     ]
     .align_y(Center)
@@ -58,8 +61,11 @@ pub fn usage_charts_page<'a>(
 
     let line_widget = column![
         row![
-            space::horizontal().width(Length::FillPortion(1)),
-            mx.width(Length::FillPortion(2))
+            toggler(fx.show_charts_legend)
+                .label(fl!("sysmon-toggle"))
+                .on_toggle(|show| Message::Buttons(ButtonsMessage::ChangeLegendShow(show))),
+            space::horizontal(),
+            mx,
         ]
         .align_y(Center)
         .spacing(5),

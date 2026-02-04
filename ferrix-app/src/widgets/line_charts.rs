@@ -38,6 +38,7 @@ pub struct LineChart {
     data: Vec<LineSeries>,
     max_points: usize,
     style: Style,
+    show_legend: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -98,6 +99,7 @@ impl LineChart {
             data: Vec::with_capacity(8),
             max_points: 100,
             style: Style::default(),
+            show_legend: true,
         }
     }
 
@@ -144,6 +146,10 @@ impl LineChart {
         self.data[idx].data.push_back(value);
     }
 
+    pub fn set_show_legend(&mut self, show: bool) {
+        self.show_legend = show;
+    }
+
     pub fn legend_parameters<'a>(&'a self) -> Element<'a, Message> {
         let mut items = Vec::with_capacity(self.data.len());
         let bold_font = {
@@ -178,7 +184,11 @@ impl LineChart {
 
     pub fn view<'a>(&'a self) -> Element<'a, Message> {
         let chart = ChartWidget::new(self);
-        container(column![chart, self.legend_parameters()]).into()
+        if self.show_legend {
+            column![chart, self.legend_parameters()].into()
+        } else {
+            chart.into()
+        }
     }
 
     fn update_axis(&mut self) {
