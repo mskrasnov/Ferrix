@@ -133,6 +133,7 @@ cpu-arch = Architecture
 cpu-var = Variant
 cpu-part = Part
 cpu-rev = Revision
+cpu-see-freq = See "CPU Frequencies" page
 
 # CPU FREQUENCY PAGE
 cpufreq-tboost = CPU Turbo Boost support

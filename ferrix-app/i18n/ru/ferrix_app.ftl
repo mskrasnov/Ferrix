@@ -133,6 +133,7 @@ cpu-arch = Архитектура
 cpu-var = Вариант
 cpu-part = Тип ядра
 cpu-rev = Ревизия
+cpu-see-freq = См. страницу «Частоты ЦП»
 
 # CPU FREQUENCY PAGE
 cpufreq-tboost = Поддержка CPU Turbo Boost

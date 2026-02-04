@@ -106,10 +106,7 @@ fn proc_info<'a>(proc: &'a Processors, id: usize) -> container::Container<'a, Me
         InfoRow::new(fl!("cpu-family"), fmt_val(proc.cpu_family)),
         InfoRow::new(fl!("cpu-stepping"), fmt_val(proc.stepping)),
         InfoRow::new(fl!("cpu-microcode"), proc.microcode.clone()),
-        InfoRow::new(
-            fl!("cpu-freq"),
-            Some(format!("See {}", fl!("page-cpufreq"))),
-        ),
+        InfoRow::new(fl!("cpu-freq"), Some(fl!("cpu-see-freq"))),
         InfoRow::new(fl!("cpu-cache"), fmt_val(proc.cache_size)),
         InfoRow::new(fl!("cpu-siblings"), fmt_val(proc.siblings)),
         InfoRow::new(fl!("cpu-cpu-cores"), fmt_val(proc.cpu_cores)),
