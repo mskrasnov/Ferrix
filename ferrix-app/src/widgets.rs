@@ -32,6 +32,7 @@ use iced::{
 pub mod card;
 pub mod line_charts;
 pub mod table;
+pub mod separated_view;
 
 use crate::{
     icons::{ABOUT_ICON, ERROR_ICON, EXPORT_ICON, SETTINGS_ICON},

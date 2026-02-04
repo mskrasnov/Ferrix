@@ -93,10 +93,7 @@ impl Ferrix {
                     .map(|_| Message::DataReceiver(DataReceiverMessage::GetCPUData)),
             )
         } else {
-            Some(
-                time::every(Duration::from_secs(self.u()))
-                    .map(|_| Message::DataReceiver(DataReceiverMessage::GetCPUData)),
-            )
+            None
         }
     }
 

@@ -621,6 +621,8 @@ pub enum ButtonsMessage {
     LinkButtonPressed(String),
     SaveSettingsButtonPressed,
     CopyButtonPressed(String),
+
+    ProcessorSelected(usize),
 }
 
 impl ButtonsMessage {
@@ -629,6 +631,7 @@ impl ButtonsMessage {
             Self::LinkButtonPressed(url) => fx.go_to_url(&url),
             Self::SaveSettingsButtonPressed => fx.save_settings(),
             Self::CopyButtonPressed(s) => iced::clipboard::write(s),
+            Self::ProcessorSelected(id) => fx.proc_selected(id),
         }
     }
 }
@@ -645,6 +648,11 @@ impl Ferrix {
         let _ = self
             .settings
             .write(get_home().join(".config").join(SETTINGS_PATH));
+        Task::none()
+    }
+
+    fn proc_selected(&mut self, id: usize) -> Task<Message> {
+        self.data.selected_proc = id;
         Task::none()
     }
 }

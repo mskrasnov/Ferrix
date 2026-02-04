@@ -90,6 +90,7 @@ pub struct FerrixData {
     pub is_polkit: bool,
 
     pub proc_data: LoadState<Processors>,
+    pub selected_proc: usize,
     pub prev_proc_stat: LoadState<Stat>,
     pub curr_proc_stat: LoadState<Stat>,
     pub cpu_usage_chart: LineChart,
@@ -126,6 +127,7 @@ impl Default for FerrixData {
             is_polkit: false,
 
             cpu_usage_chart: LineChart::new(),
+            selected_proc: 0,
             show_cpus_chart: HashSet::new(),
             show_chart_elements: 100,
             ram_usage_chart: LineChart::new(),

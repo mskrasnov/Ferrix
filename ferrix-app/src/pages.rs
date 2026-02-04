@@ -1,6 +1,6 @@
 /* pages.rs
  *
- * Copyright 2025 Michail Krasnov <mskrasnov07@ya.ru>
+ * Copyright 2025-2026 Michail Krasnov <mskrasnov07@ya.ru>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -191,8 +191,9 @@ impl<'a> Page {
                 &state.data.prev_proc_stat,
             )
             .into(), // TODO: cur_stat and proc_stat - ???
-            // TODO: replace multiple arguments!
-            Self::Processors => cpu::proc_page(&state.data.proc_data).into(),
+            Self::Processors => {
+                cpu::proc_page(&state.data.proc_data, state.data.selected_proc).into()
+            }
             Self::CPUFrequency => cpu_freq::cpu_freq_page(&state.data.cpu_freq).into(),
             Self::CPUVulnerabilities => {
                 vulnerabilities::vulnerabilities_page(&state.data.cpu_vulnerabilities).into()
