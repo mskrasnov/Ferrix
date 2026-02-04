@@ -20,7 +20,7 @@
 
 use crate::messages::Message;
 use iced::{
-    Element, Length,
+    Element, Length, Pixels,
     widget::{column, container, scrollable},
 };
 
@@ -43,13 +43,6 @@ impl<'a> SeparatedView<'a> {
         let s = container(scrollable(self.second_pane).width(Length::Fill).spacing(5))
             .style(container::rounded_box);
 
-        container(
-            column![
-                f.height(Length::FillPortion(1)),
-                s.height(Length::FillPortion(3)),
-            ]
-            .spacing(5),
-        )
-        .into()
+        container(column![f.height(Length::Shrink).max_height(Pixels(170.)), s,].spacing(5)).into()
     }
 }
