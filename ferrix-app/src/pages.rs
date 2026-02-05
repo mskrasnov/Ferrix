@@ -147,9 +147,85 @@ impl From<&str> for Page {
     }
 }
 
+impl From<usize> for Page {
+    fn from(value: usize) -> Self {
+        match value {
+            0 => Self::Dashboard,
+            1 => Self::SystemMonitor,
+            2 => Self::Processors,
+            3 => Self::CPUFrequency,
+            4 => Self::CPUVulnerabilities,
+            5 => Self::Memory,
+            6 => Self::FileSystems,
+            7 => Self::DMI,
+            8 => Self::Battery,
+            9 => Self::Screen,
+            10 => Self::Sensors,
+            11 => Self::Distro,
+            12 => Self::Users,
+            13 => Self::Groups,
+            14 => Self::Environment,
+            15 => Self::SystemManager,
+            16 => Self::Software,
+            17 => Self::Kernel,
+            18 => Self::KModules,
+            19 => Self::SystemMisc,
+            20 => Self::Settings,
+            21 => Self::About,
+            _ => Page::Dashboard,
+        }
+    }
+}
+
 impl<'a> Page {
     pub fn title(&'a self) -> iced::widget::Column<'a, Message> {
         header_text(self.title_str())
+    }
+
+    pub fn page_num(&self) -> usize {
+        match self {
+            Self::Dashboard => 0,
+            Self::SystemMonitor => 1,
+            Self::Processors => 2,
+            Self::CPUFrequency => 3,
+            Self::CPUVulnerabilities => 4,
+            Self::Memory => 5,
+            Self::FileSystems => 6,
+            Self::DMI => 7,
+            Self::Battery => 8,
+            Self::Screen => 9,
+            Self::Sensors => 10,
+            Self::Distro => 11,
+            Self::Users => 12,
+            Self::Groups => 13,
+            Self::Environment => 14,
+            Self::SystemManager => 15,
+            Self::Software => 16,
+            Self::Kernel => 17,
+            Self::KModules => 18,
+            Self::SystemMisc => 19,
+            Self::Settings => 20,
+            Self::About => 21,
+            _ => 0,
+        }
+    }
+
+    pub fn next_page(&self) -> Self {
+        let mut id = self.page_num() + 1;
+        if id > 21 {
+            id = 0;
+        }
+        Self::from(id)
+    }
+
+    pub fn prev_page(&self) -> Self {
+        let cur_id = self.page_num();
+        let next_id = if cur_id == 0 {
+            Self::About.page_num()
+        } else {
+            cur_id - 1
+        };
+        Self::from(next_id)
     }
 
     pub fn scrolled_list_id(&self) -> Option<&'static str> {

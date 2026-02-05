@@ -806,6 +806,27 @@ impl KeyboardMessage {
                     key: Key::Named(key::Named::PageUp),
                     ..
                 }) => snap_up(fx.current_page),
+                Event::Keyboard(Kevent::KeyPressed {
+                    key: Key::Named(key::Named::F1),
+                    ..
+                }) => fx.select_page(Page::About),
+                Event::Keyboard(Kevent::KeyPressed {
+                    key: Key::Named(key::Named::F2),
+                    ..
+                }) => fx.select_page(Page::Export),
+                Event::Keyboard(Kevent::KeyPressed {
+                    key: Key::Named(key::Named::F9),
+                    ..
+                }) => fx.select_page(Page::Settings),
+                Event::Keyboard(Kevent::KeyPressed {
+                    key: Key::Named(key::Named::Tab),
+                    modifiers,
+                    ..
+                }) if modifiers.control() => fx.select_page(if modifiers.shift() {
+                    fx.current_page.prev_page()
+                } else {
+                    fx.current_page.next_page()
+                }),
                 _ => Task::none(),
             },
         }
