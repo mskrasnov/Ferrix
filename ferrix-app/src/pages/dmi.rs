@@ -34,7 +34,7 @@ use ferrix_lib::dmi::{
 };
 use iced::{
     Element, Length,
-    widget::{column, container, scrollable, table, text},
+    widget::{Id, column, container, scrollable, table, text},
 };
 
 pub fn dmi_page<'a>(dmi: &'a DataLoadingState<DMIData>) -> container::Container<'a, Message> {
@@ -45,7 +45,11 @@ pub fn dmi_page<'a>(dmi: &'a DataLoadingState<DMIData>) -> container::Container<
             let chassis = chassis_table(&data.chassis);
             let proc = processor_table(&data.processor);
 
-            container(scrollable(column![bios, baseboard, chassis, proc,].spacing(5)).spacing(5))
+            container(
+                scrollable(column![bios, baseboard, chassis, proc,].spacing(5))
+                    .spacing(5)
+                    .id(Id::new(super::Page::DMI.page_id())),
+            )
         }
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),

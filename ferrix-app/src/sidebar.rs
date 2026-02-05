@@ -23,7 +23,7 @@
 use iced::{
     Alignment::Center,
     Element, Length,
-    widget::{column, container, row, scrollable, text},
+    widget::{Id, column, container, row, scrollable, text},
 };
 
 use crate::{
@@ -71,17 +71,20 @@ pub fn sidebar<'a>(cur_page: Page) -> Element<'a, Message> {
         Item::Page(Page::Settings),
         Item::Page(Page::About),
     ];
-    let mut pages_list = iced::widget::Column::with_capacity(pages.len())
-        .spacing(3);
+    let mut pages_list = iced::widget::Column::with_capacity(pages.len()).spacing(3);
 
     for page in pages {
         pages_list = pages_list.push(page.widget(cur_page));
     }
 
-    container(column![buttons, scrollable(pages_list).spacing(5)])
-        .padding(5)
-        .style(container::bordered_box).height(Length::Fill)
-        .into()
+    container(column![
+        buttons,
+        scrollable(pages_list).spacing(5).id(Id::new("sidebar")),
+    ])
+    .padding(5)
+    .style(container::bordered_box)
+    .height(Length::Fill)
+    .into()
 }
 
 enum Item {

@@ -21,10 +21,10 @@
 use crate::{
     ferrix::Ferrix,
     load_state::LoadState,
-    messages::{DataReceiverMessage, Message},
+    messages::{DataReceiverMessage, KeyboardMessage, Message},
     pages::Page,
 };
-use iced::{Subscription, time};
+use iced::{Subscription, event, time};
 use std::time::Duration;
 
 type Script<T> = Subscription<T>;
@@ -48,6 +48,7 @@ impl Ferrix {
     pub fn subscription(&self) -> Script<Message> {
         let charts_uperiod = self.settings.charts_update_period_nsecs as f32 * 0.1;
         let mut scripts = vec![
+            event::listen().map(|event| Message::Keyboard(KeyboardMessage::Event(event))),
             // Charts
             time::every(Duration::from_secs_f32(charts_uperiod))
                 .map(|_| Message::DataReceiver(DataReceiverMessage::AddCPUCoreLineSeries)),

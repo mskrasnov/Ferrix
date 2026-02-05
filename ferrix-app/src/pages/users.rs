@@ -27,7 +27,7 @@ use crate::{
 };
 use ferrix_lib::sys::Users;
 
-use iced::widget::{column, container, scrollable, text};
+use iced::widget::{Id, column, container, scrollable, text};
 
 pub fn users_page<'a>(users: &'a DataLoadingState<Users>) -> container::Container<'a, Message> {
     match users {
@@ -49,7 +49,11 @@ pub fn users_page<'a>(users: &'a DataLoadingState<Users>) -> container::Containe
                 .spacing(5);
                 users_list = users_list.push(usr_view);
             }
-            container(scrollable(users_list).spacing(5))
+            container(
+                scrollable(users_list)
+                    .spacing(5)
+                    .id(Id::new(super::Page::Users.page_id())),
+            )
         }
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),

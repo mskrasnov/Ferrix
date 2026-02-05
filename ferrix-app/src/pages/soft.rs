@@ -1,6 +1,6 @@
 /* soft.rs
  *
- * Copyright 2025 Michail Krasnov <mskrasnov07@ya.ru>
+ * Copyright 2025-2026 Michail Krasnov <mskrasnov07@ya.ru>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,9 @@ use ferrix_lib::soft::{InstalledPackages, Package};
 
 use iced::{
     Length,
-    widget::{button, column, container, row as _row, scrollable, space::horizontal, table, text},
+    widget::{
+        Id, button, column, container, row as _row, scrollable, space::horizontal, table, text,
+    },
 };
 
 pub fn soft_page<'a>(
@@ -44,7 +46,11 @@ fn soft_list<'a>(
             let services_count = text(fl!("soft-total", total = pkgs.len()));
 
             let layout = column![services_count, table].spacing(5);
-            container(scrollable(layout))
+            container(
+                scrollable(layout)
+                    .spacing(5)
+                    .id(Id::new(super::Page::Software.page_id())),
+            )
         }
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),

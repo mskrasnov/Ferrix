@@ -1,6 +1,6 @@
 /* env.rs
  *
- * Copyright 2025 Michail Krasnov <mskrasnov07@ya.ru>
+ * Copyright 2025-2026 Michail Krasnov <mskrasnov07@ya.ru>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ use crate::{
     widgets::table::{InfoRow, kv_info_table},
 };
 
-use iced::widget::{container, scrollable};
+use iced::widget::{Id, container, scrollable};
 
 pub fn env_page<'a>(
     system: &'a DataLoadingState<crate::System>,
@@ -38,7 +38,11 @@ pub fn env_page<'a>(
                 rows.push(InfoRow::new(&var.0, Some(var.1.to_string())));
             }
             let table = container(kv_info_table(rows)).style(container::rounded_box);
-            container(scrollable(table).spacing(5))
+            container(
+                scrollable(table)
+                    .spacing(5)
+                    .id(Id::new(super::Page::Environment.page_id())),
+            )
         }
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),

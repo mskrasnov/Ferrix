@@ -27,7 +27,7 @@ use crate::{
 };
 use ferrix_lib::sys::Groups;
 
-use iced::widget::{column, container, scrollable, text};
+use iced::widget::{Id, column, container, scrollable, text};
 
 pub fn groups_page<'a>(groups: &'a DataLoadingState<Groups>) -> container::Container<'a, Message> {
     match groups {
@@ -46,7 +46,11 @@ pub fn groups_page<'a>(groups: &'a DataLoadingState<Groups>) -> container::Conta
                 .spacing(5);
                 groups_list = groups_list.push(grp_view);
             }
-            container(scrollable(groups_list).spacing(5))
+            container(
+                scrollable(groups_list)
+                    .spacing(5)
+                    .id(Id::new(super::Page::Groups.page_id())),
+            )
         }
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),

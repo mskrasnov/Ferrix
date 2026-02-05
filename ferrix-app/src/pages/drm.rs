@@ -1,6 +1,6 @@
 /* drm.rs
  *
- * Copyright 2025 Michail Krasnov <mskrasnov07@ya.ru>
+ * Copyright 2025-2026 Michail Krasnov <mskrasnov07@ya.ru>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ use crate::{
     },
 };
 use ferrix_lib::drm::{DRM, EDID, Video, VideoInputParams};
-use iced::widget::{center, column, container, scrollable, text};
+use iced::widget::{Id, center, column, container, scrollable, text};
 
 pub fn drm_page<'a>(video: &'a DataLoadingState<Video>) -> container::Container<'a, Message> {
     match video {
@@ -44,7 +44,11 @@ pub fn drm_page<'a>(video: &'a DataLoadingState<Video>) -> container::Container<
                     layout = layout.push(screen_subpage(device, i));
                     i += 1;
                 }
-                container(scrollable(layout).spacing(5))
+                container(
+                    scrollable(layout)
+                        .spacing(5)
+                        .id(Id::new(super::Page::Screen.page_id())),
+                )
             }
         }
         DataLoadingState::Error(why) => super::error_page(why),

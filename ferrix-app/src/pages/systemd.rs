@@ -27,7 +27,7 @@ use ferrix_lib::init::{ActiveState, LoadState, ServiceInfo, SystemdServices, Wor
 
 use iced::{
     Length,
-    widget::{button, column, container, row, scrollable, table, text},
+    widget::{Id, button, column, container, row, scrollable, table, text},
 };
 
 fn srv_table<'a>(rows: &'a [ServiceInfo]) -> table::Table<'a, Message> {
@@ -108,7 +108,11 @@ pub fn services_page<'a>(
             let services_count = text(fl!("sysd-total", total = units.len()));
 
             let layout = column![warn_txt, services_count, table,].spacing(5);
-            container(scrollable(layout).spacing(5))
+            container(
+                scrollable(layout)
+                    .spacing(5)
+                    .id(Id::new(super::Page::SystemManager.page_id())),
+            )
         }
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),

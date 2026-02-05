@@ -152,6 +152,43 @@ impl<'a> Page {
         header_text(self.title_str())
     }
 
+    pub fn scrolled_list_id(&self) -> Option<&'static str> {
+        match self {
+            Self::Processors => Some("proc-list"),
+            _ => None,
+        }
+    }
+
+    pub fn page_id(&self) -> &'static str {
+        match self {
+            Self::Dashboard => "dash",
+            Self::Processors => "proc",
+            Self::CPUFrequency => "cpufreq",
+            Self::CPUVulnerabilities => "cpuvuln",
+            Self::SystemMonitor => "sysmon",
+            Self::Memory => "mem",
+            Self::FileSystems => "fs",
+            Self::DMI => "dmi",
+            Self::Battery => "bat",
+            Self::Screen => "drm",
+            Self::Distro => "distro",
+            Self::SystemMisc => "sys",
+            Self::Users => "usr",
+            Self::Groups => "grp",
+            Self::SystemManager => "sysd",
+            Self::Software => "pkg",
+            Self::Environment => "env",
+            Self::Sensors => "hwmon",
+            Self::Kernel => "krn",
+            Self::KModules => "kmds",
+            Self::Development => "dev",
+            Self::Settings => "set",
+            Self::About => "about",
+            Self::Export => "export",
+            Self::Todo => "todo",
+        }
+    }
+
     pub fn title_str(&self) -> String {
         match self {
             Self::Dashboard => fl!("page-dashboard"),

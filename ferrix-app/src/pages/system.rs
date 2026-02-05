@@ -27,7 +27,7 @@ use crate::{
 };
 
 use ferrix_lib::sys::{LoadAVG, Uptime};
-use iced::widget::{container, scrollable};
+use iced::widget::{Id, container, scrollable};
 
 pub fn system_page<'a>(
     system: &'a DataLoadingState<crate::System>,
@@ -56,7 +56,11 @@ pub fn system_page<'a>(
 
             let sys_table = container(kv_info_table(rows)).style(container::rounded_box);
 
-            container(scrollable(sys_table))
+            container(
+                scrollable(sys_table)
+                    .spacing(5)
+                    .id(Id::new(super::Page::SystemMisc.page_id())),
+            )
         }
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),

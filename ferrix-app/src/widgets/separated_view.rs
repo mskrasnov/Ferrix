@@ -21,12 +21,14 @@
 use crate::messages::Message;
 use iced::{
     Element, Length, Pixels,
-    widget::{column, container, scrollable},
+    widget::{Id, column, container, scrollable},
 };
 
 pub struct SeparatedView<'a> {
     pub first_pane: Element<'a, Message>,
     pub second_pane: Element<'a, Message>,
+    pub first_pane_id: Option<&'static str>,
+    pub second_pane_id: Option<&'static str>,
 }
 
 impl<'a> SeparatedView<'a> {
@@ -34,14 +36,42 @@ impl<'a> SeparatedView<'a> {
         Self {
             first_pane: f.into(),
             second_pane: s.into(),
+            first_pane_id: None,
+            second_pane_id: None,
         }
     }
 
+    pub fn set_fpane_id(mut self, id: &'static str) -> Self {
+        self.first_pane_id = Some(id);
+        self
+    }
+
+    pub fn set_spane_id(mut self, id: &'static str) -> Self {
+        self.second_pane_id = Some(id);
+        self
+    }
+
     pub fn view(self) -> Element<'a, Message> {
-        let f = container(scrollable(self.first_pane).width(Length::Fill).spacing(5))
-            .style(container::rounded_box);
-        let s = container(scrollable(self.second_pane).width(Length::Fill).spacing(5))
-            .style(container::rounded_box);
+        let f = container(
+            scrollable(self.first_pane)
+                .width(Length::Fill)
+                .spacing(5)
+                .id(match self.first_pane_id {
+                    Some(id) => Id::new(id),
+                    None => Id::unique(),
+                }),
+        )
+        .style(container::rounded_box);
+        let s = container(
+            scrollable(self.second_pane)
+                .width(Length::Fill)
+                .spacing(5)
+                .id(match self.second_pane_id {
+                    Some(id) => Id::new(id),
+                    None => Id::unique(),
+                }),
+        )
+        .style(container::rounded_box);
 
         container(column![f.height(Length::Shrink).max_height(Pixels(170.)), s,].spacing(5)).into()
     }

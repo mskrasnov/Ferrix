@@ -1,6 +1,6 @@
 /* kernel.rs
  *
- * Copyright 2025 Michail Krasnov <mskrasnov07@ya.ru>
+ * Copyright 2025-2026 Michail Krasnov <mskrasnov07@ya.ru>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ use ferrix_lib::sys::{KModules, Kernel, Module};
 
 use iced::{
     Length,
-    widget::{center, column, container, scrollable, table, text},
+    widget::{Id, center, column, container, scrollable, table, text},
 };
 
 fn modules_table<'a>(rows: &'a [Module]) -> table::Table<'a, Message> {
@@ -91,7 +91,11 @@ pub fn kernel_page<'a>(
             ]
             .spacing(5);
 
-            container(scrollable(layout))
+            container(
+                scrollable(layout)
+                    .spacing(5)
+                    .id(Id::new(super::Page::Kernel.page_id())),
+            )
         }
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),
@@ -109,7 +113,11 @@ pub fn kmods_page<'a>(kmods: &'a DataLoadingState<KModules>) -> container::Conta
                 ))
             } else {
                 let table = container(modules_table(&kmods.modules)).style(container::rounded_box);
-                container(scrollable(table).spacing(5))
+                container(
+                    scrollable(table)
+                        .spacing(5)
+                        .id(Id::new(super::Page::KModules.page_id())),
+                )
             }
         }
         DataLoadingState::Error(why) => super::error_page(why),

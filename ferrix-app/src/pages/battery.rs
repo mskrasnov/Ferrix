@@ -29,7 +29,9 @@ use ferrix_lib::battery::{BatInfo, Battery, Level, Status};
 use iced::{
     Alignment::Center,
     Length,
-    widget::{center, column, container, progress_bar, row, scrollable, space::horizontal, text},
+    widget::{
+        Id, center, column, container, progress_bar, row, scrollable, space::horizontal, text,
+    },
 };
 
 pub fn bat_page<'a>(bat_info: &'a DataLoadingState<BatInfo>) -> container::Container<'a, Message> {
@@ -78,7 +80,11 @@ pub fn bat_page<'a>(bat_info: &'a DataLoadingState<BatInfo>) -> container::Conta
                 );
                 bat_list = bat_list.push(bat_table(bat));
             }
-            container(scrollable(bat_list).spacing(5))
+            container(
+                scrollable(bat_list)
+                    .spacing(5)
+                    .id(Id::new(super::Page::Battery.page_id())),
+            )
         }
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),

@@ -35,7 +35,11 @@ pub fn ram_page<'a>(
     ram: &'a DataLoadingState<RAM>,
     swaps: &'a DataLoadingState<Swaps>,
 ) -> container::Container<'a, Message> {
-    container(scrollable(column![ram_table(ram), swap_table(swaps),].spacing(5)).spacing(5))
+    container(
+        scrollable(column![ram_table(ram), swap_table(swaps),].spacing(5))
+            .spacing(5)
+            .id(super::Page::Memory.page_id()),
+    )
 }
 
 fn ram_table<'a>(ram: &'a DataLoadingState<RAM>) -> container::Container<'a, Message> {

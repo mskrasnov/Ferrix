@@ -25,7 +25,7 @@ use ferrix_lib::vulnerabilities::Vulnerabilities;
 
 use iced::{
     Length,
-    widget::{button, container, scrollable, table, text},
+    widget::{Id, button, container, scrollable, table, text},
 };
 
 pub fn vulnerabilities_page<'a>(
@@ -35,7 +35,11 @@ pub fn vulnerabilities_page<'a>(
         DataLoadingState::Loaded(vulns) => {
             let vulns = &vulns.list;
             let table = container(vuln_table(vulns)).style(container::rounded_box);
-            container(scrollable(table).spacing(5))
+            container(
+                scrollable(table)
+                    .spacing(5)
+                    .id(Id::new(super::Page::CPUVulnerabilities.page_id())),
+            )
         }
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),

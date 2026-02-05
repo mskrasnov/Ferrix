@@ -22,7 +22,7 @@
 
 use crate::{Message, Page, ferrix::FerrixData, fl, load_state::LoadState, widgets::card::Card};
 use ferrix_lib::{battery::Status, utils::Size};
-use iced::widget::{column, container, grid, progress_bar, scrollable, text};
+use iced::widget::{Id, column, container, grid, progress_bar, scrollable, text};
 
 #[derive(Debug, Clone, Copy)]
 struct SwapUsage<'a> {
@@ -267,5 +267,10 @@ pub fn dashboard<'a>(fx: &'a FerrixData) -> container::Container<'a, Message> {
     for item in items {
         gr = gr.push(item);
     }
-    container(scrollable(gr).spacing(5))
+
+    container(
+        scrollable(gr)
+            .spacing(5)
+            .id(Id::new(super::Page::Dashboard.page_id())),
+    )
 }

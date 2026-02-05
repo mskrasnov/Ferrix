@@ -33,7 +33,14 @@ use ferrix_lib::{
     traits::ToJson,
     vulnerabilities::Vulnerabilities,
 };
-use iced::{Task, color};
+use iced::{
+    Event, Task, color,
+    keyboard::{Event as Kevent, Key, Modifiers, key},
+    widget::{
+        Id,
+        operation::{self, AbsoluteOffset, RelativeOffset},
+    },
+};
 
 use crate::{
     DataLoadingState, Page, SETTINGS_PATH, System,
@@ -53,6 +60,7 @@ pub enum Message {
     Buttons(ButtonsMessage),
 
     SelectPage(Page),
+    Keyboard(KeyboardMessage),
     Dummy,
 }
 
@@ -67,6 +75,7 @@ impl Message {
             Self::Buttons(buttons) => buttons.update(state),
 
             Self::SelectPage(page) => state.select_page(page),
+            Self::Keyboard(keyboard) => keyboard.update(state),
             Self::Dummy => Task::none(),
         }
     }
@@ -75,6 +84,7 @@ impl Message {
 impl Ferrix {
     fn select_page(&mut self, page: Page) -> Task<Message> {
         self.current_page = page;
+        self.scrolled_area_id = page.scrolled_list_id();
         Task::none()
     }
 }
@@ -693,5 +703,111 @@ impl Ferrix {
     fn proc_selected(&mut self, id: usize) -> Task<Message> {
         self.data.selected_proc = id;
         Task::none()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum KeyboardMessage {
+    Event(Event),
+}
+
+fn get_id(page: Page, m: Modifiers) -> Id {
+    if m.shift() {
+        Id::new(page.scrolled_list_id().unwrap_or(""))
+    } else {
+        Id::new(page.page_id())
+    }
+}
+
+const SCROLL_UP: f32 = -20.;
+const SCROLL_DOWN: f32 = 20.;
+
+fn scroll_up(page: Page, m: Modifiers) -> Task<Message> {
+    let id = get_id(page, m);
+    operation::scroll_by(
+        id,
+        AbsoluteOffset {
+            x: 0.,
+            y: SCROLL_UP,
+        },
+    )
+}
+
+fn scroll_down(page: Page, m: Modifiers) -> Task<Message> {
+    let id = get_id(page, m);
+    operation::scroll_by(
+        id,
+        AbsoluteOffset {
+            x: 0.,
+            y: SCROLL_DOWN,
+        },
+    )
+}
+
+fn scroll_sidebar_up() -> Task<Message> {
+    operation::scroll_by(
+        Id::new("sidebar"),
+        AbsoluteOffset {
+            x: 0.,
+            y: SCROLL_UP,
+        },
+    )
+}
+
+fn scroll_sidebar_down() -> Task<Message> {
+    operation::scroll_by(
+        Id::new("sidebar"),
+        AbsoluteOffset {
+            x: 0.,
+            y: SCROLL_DOWN,
+        },
+    )
+}
+
+fn snap_up(page: Page) -> Task<Message> {
+    let id = Id::new(page.page_id());
+    operation::snap_to(id, RelativeOffset::START)
+}
+
+fn snap_down(page: Page) -> Task<Message> {
+    let id = Id::new(page.page_id());
+    operation::snap_to(id, RelativeOffset::END)
+}
+
+impl KeyboardMessage {
+    pub fn update<'a>(self, fx: &'a mut Ferrix) -> Task<Message> {
+        match self {
+            Self::Event(event) => match event {
+                Event::Keyboard(Kevent::KeyPressed {
+                    key: Key::Named(key::Named::ArrowDown),
+                    modifiers,
+                    ..
+                }) if !modifiers.control() => scroll_down(fx.current_page, modifiers),
+                Event::Keyboard(Kevent::KeyPressed {
+                    key: Key::Named(key::Named::ArrowUp),
+                    modifiers,
+                    ..
+                }) if !modifiers.control() => scroll_up(fx.current_page, modifiers),
+                Event::Keyboard(Kevent::KeyPressed {
+                    key: Key::Named(key::Named::ArrowDown),
+                    modifiers,
+                    ..
+                }) if modifiers.control() => scroll_sidebar_down(),
+                Event::Keyboard(Kevent::KeyPressed {
+                    key: Key::Named(key::Named::ArrowUp),
+                    modifiers,
+                    ..
+                }) if modifiers.control() => scroll_sidebar_up(),
+                Event::Keyboard(Kevent::KeyPressed {
+                    key: Key::Named(key::Named::PageDown),
+                    ..
+                }) => snap_down(fx.current_page),
+                Event::Keyboard(Kevent::KeyPressed {
+                    key: Key::Named(key::Named::PageUp),
+                    ..
+                }) => snap_up(fx.current_page),
+                _ => Task::none(),
+            },
+        }
     }
 }

@@ -20,8 +20,6 @@
 
 //! Data from `ferrix-lib`
 
-use std::collections::HashSet;
-
 use crate::{
     SETTINGS_PATH, dmi::DMIData, load_state::LoadState, messages::Message, pages::Page,
     settings::FXSettings, sidebar::sidebar, utils::get_home, widgets::line_charts::LineChart,
@@ -38,12 +36,14 @@ use ferrix_lib::{
     sys::{Groups, KModules, Kernel, OsRelease, Users},
     vulnerabilities::Vulnerabilities,
 };
+use std::collections::HashSet;
 
 #[derive(Debug)]
 pub struct Ferrix {
     pub current_page: Page,
     pub settings: FXSettings,
     pub data: FerrixData,
+    pub scrolled_area_id: Option<&'static str>,
 }
 
 impl Default for Ferrix {
@@ -60,6 +60,7 @@ impl Default for Ferrix {
             current_page: page,
             settings: settings.clone(),
             data: FerrixData::new(&settings),
+            scrolled_area_id: None,
         }
     }
 }

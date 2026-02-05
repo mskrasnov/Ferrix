@@ -70,7 +70,9 @@ pub fn proc_page<'a>(
             .padding(2);
             let second_panel = proc_info(proc, id);
 
-            let view = SeparatedView::new(first_panel, second_panel);
+            let view = SeparatedView::new(first_panel, second_panel)
+                .set_fpane_id(super::Page::Processors.scrolled_list_id().unwrap_or(""))
+                .set_spane_id(super::Page::Processors.page_id());
             container(view.view())
         }
         LoadState::Error(why) => super::error_page(why),

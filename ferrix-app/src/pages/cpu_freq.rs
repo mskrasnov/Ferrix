@@ -29,7 +29,7 @@ use crate::{
     },
 };
 use ferrix_lib::cpu_freq::CpuFreq;
-use iced::widget::{column, container, scrollable, text};
+use iced::widget::{Id, column, container, scrollable, text};
 
 pub fn cpu_freq_page<'a>(cpu_freq: &'a LoadState<CpuFreq>) -> container::Container<'a, Message> {
     match cpu_freq {
@@ -112,7 +112,11 @@ pub fn cpu_freq_page<'a>(cpu_freq: &'a LoadState<CpuFreq>) -> container::Contain
                 idx += 1;
             }
 
-            container(scrollable(policy_list).spacing(5))
+            container(
+                scrollable(policy_list)
+                    .spacing(5)
+                    .id(Id::new(super::Page::CPUFrequency.page_id())),
+            )
         }
         LoadState::Error(why) => super::error_page(why),
         LoadState::Loading => super::loading_page(),

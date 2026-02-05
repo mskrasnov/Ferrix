@@ -27,7 +27,7 @@ use crate::{
 };
 use ferrix_lib::sys::OsRelease;
 
-use iced::widget::{column, container, scrollable};
+use iced::widget::{Id, column, container, scrollable};
 
 pub fn distro_page<'a>(
     osrel: &'a DataLoadingState<OsRelease>,
@@ -60,7 +60,11 @@ pub fn distro_page<'a>(
             ];
 
             os_data = os_data.push(container(kv_info_table(rows)).style(container::rounded_box));
-            container(scrollable(os_data).spacing(5))
+            container(
+                scrollable(os_data)
+                    .spacing(5)
+                    .id(Id::new(super::Page::Distro.page_id())),
+            )
         }
         DataLoadingState::Error(why) => super::error_page(why),
         DataLoadingState::Loading => super::loading_page(),
