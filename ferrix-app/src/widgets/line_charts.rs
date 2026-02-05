@@ -220,19 +220,27 @@ impl Chart<Message> for LineChart {
     fn build_chart<DB: DrawingBackend>(&self, _state: &Self::State, mut builder: ChartBuilder<DB>) {
         let mut chart = builder
             .x_label_area_size(0)
-            .y_label_area_size(0)
+            .y_label_area_size(35)
             .margin(5)
             .build_cartesian_2d(0..(self.max_points), 0.0..100.0)
             .expect("Failed to build chart");
 
         chart
             .configure_mesh()
+            .axis_style(to_rgbcolor(self.style.y_axis_color).mix(0.05))
             .bold_line_style(to_rgbcolor(self.style.y_axis_color).mix(0.05))
+            .light_line_style(TRANSPARENT)
             .disable_x_axis()
             .disable_x_mesh()
-            .light_line_style(TRANSPARENT)
             .y_labels(8)
             .x_labels(self.max_points)
+            .y_label_style(
+                ("sans-serif", 10)
+                    .into_font()
+                    .color(&to_rgbcolor(self.style.y_axis_color))
+                    .transform(FontTransform::Rotate270),
+            )
+            .y_label_formatter(&|y: &f64| format!("{y:.0}%"))
             .draw()
             .expect("Failed to draw chart mesh");
 
