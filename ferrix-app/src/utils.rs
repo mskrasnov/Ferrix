@@ -21,6 +21,7 @@
 //! Utilities and helper functions
 
 use anyhow::Result;
+use iced::Color;
 use std::{
     env,
     path::{Path, PathBuf},
@@ -38,4 +39,14 @@ pub fn get_home() -> PathBuf {
     let home_env = env::var("HOME").unwrap_or("/tmp".to_string());
 
     Path::new(&home_env).to_path_buf()
+}
+
+pub trait ToColor {
+    fn to_color(&self) -> Color;
+}
+
+impl ToColor for (u8, u8, u8) {
+    fn to_color(&self) -> Color {
+        Color::from_rgb8(self.0, self.1, self.2)
+    }
 }

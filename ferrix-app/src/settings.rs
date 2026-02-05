@@ -1,6 +1,6 @@
 /* settings.rs
  *
- * Copyright 2025 Michail Krasnov <mskrasnov07@ya.ru>
+ * Copyright 2025-2026 Michail Krasnov <mskrasnov07@ya.ru>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,9 +21,9 @@
 use anyhow::Result;
 use iced::{Theme, color};
 use serde::{Deserialize, Serialize};
-use std::{fmt::Display, fs, path::Path};
+use std::{collections::HashMap, fmt::Display, fs, path::Path};
 
-use crate::fl;
+use crate::{fl, styles::CPU_CHARTS_COLORS};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct FXSettings {
@@ -31,6 +31,7 @@ pub struct FXSettings {
     pub charts_update_period_nsecs: u8,
     pub style: Style,
     pub chart_line_thickness: ChartLineThickness,
+    pub chart_colors: ChartColors,
 }
 
 impl FXSettings {
@@ -54,6 +55,7 @@ impl Default for FXSettings {
             charts_update_period_nsecs: 5,
             style: Style::default(),
             chart_line_thickness: ChartLineThickness::default(),
+            chart_colors: ChartColors::default(),
         }
     }
 }
@@ -108,9 +110,8 @@ impl Display for Style {
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Default, Deserialize, Serialize)]
 pub enum ChartLineThickness {
-    OnePixel,
-
     #[default]
+    OnePixel,
     TwoPixel,
 }
 
@@ -137,3 +138,36 @@ impl Display for ChartLineThickness {
         )
     }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChartColors {
+    pub colors: HashMap<String, (u8, u8, u8)>,
+    pub default_colors: Vec<(u8, u8, u8)>,
+}
+
+impl Default for ChartColors {
+    fn default() -> Self {
+        Self {
+            colors: {
+                let mut colors = HashMap::new();
+                let mut i = 0;
+                for color in CPU_CHARTS_COLORS {
+                    let c = color.into_rgba8();
+                    let c = (c[0], c[1], c[2]);
+                    colors.insert(format!("CPU #{i}"), c);
+                    i += 1;
+                }
+                colors
+            },
+            default_colors: CPU_CHARTS_COLORS
+                .iter()
+                .map(|c| {
+                    let c = c.into_rgba8();
+                    (c[0], c[1], c[2])
+                })
+                .collect(),
+        }
+    }
+}
+
+impl ChartColors {}

@@ -1,6 +1,6 @@
 /* messages.rs
  *
- * Copyright 2025 Michail Krasnov <mskrasnov07@ya.ru>
+ * Copyright 2025-2026 Michail Krasnov <mskrasnov07@ya.ru>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,9 +40,8 @@ use crate::{
     dmi::DMIData,
     export::{ExportData, ExportFormat, ExportMode},
     ferrix::{Ferrix, FerrixData},
-    settings::{ChartLineThickness, Style},
-    styles::CPU_CHARTS_COLORS,
-    utils::get_home,
+    settings::{ChartLineThickness, FXSettings, Style},
+    utils::{ToColor, get_home},
     widgets::line_charts::LineSeries,
 };
 
@@ -60,7 +59,9 @@ pub enum Message {
 impl Message {
     pub fn update<'a>(self, state: &'a mut Ferrix) -> Task<Message> {
         match self {
-            Self::DataReceiver(data) => data.update(&mut state.data, state.current_page),
+            Self::DataReceiver(data) => {
+                data.update(&mut state.data, &mut state.settings, state.current_page)
+            }
             Self::ExportManager(export) => export.update(state),
             Self::Settings(settings) => settings.update(state),
             Self::Buttons(buttons) => buttons.update(state),
@@ -142,7 +143,12 @@ pub enum DataReceiverMessage {
 }
 
 impl DataReceiverMessage {
-    pub fn update<'a>(self, fx: &'a mut FerrixData, cur_page: Page) -> Task<Message> {
+    pub fn update<'a>(
+        self,
+        fx: &'a mut FerrixData,
+        settings: &'a mut FXSettings,
+        cur_page: Page,
+    ) -> Task<Message> {
         match self {
             Self::CPUDataReceived(state) => {
                 fx.proc_data = state;
@@ -202,21 +208,29 @@ impl DataReceiverMessage {
                 }
                 let len = curr_proc.cpus.len();
 
-                let colors = CPU_CHARTS_COLORS;
+                let colors_set = &settings.chart_colors.colors;
+                let def_colors = &settings.chart_colors.default_colors;
+
                 for id in 0..len {
                     let percent =
                         curr_proc.cpus[id].usage_percentage(Some(prev_proc.cpus[id])) as f64;
 
                     if fx.show_cpus_chart.get(&id).is_none() {
+                        let name = format!("CPU #{id}");
                         let color = {
-                            if colors.len() - 1 < id {
-                                color!(255, 255, 255)
-                            } else {
-                                colors[id]
+                            let hm_color = colors_set.get(&name);
+                            match hm_color {
+                                Some(col) => col.to_color(),
+                                None => {
+                                    if def_colors.len() - 1 < id {
+                                        color!(255, 255, 255)
+                                    } else {
+                                        def_colors[id].to_color()
+                                    }
+                                }
                             }
                         };
-                        let mut line =
-                            LineSeries::new(format!("CPU #{id}"), color, fx.show_chart_elements);
+                        let mut line = LineSeries::new(name, color, fx.show_chart_elements);
                         line.push(percent);
 
                         fx.cpu_usage_chart.push_series(line);
@@ -360,9 +374,14 @@ impl DataReceiverMessage {
                     return Task::none();
                 }
                 let ram = ram.to_option().unwrap();
-                let ram_color = color!(128, 64, 255);
-
                 let ram_usage = ram.usage_percentage().unwrap_or(0.);
+
+                let colors_set = &settings.chart_colors.colors;
+                let def_colors = &settings.chart_colors.default_colors;
+                let ram_color = match colors_set.get("RAM") {
+                    Some(col) => col.to_color(),
+                    None => color!(128, 64, 255),
+                };
 
                 if fx.ram_usage_chart.series_count() == 0 {
                     let mut ram_line = LineSeries::new(
@@ -379,19 +398,23 @@ impl DataReceiverMessage {
 
                 if let Some(swap) = swap.to_option() {
                     let len = swap.swaps.len();
-                    let colors = CPU_CHARTS_COLORS;
-
                     let current_series_cnt = fx.ram_usage_chart.series_count();
 
                     for id in 0..len {
                         let series_idx = id + 1;
                         let swap_usage = swap.swaps[id].usage_percentage().unwrap_or(0.);
+                        let swap_name = swap.swaps[id].filename.clone();
 
                         if series_idx >= current_series_cnt {
-                            let color = if colors.len() - 1 < id {
-                                color!(255, 255, 128)
-                            } else {
-                                colors[id]
+                            let color = match colors_set.get(&swap_name) {
+                                Some(col) => col.to_color(),
+                                None => {
+                                    if def_colors.len() - 1 < id {
+                                        color!(255, 255, 128)
+                                    } else {
+                                        def_colors[id].to_color()
+                                    }
+                                }
                             };
                             let mut line = LineSeries::new(
                                 swap.swaps[id].filename.clone(),
@@ -576,6 +599,7 @@ pub enum SettingsMessage {
     ChangeUpdatePeriod(u8),
     ChangeChartsUpdatePeriod(u8),
     ChangeChartLineThickness(ChartLineThickness),
+    SetChartItemColor(String, (u8, u8, u8)),
 }
 
 impl SettingsMessage {
@@ -585,6 +609,7 @@ impl SettingsMessage {
             Self::ChangeUpdatePeriod(secs) => fx.change_update_period(secs),
             Self::ChangeChartsUpdatePeriod(secs) => fx.change_charts_update_period(secs),
             Self::ChangeChartLineThickness(thick) => fx.change_line_thickness(thick),
+            Self::SetChartItemColor(item, color) => fx.set_chart_item_color(item, color),
         }
     }
 }
@@ -613,6 +638,11 @@ impl Ferrix {
         self.data.ram_usage_chart.set_line_thickness(thick);
 
         Task::none()
+    }
+
+    fn set_chart_item_color(&mut self, item: String, color: (u8, u8, u8)) -> Task<Message> {
+        self.settings.chart_colors.colors.insert(item, color);
+        self.save_settings()
     }
 }
 
