@@ -238,7 +238,6 @@ kernel-pid-max = Processes, max.
 kernel-threads-max = Threads, max.
 kernel-user-evs = User events, max.
 kernel-avail-enthropy = Available enthropy
-kernel-summary-hdr = Summary data
 kernel-mods-hdr = Loaded kernel modules
 kernel-mods-is-empty = Kernel modules are not loaded
 
@@ -329,8 +328,6 @@ sysd-hdr-descr = Description
 sysd-hdr-load = Loaded
 sysd-hdr-actv = Active
 sysd-hdr-work = Work
-sysd-warning = Warning:
-sysd-warn-txt = Increase the window size to display a number of lines more correctly!
 sysd-total = Total services: {$total}
 
 # SOFTWARE PAGE

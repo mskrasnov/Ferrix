@@ -27,8 +27,29 @@ use ferrix_lib::init::{ActiveState, LoadState, ServiceInfo, SystemdServices, Wor
 
 use iced::{
     Length,
-    widget::{Id, button, column, container, row, scrollable, table, text},
+    widget::{Id, button, column, container, scrollable, table, text},
 };
+
+pub fn services_page<'a>(
+    services: &'a DataLoadingState<SystemdServices>,
+) -> container::Container<'a, Message> {
+    match services {
+        DataLoadingState::Loaded(services) => {
+            let units = &services.units;
+            let table = container(srv_table(units)).style(container::rounded_box);
+            let services_count = text(fl!("sysd-total", total = units.len()));
+
+            let layout = column![services_count, table,].spacing(5);
+            container(
+                scrollable(layout)
+                    .spacing(5)
+                    .id(Id::new(super::Page::SystemManager.page_id())),
+            )
+        }
+        DataLoadingState::Error(why) => super::error_page(why),
+        DataLoadingState::Loading => super::loading_page(),
+    }
+}
 
 fn srv_table<'a>(rows: &'a [ServiceInfo]) -> table::Table<'a, Message> {
     let columns = [
@@ -90,31 +111,4 @@ fn srv_table<'a>(rows: &'a [ServiceInfo]) -> table::Table<'a, Message> {
     ];
 
     table(columns, rows).padding(2).width(Length::Fill)
-}
-
-pub fn services_page<'a>(
-    services: &'a DataLoadingState<SystemdServices>,
-) -> container::Container<'a, Message> {
-    match services {
-        DataLoadingState::Loaded(services) => {
-            let units = &services.units;
-            let table = container(srv_table(units)).style(container::rounded_box);
-            let warn_txt = {
-                let hdr = text(fl!("sysd-warning")).style(text::warning);
-                let body = text(fl!("sysd-warn-txt"));
-
-                row![hdr, body].spacing(5)
-            };
-            let services_count = text(fl!("sysd-total", total = units.len()));
-
-            let layout = column![warn_txt, services_count, table,].spacing(5);
-            container(
-                scrollable(layout)
-                    .spacing(5)
-                    .id(Id::new(super::Page::SystemManager.page_id())),
-            )
-        }
-        DataLoadingState::Error(why) => super::error_page(why),
-        DataLoadingState::Loading => super::loading_page(),
-    }
 }

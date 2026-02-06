@@ -238,7 +238,6 @@ kernel-pid-max = Макс. число процессов
 kernel-threads-max = Макс. число потоков
 kernel-user-evs = Макс. число user events
 kernel-avail-enthropy = Доступная энтропия
-kernel-summary-hdr = Информация о ядре
 kernel-mods-hdr = Загруженные модули ядра
 kernel-mods-is-empty = Модули ядра не загружены
 
@@ -329,8 +328,6 @@ sysd-hdr-descr = Описание
 sysd-hdr-load = Загружен
 sysd-hdr-actv = Активен
 sysd-hdr-work = Работает
-sysd-warning = Внимание:
-sysd-warn-txt = Увеличьте размер окна для более корректного отображения ряда строк!
 sysd-total = Всего сервисов: {$total}
 
 # SOFTWARE PAGE

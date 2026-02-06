@@ -29,8 +29,59 @@ use ferrix_lib::sys::{KModules, Kernel, Module};
 
 use iced::{
     Length,
-    widget::{Id, center, column, container, scrollable, table, text},
+    widget::{Id, center, container, scrollable, table, text},
 };
+
+pub fn kernel_page<'a>(
+    kernel_data: &'a DataLoadingState<Kernel>,
+) -> container::Container<'a, Message> {
+    match kernel_data {
+        DataLoadingState::Loaded(kern) => {
+            let rows = vec![
+                InfoRow::new(fl!("kernel-summary"), kern.uname.clone()),
+                InfoRow::new(fl!("kernel-cmdline"), kern.cmdline.clone()),
+                InfoRow::new(fl!("kernel-arch"), kern.arch.clone()),
+                InfoRow::new(fl!("kernel-version"), kern.version.clone()),
+                InfoRow::new(fl!("kernel-build"), kern.build_info.clone()),
+                InfoRow::new(fl!("kernel-pid-max"), fmt_val(Some(kern.pid_max))),
+                InfoRow::new(fl!("kernel-threads-max"), fmt_val(Some(kern.threads_max))),
+                InfoRow::new(fl!("kernel-user-evs"), fmt_val(kern.user_events_max)),
+                InfoRow::new(fl!("kernel-avail-enthropy"), fmt_val(kern.enthropy_avail)),
+            ];
+
+            container(
+                scrollable(container(kv_info_table(rows)).style(container::rounded_box))
+                    .spacing(5)
+                    .id(Id::new(super::Page::Kernel.page_id())),
+            )
+        }
+        DataLoadingState::Error(why) => super::error_page(why),
+        DataLoadingState::Loading => super::loading_page(),
+    }
+}
+
+pub fn kmods_page<'a>(kmods: &'a DataLoadingState<KModules>) -> container::Container<'a, Message> {
+    match kmods {
+        DataLoadingState::Loaded(kmods) => {
+            if kmods.modules.is_empty() {
+                container(center(
+                    text(fl!("kernel-mods-is-empty"))
+                        .size(16)
+                        .style(text::secondary),
+                ))
+            } else {
+                let table = container(modules_table(&kmods.modules)).style(container::rounded_box);
+                container(
+                    scrollable(table)
+                        .spacing(5)
+                        .id(Id::new(super::Page::KModules.page_id())),
+                )
+            }
+        }
+        DataLoadingState::Error(why) => super::error_page(why),
+        DataLoadingState::Loading => super::loading_page(),
+    }
+}
 
 fn modules_table<'a>(rows: &'a [Module]) -> table::Table<'a, Message> {
     let columns = [
@@ -66,61 +117,4 @@ fn modules_table<'a>(rows: &'a [Module]) -> table::Table<'a, Message> {
     ];
 
     table(columns, rows).padding(2).width(Length::Fill)
-}
-
-pub fn kernel_page<'a>(
-    kernel_data: &'a DataLoadingState<Kernel>,
-) -> container::Container<'a, Message> {
-    match kernel_data {
-        DataLoadingState::Loaded(kern) => {
-            let rows = vec![
-                InfoRow::new(fl!("kernel-summary"), kern.uname.clone()),
-                InfoRow::new(fl!("kernel-cmdline"), kern.cmdline.clone()),
-                InfoRow::new(fl!("kernel-arch"), kern.arch.clone()),
-                InfoRow::new(fl!("kernel-version"), kern.version.clone()),
-                InfoRow::new(fl!("kernel-build"), kern.build_info.clone()),
-                InfoRow::new(fl!("kernel-pid-max"), fmt_val(Some(kern.pid_max))),
-                InfoRow::new(fl!("kernel-threads-max"), fmt_val(Some(kern.threads_max))),
-                InfoRow::new(fl!("kernel-user-evs"), fmt_val(kern.user_events_max)),
-                InfoRow::new(fl!("kernel-avail-enthropy"), fmt_val(kern.enthropy_avail)),
-            ];
-
-            let layout = column![
-                text(fl!("kernel-summary-hdr")).style(text::warning),
-                container(kv_info_table(rows)).style(container::rounded_box),
-            ]
-            .spacing(5);
-
-            container(
-                scrollable(layout)
-                    .spacing(5)
-                    .id(Id::new(super::Page::Kernel.page_id())),
-            )
-        }
-        DataLoadingState::Error(why) => super::error_page(why),
-        DataLoadingState::Loading => super::loading_page(),
-    }
-}
-
-pub fn kmods_page<'a>(kmods: &'a DataLoadingState<KModules>) -> container::Container<'a, Message> {
-    match kmods {
-        DataLoadingState::Loaded(kmods) => {
-            if kmods.modules.is_empty() {
-                container(center(
-                    text(fl!("kernel-mods-is-empty"))
-                        .size(16)
-                        .style(text::secondary),
-                ))
-            } else {
-                let table = container(modules_table(&kmods.modules)).style(container::rounded_box);
-                container(
-                    scrollable(table)
-                        .spacing(5)
-                        .id(Id::new(super::Page::KModules.page_id())),
-                )
-            }
-        }
-        DataLoadingState::Error(why) => super::error_page(why),
-        DataLoadingState::Loading => super::loading_page(),
-    }
 }
