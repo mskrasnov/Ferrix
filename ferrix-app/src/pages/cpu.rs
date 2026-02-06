@@ -67,8 +67,10 @@ pub fn proc_page<'a>(
                 ]
                 .spacing(5),
             )
+            .style(container::rounded_box)
+            .width(Length::Fill)
             .padding(2);
-            let second_panel = proc_info(proc, id);
+            let second_panel = proc_info(proc, id).style(container::rounded_box);
 
             let view = SeparatedView::new(first_panel, second_panel)
                 .set_fpane_id(super::Page::Processors.scrolled_list_id().unwrap_or(""))
@@ -105,6 +107,8 @@ fn proc_info<'a>(proc: &'a Processors, id: usize) -> container::Container<'a, Me
         InfoRow::new(fl!("cpu-vendor"), proc.vendor_id.clone()),
         InfoRow::new(fl!("cpu-physical-id"), fmt_val(proc.physical_id)),
         InfoRow::new(fl!("cpu-core-id"), fmt_val(proc.core_id)),
+        InfoRow::new(fl!("cpu-apicid"), fmt_val(proc.apicid)),
+        InfoRow::new(fl!("cpu-iapicid"), fmt_val(proc.initial_apicid)),
         InfoRow::new(fl!("cpu-family"), fmt_val(proc.cpu_family)),
         InfoRow::new(fl!("cpu-stepping"), fmt_val(proc.stepping)),
         InfoRow::new(fl!("cpu-microcode"), proc.microcode.clone()),
@@ -112,8 +116,6 @@ fn proc_info<'a>(proc: &'a Processors, id: usize) -> container::Container<'a, Me
         InfoRow::new(fl!("cpu-cache"), fmt_val(proc.cache_size)),
         InfoRow::new(fl!("cpu-siblings"), fmt_val(proc.siblings)),
         InfoRow::new(fl!("cpu-cpu-cores"), fmt_val(proc.cpu_cores)),
-        InfoRow::new(fl!("cpu-apicid"), fmt_val(proc.apicid)),
-        InfoRow::new(fl!("cpu-iapicid"), fmt_val(proc.initial_apicid)),
         InfoRow::new(fl!("cpu-fpu"), fmt_bool(proc.fpu)),
         InfoRow::new(fl!("cpu-fpu-e"), fmt_bool(proc.fpu_exception)),
         InfoRow::new(fl!("cpu-cpuid-lvl"), fmt_val(proc.cpuid_level)),
