@@ -171,11 +171,7 @@ impl LineChart {
             );
         }
 
-        let mut gr = grid([])
-            .spacing(5)
-            .columns(8)
-            .fluid(125.)
-            .height(iced::Length::Shrink);
+        let mut gr = grid([]).columns(8).fluid(125.).height(iced::Length::Shrink);
         for item in items {
             gr = gr.push(item);
         }
