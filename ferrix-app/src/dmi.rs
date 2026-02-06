@@ -37,14 +37,15 @@ fn path() -> Vec<String> {
         .unwrap_or(vec!["/usr/bin".to_string()])
 }
 
-fn auth_app() -> Option<&'static str> {
+fn auth_app() -> Option<String> {
     let apps = ["pkexec", "gksudo"];
     let bin_dirs = &PATH;
 
     for a in apps {
         for b in bin_dirs.as_slice() {
-            if Path::new(b).join(a).exists() {
-                return Some(a);
+            let s = Path::new(b).join(a);
+            if s.exists() {
+                return Some(s.display().to_string());
             }
         }
     }
@@ -73,8 +74,6 @@ pub async fn get_dmi_data() -> LoadState<DMIData> {
         Some(fx_app) => fx_app,
         None => return LoadState::Error("No `ferrix-app` program found".to_string()),
     };
-
-    dbg!(&auth_app, &fx_app);
 
     let output =
         task::spawn_blocking(move || Command::new(auth_app).arg(fx_app).arg("dmi").output()).await;
