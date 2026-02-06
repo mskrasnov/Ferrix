@@ -29,6 +29,7 @@ pub struct SeparatedView<'a> {
     pub second_pane: Element<'a, Message>,
     pub first_pane_id: Option<&'static str>,
     pub second_pane_id: Option<&'static str>,
+    pub fpane_max_height: f32,
 }
 
 impl<'a> SeparatedView<'a> {
@@ -38,6 +39,7 @@ impl<'a> SeparatedView<'a> {
             second_pane: s.into(),
             first_pane_id: None,
             second_pane_id: None,
+            fpane_max_height: 170.,
         }
     }
 
@@ -51,6 +53,11 @@ impl<'a> SeparatedView<'a> {
         self
     }
 
+    pub fn set_fpane_max_height(mut self, height: f32) -> Self {
+        self.fpane_max_height = height;
+        self
+    }
+
     pub fn view(self) -> Element<'a, Message> {
         let f = container(
             scrollable(self.first_pane)
@@ -60,8 +67,7 @@ impl<'a> SeparatedView<'a> {
                     Some(id) => Id::new(id),
                     None => Id::unique(),
                 }),
-        )
-        .style(container::rounded_box);
+        );
         let s = container(
             scrollable(self.second_pane)
                 .width(Length::Fill)
@@ -70,9 +76,16 @@ impl<'a> SeparatedView<'a> {
                     Some(id) => Id::new(id),
                     None => Id::unique(),
                 }),
-        )
-        .style(container::rounded_box);
+        );
 
-        container(column![f.height(Length::Shrink).max_height(Pixels(170.)), s,].spacing(5)).into()
+        container(
+            column![
+                f.height(Length::Shrink)
+                    .max_height(Pixels(self.fpane_max_height)),
+                s,
+            ]
+            .spacing(5),
+        )
+        .into()
     }
 }
