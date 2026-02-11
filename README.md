@@ -33,9 +33,7 @@ Ferrix System Monitor is a Rust-crate and program for obtaining information abou
 
 ## Build & Install
 
-<div align="center">
-    [![](https://img.shields.io/github/downloads/mskrasnov/fsm/total?color=red)](https://github.com/mskrasnov/FSM/releases) [![](https://img.shields.io/github/downloads/mskrasnov/fsm/latest/total?color=green)](https://github.com/mskrasnov/FSM/releases/latest)
-</div>
+[![](https://img.shields.io/github/downloads/mskrasnov/fsm/total?color=red)](https://github.com/mskrasnov/FSM/releases) [![](https://img.shields.io/github/downloads/mskrasnov/fsm/latest/total?color=green)](https://github.com/mskrasnov/FSM/releases/latest)
 
 ```bash
 git clone https://github.com/mskrasnov/Ferrix
